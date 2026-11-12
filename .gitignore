@@ -1,0 +1,11 @@
+# raw team data (contains raw reviews with reviewer names) – never commit
+data/raw/
+
+# test output and local tools
+tests/out/
+tests/node_modules/
+node_modules/
+__pycache__/
+*.pyc
+dist/
+.DS_Store
