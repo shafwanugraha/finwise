@@ -531,9 +531,9 @@ table.cmp td.best{background:var(--safe-tint)}
 .home-hero .lead{font-size:1.0938rem;color:var(--muted);margin:16px 0 24px;max-width:50ch}
 .hh-note{display:flex;gap:8px;align-items:flex-start;margin-top:16px;font-size:.8125rem;color:var(--muted);max-width:52ch}
 .hh-note .ico{color:var(--green);margin-top:2px}
-.hero-art{width:100%;max-width:460px;height:auto;justify-self:center}
+.hero-art,.hero-img{width:100%;max-width:520px;height:auto;justify-self:center}
 .hero-art text{font-family:var(--display)}
-@media (max-width:860px){.home-hero{grid-template-columns:minmax(0,1fr)}.hero-art{max-width:320px}}
+@media (max-width:860px){.home-hero{grid-template-columns:minmax(0,1fr)}.hero-art,.hero-img{max-width:360px}}
 
 /* assessment route: three stops on one line */
 .journey{margin:36px 0 12px}
@@ -605,6 +605,7 @@ table.cmp td.best{background:var(--safe-tint)}
 .challenge .ch-text{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
 .challenge .ch-text b{font-family:var(--display);font-size:1.125rem}
 .challenge .ch-text span{color:#D6EADF;font-size:.875rem}
+.challenge .ch-text small{color:#FFD58A;font-weight:700;font-size:.75rem}
 .challenge:hover .btn{filter:brightness(1.05)}
 @media (max-width:600px){.challenge{flex-wrap:wrap}.challenge .btn{width:100%}}
 .cloned p{font-size:.8125rem;color:var(--muted)}
@@ -1028,7 +1029,7 @@ const fmtIn = n => (Math.round(n) || 0).toLocaleString('id-ID');
 const ROUTES = ['home', 'mulai', 'cek', 'pilah', 'pulih', 'kalkulator', 'openspace', 'berizin', 'pinjol', 'ilegal', 'keluhan', 'bandingkan', 'statistik', 'main', 'hasil'];
 const ALIAS = { uji: 'main', ringkasan: 'cek', misi: 'main' };
 const OS_ROUTES = ['openspace', 'berizin', 'pinjol', 'ilegal', 'keluhan', 'bandingkan', 'statistik'];
-const TITLES = { home: 'Beranda', mulai: 'Isi data saya', ringkasan: 'Hasil keuanganmu', cek: 'CEK', pilah: 'PILAH', pulih: 'PULIH', kalkulator: 'Kalkulator pinjaman', openspace: 'Database Pinjol', berizin: 'Pindar berizin', pinjol: 'Profil pinjol', ilegal: 'Pinjol ilegal', keluhan: 'Pemantau keluhan', bandingkan: 'Bandingkan pinjol', statistik: 'Statistik industri', main: 'Tantangan 3 Hari', hasil: 'Data validasi' };
+const TITLES = { home: 'Beranda', mulai: 'Isi data saya', ringkasan: 'Hasil keuanganmu', cek: 'CEK', pilah: 'PILAH', pulih: 'PULIH', kalkulator: 'Kalkulator pinjaman', openspace: 'Database Pinjol', berizin: 'Pindar berizin', pinjol: 'Profil pinjol', ilegal: 'Pinjol ilegal', keluhan: 'Pemantau keluhan', bandingkan: 'Bandingkan pinjol', statistik: 'Statistik industri', main: 'Game Lolos Jebakan Pinjol', hasil: 'Data validasi' };
 const ZONE = { safe: ['Aman', 'z-safe'], stretch: ['Mepet', 'z-stretch'], danger: ['Bahaya', 'z-danger'] };
 const zpill = z => `<span class="pill ${ZONE[z][1]}">${ZONE[z][0]}</span>`;
 const AV = { kirana: '#2E8B6A', dimas: '#C9801A', bima: '#134A36', saya: '#5B6B8A' };
@@ -1278,14 +1279,14 @@ const SIZES = ['Normal', 'Besar', 'Sangat besar'];
 const sizeBtn = () => `<button class="btn ghost sm textsize" data-act="textsize" aria-label="Ukuran teks: ${SIZES[S.textSize]}. Klik untuk ganti">Aa<span class="tiny">${['', '+', '++'][S.textSize]}</span></button>`;
 function header() {
   const r = S.route, on = (...ss) => ss.includes(r) ? ' on" aria-current="page' : '', p = P(), blank = needsSetup();
-  if (r === 'main' && S.test && S.test.stage > 0 && S.test.stage < 5) return `<header class="top"><div class="wrap">${LOGO}<span class="pill z-amber">Tantangan 3 Hari sedang berjalan</span><div class="who">${sizeBtn()}</div></div></header>`;
+  if (r === 'main' && S.test && S.test.stage > 0 && S.test.stage < 5) return `<header class="top"><div class="wrap">${LOGO}<span class="pill z-amber">Game sedang berjalan</span><div class="who">${sizeBtn()}</div></div></header>`;
   return `<header class="top"><div class="wrap">
     ${LOGO}
     <nav class="mainnav" aria-label="Menu utama">
       <a href="#cek" class="${on(...JOURNEY_ROUTES)}">${ico('route')}<span>Asesmen<span class="nl-x"> Pinjaman</span></span></a>
       <a href="#openspace" class="${on(...OS_ROUTES)}">${ico('db')}<span>Database<span class="nl-x"> Pinjol</span></span></a>
       <a href="#kalkulator" class="${on('kalkulator')}">${ico('calc')}<span>Kalkulator</span></a>
-      <a href="#main" class="game${on('main')}">${ico('timer')}<span>Tantangan</span></a>
+      <a href="#main" class="game${on('main')}">${ico('game')}<span>Game</span></a>
       ${S.cap.team ? `<a href="#hasil" class="${on('hasil')}">Data validasi</a>` : ''}
     </nav>
     <div class="who">${blank ? '<a class="btn sm" href="#mulai">Isi data saya</a>' : `<a class="userchip" href="#mulai" data-act="wiz-edit" title="Ubah data"><span class="avatar sm" aria-hidden="true">${esc(displayName(p)[0])}</span><span>${esc(displayName(p))}<span class="tiny muted"> · ubah</span></span></a>`}<button class="btn sm amber" data-act="drawer" data-v="chat" aria-expanded="${!!S.drawer}">✦ Tanya FinWise</button>${sizeBtn()}</div>
@@ -1298,6 +1299,7 @@ const ICONS = {
   pulih: '<path d="M12 20.5v-8.5"/><path d="M12 12c0-3.6 2.5-6.2 6.6-6.2 0 3.9-2.5 6.2-6.6 6.2z"/><path d="M12 14.2c0-3-2-5.1-5.6-5.1 0 3.3 2 5.1 5.6 5.1z"/><path d="M6.5 20.5h11"/>',
   db: '<path d="M12 3 5 6v5.5c0 4.3 3 7.8 7 9.5 4-1.7 7-5.2 7-9.5V6l-7-3z"/><path d="m8.8 12 2.2 2.2 4.4-4.6"/>',
   calc: '<rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8.5 7.2h7"/><path d="M8.6 11.5h.01M12 11.5h.01M15.4 11.5h.01M8.6 14.9h.01M12 14.9h.01M15.4 14.9h.01M8.6 18.1h.01M12 18.1h.01"/>',
+  game: '<path d="M7.5 7.5h9a5 5 0 0 1 4.9 6l-.6 2.8a2.4 2.4 0 0 1-4.2 1L15 15.5H9l-1.6 1.8a2.4 2.4 0 0 1-4.2-1l-.6-2.8a5 5 0 0 1 4.9-6z"/><path d="M8 10.2v3.2M6.4 11.8h3.2"/><path d="M15.6 11h.01M17.6 12.8h.01"/>',
   timer: '<circle cx="12" cy="13.5" r="7"/><path d="M12 13.5V10"/><path d="M10 3h4"/><path d="M12 3v3.5"/><path d="m18.4 7.6 1.4-1.4"/>',
   route: '<circle cx="5" cy="17" r="2.2"/><circle cx="19" cy="7" r="2.2"/><path d="M7.2 17H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7.8"/>',
   check: '<path d="m5 12.5 4.3 4.3L19 7.2"/>',
@@ -1329,7 +1331,7 @@ function userChip() {
 const secHead = (n, id, title, sub) => `<div class="sec-h" id="${id}" tabindex="-1"><span class="sec-n" aria-hidden="true">${n}</span><div><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ''}</div></div>`;
 const secNav = items => `<nav class="secnav" aria-label="Bagian di halaman ini">${items.map(([id, l], i) => `<button data-act="goto-sec" data-id="${id}"><span>${i + 1}</span>${l}</button>`).join('')}</nav>`;
 function footer() {
-  return `<footer><div class="wrap"><span><b>FinWise</b> · prototipe Tim 20 elevATE untuk validasi pengguna. Data: daftar pindar berizin OJK (${OJK.licensedPeriod}), daftar pinjol ilegal Satgas PASTI (${OJK.illegalPeriod}), statistik LPBBTI OJK (${OJK.stats.period}), tarif RIPLAY per ${dateID('2026-04-30')}, dan ulasan Google Play. Tokoh dan pemberi pinjaman di Tantangan 3 Hari adalah fiktif. Bukan nasihat keuangan.</span><span class="row" style="gap:12px"><button class="linkbtn" data-act="glossary">Kamus istilah</button><span>Cek legalitas resmi: Kontak OJK 157 · WhatsApp 081-157-157-157</span></span></div></footer>`;
+  return `<footer><div class="wrap"><span><b>FinWise</b> · prototipe Tim 20 elevATE untuk validasi pengguna. Data: daftar pindar berizin OJK (${OJK.licensedPeriod}), daftar pinjol ilegal Satgas PASTI (${OJK.illegalPeriod}), statistik LPBBTI OJK (${OJK.stats.period}), tarif RIPLAY per ${dateID('2026-04-30')}, dan ulasan Google Play. Tokoh dan pemberi pinjaman di game Lolos Jebakan Pinjol adalah fiktif. Bukan nasihat keuangan.</span><span class="row" style="gap:12px"><button class="linkbtn" data-act="glossary">Kamus istilah</button><span>Cek legalitas resmi: Kontak OJK 157 · WhatsApp 081-157-157-157</span></span></div></footer>`;
 }
 /* glossary: plain-language definitions, opened from any underlined term */
 const TERMS = {
@@ -1370,48 +1372,8 @@ const term = (t, label) => `<span class="termwrap">${esc(label || t)}<button cla
 /* ================= HOME =================
    Three main functions: the personal loan assessment (a route of three steps), the pinjol database,
    and the loan calculator. The 3-day challenge sits underneath as an extra. */
-// hero art: a "cair 5 menit" ad struck through next to a phone that checks first (pure SVG, theme-aware)
-const HERO_ART = `<svg class="hero-art" viewBox="0 0 520 400" aria-hidden="true" focusable="false">
-  <path d="M70 236c-30-84 22-182 128-200 80-14 134 25 192 16 68-10 110 52 96 128-16 86-80 170-194 182-116 11-194-34-222-126z" fill="var(--green-tint)"/>
-  <ellipse cx="300" cy="374" rx="200" ry="12" fill="var(--line)" opacity=".7"/>
-  <rect x="262" y="44" width="170" height="306" rx="30" fill="#fff" stroke="#13231B" stroke-width="3"/>
-  <rect x="321" y="58" width="52" height="7" rx="3.5" fill="#D9E3DD"/>
-  <g stroke-linecap="round"><path d="M294 96h40" stroke="#1E6B4E" stroke-width="6"/><path d="M334 96h32" stroke="#E09A2D" stroke-width="6"/><path d="M366 96h34" stroke="#2B7FA3" stroke-width="6"/></g>
-  <circle cx="294" cy="96" r="8" fill="#1E6B4E"/><circle cx="347" cy="96" r="8" fill="#E09A2D"/><circle cx="400" cy="96" r="8" fill="#2B7FA3"/>
-  <path d="M347 126l-38 15v28c0 24 16 43 38 52 22-9 38-28 38-52v-28z" fill="#1E6B4E"/>
-  <path d="m331 172 11 11 22-23" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="290" y="244" width="114" height="9" rx="4.5" fill="#EAF1EC"/><rect x="290" y="262" width="78" height="9" rx="4.5" fill="#EAF1EC"/>
-  <rect x="290" y="292" width="56" height="12" rx="6" fill="#167349"/><rect x="348" y="292" width="28" height="12" rx="6" fill="#C58A1E"/><rect x="378" y="292" width="26" height="12" rx="6" fill="#B8302A"/>
-  <g transform="rotate(4 452 156)">
-    <rect x="398" y="134" width="114" height="44" rx="22" fill="#fff" stroke="#D9E3DD" stroke-width="2"/>
-    <circle cx="421" cy="156" r="11" fill="#167349"/><path d="m415.5 156 4 4 7-8" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="439" y="161" font-size="14" font-weight="800" fill="#167349">Berizin</text>
-  </g>
-  <g fill="#E09A2D" stroke="#94590A" stroke-width="2">
-    <ellipse cx="470" cy="352" rx="28" ry="9"/><path d="M442 352v-11M498 352v-11"/><ellipse cx="470" cy="341" rx="28" ry="9"/><path d="M442 341v-11M498 341v-11"/><ellipse cx="470" cy="330" rx="28" ry="9"/>
-  </g>
-  <g transform="rotate(-7 116 70)">
-    <rect x="14" y="36" width="200" height="66" rx="16" fill="#FBE6E4" stroke="#B8302A" stroke-width="2"/>
-    <text x="114" y="67" text-anchor="middle" font-size="20" font-weight="800" fill="#B8302A">Cair 5 menit!</text>
-    <text x="114" y="88" text-anchor="middle" font-size="12.5" font-weight="600" fill="#B8302A">tanpa cek, tanpa syarat</text>
-    <path d="M26 80 202 58" stroke="#B8302A" stroke-width="4" stroke-linecap="round"/>
-    <circle cx="210" cy="40" r="15" fill="#B8302A"/><path d="m204 34 12 12m0-12-12 12" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
-  </g>
-  <g>
-    <rect x="132" y="300" width="20" height="66" rx="9" fill="#4A5B66"/><rect x="158" y="300" width="20" height="66" rx="9" fill="#4A5B66"/>
-    <ellipse cx="140" cy="368" rx="15" ry="6.5" fill="#13231B"/><ellipse cx="172" cy="368" rx="15" ry="6.5" fill="#13231B"/>
-    <path d="M124 208h62l20 104c-30 8-72 8-102 0z" fill="#E09A2D"/>
-    <path d="M118 214 104 262l12 30" fill="none" stroke="#E09A2D" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="117" cy="296" r="8.5" fill="#B9774A"/>
-    <path d="M186 216 248 176" fill="none" stroke="#E09A2D" stroke-width="17" stroke-linecap="round"/>
-    <circle cx="254" cy="172" r="9" fill="#B9774A"/><path d="M258 168l14-6" stroke="#B9774A" stroke-width="6" stroke-linecap="round"/>
-    <path d="M155 128c-27 0-40 21-40 42 0 15 4 26 11 34l-16 40h90l-16-40c7-8 11-19 11-34 0-21-13-42-40-42z" fill="#2B7FA3"/>
-    <path d="M128 228c8 8 46 8 54 0" fill="none" stroke="#1F5F7A" stroke-width="3" stroke-linecap="round"/>
-    <ellipse cx="155" cy="171" rx="18" ry="21" fill="#B9774A"/>
-    <circle cx="149" cy="168" r="2.2" fill="#13231B"/><circle cx="162" cy="168" r="2.2" fill="#13231B"/>
-    <path d="M149 179q6 5 12 0" fill="none" stroke="#13231B" stroke-width="2" stroke-linecap="round"/>
-  </g>
-</svg>`;
+// hero: illustration from the team (img/hero.webp, background removed, "Cair" typo fixed)
+const HERO_IMG = `<img class="hero-img" src="img/hero.webp" width="1120" height="844" alt="" decoding="async" fetchpriority="high">`;
 // one small scene per step, drawn to sit inside the round station on the route
 const STAGE_ART = {
   cek: `<svg viewBox="0 0 200 200" aria-hidden="true" focusable="false">
@@ -1472,7 +1434,7 @@ function vHome() {
       <div class="row">${ready ? '<a class="btn big-btn" href="#cek">Lihat kondisi keuanganku</a>' : '<a class="btn big-btn" href="#mulai">Mulai asesmen (±3 menit)</a>'}<a class="btn ghost big-btn" href="#openspace">Cek legalitas pinjol</a></div>
       <p class="hh-note">${ico('db')}<span>Gratis, tanpa login. Datamu hanya tersimpan di browser ini, dan nama pinjol dicocokkan dengan daftar resmi OJK dan Satgas PASTI.</span></p>
     </div>
-    ${HERO_ART}
+    ${HERO_IMG}
   </section>
 
   <section class="journey" aria-labelledby="j-h">
@@ -1518,9 +1480,9 @@ function vHome() {
   </section>
 
   <a class="challenge" href="#main">
-    <span class="ch-ico">${ico('timer')}</span>
-    <span class="ch-text"><b>Tantangan 3 Hari</b><span>Simulasi ±10 menit: bantu Dimas mendapat Rp12 juta dalam 3 hari tanpa terjebak pinjol ilegal.</span></span>
-    <span class="btn amber">Mulai tantangan</span>
+    <span class="ch-ico">${ico('game')}</span>
+    <span class="ch-text"><small>Game literasi keuangan · 3 babak · ±10 menit</small><b>Lolos Jebakan Pinjol</b><span>Bantu Dimas mendapat Rp12 juta dalam 3 hari tanpa terjebak pinjol ilegal, lalu kumpulkan 3 bintang.</span></span>
+    <span class="btn amber">Main sekarang</span>
   </a>`;
 }
 /* ================= ONBOARDING: "Data saya" from scratch ================= */
@@ -2272,7 +2234,7 @@ function lookupResult(R) {
   if (R.kind === 'clone') return `<div class="note amber" style="margin-top:12px"><b>Nama ini dipakai dua pihak.</b><div style="margin-top:6px">✅ ${licLine(R.lender)} <a href="#pinjol" data-act="lender" data-id="${R.lender.id}">Lihat profil</a></div><div style="margin-top:4px">⛔ Tiruan ilegal dengan nama sama tercatat di daftar Satgas PASTI, disebar lewat ${esc(R.ill.flatMap(i => i.ch).filter((x, i, a) => a.indexOf(x) === i).join(', '))}.</div><div class="small" style="margin-top:6px">Pastikan kamu mengunduh dari toko aplikasi resmi, nama pengembangnya ${esc(R.lender.company)}, dan tidak ada permintaan akses kontak/galeri.</div></div>`;
   if (R.kind === 'illegal') return `<div class="note danger" style="margin-top:12px"><b>${esc(R.item.name)}: TIDAK berizin OJK.</b> Tercatat di daftar pinjol ilegal Satgas PASTI (${OJK.illegalPeriod})${R.item.ch.length ? `, disebar lewat ${esc(R.item.ch.join(', '))}` : ''}${R.item.hosts.length ? ` (${esc(R.item.hosts.slice(0, 3).join(', '))})` : ''}. Jangan pasang aplikasinya dan jangan beri akses kontak atau galeri.<div class="row" style="margin-top:8px"><a class="btn sm" href="${waShare(illWarn(R.item))}" target="_blank" rel="noopener noreferrer">Bagikan peringatan via WhatsApp<span class="sr"> (tab baru)</span></a><span class="tiny">Laporkan: Kontak OJK 157 / WA 081-157-157-157</span></div></div>`;
   if (R.kind === 'multi') return `<div class="note amber" style="margin-top:12px"><b>Ada ${R.lic.length + R.ill.length} nama yang mirip dengan “${esc(R.q)}”.</b> Pilih yang persis sama dengan aplikasi yang kamu lihat:<ul class="stack" style="margin:8px 0 0;padding:0;list-style:none;gap:6px">${R.lic.map(l => `<li><a href="#pinjol" data-act="lender" data-found="1" data-id="${l.id}">${esc(l.name)}</a> <span class="pill z-safe">Berizin OJK</span> <span class="tiny muted">${esc(l.company)}</span></li>`).join('')}${R.ill.map((i, n) => `<li><button class="linkbtn" data-act="os-illegal" data-v="${n}">${esc(i.name)}</button> <span class="pill z-danger">Tidak berizin</span></li>`).join('')}</ul><p class="tiny" style="margin-top:6px">Aplikasi ilegal sering meniru nama yang legal. Cocokkan juga nama perusahaan dan nomor izinnya.</p></div>`;
-  if (R.kind === 'scenario') return `<div class="note amber" style="margin-top:12px"><b>“Cair Kilat 24 Jam” adalah nama fiktif</b> dari Tantangan 3 Hari, dipakai sebagai contoh pola pinjol ilegal (cair 5 menit, tanpa izin).</div>`;
+  if (R.kind === 'scenario') return `<div class="note amber" style="margin-top:12px"><b>“Cair Kilat 24 Jam” adalah nama fiktif</b> dari game Lolos Jebakan Pinjol, dipakai sebagai contoh pola pinjol ilegal (cair 5 menit, tanpa izin).</div>`;
   return `<div class="note amber" style="margin-top:12px"><b>“${esc(R.q)}” tidak ada di daftar ${LIC.length} pindar berizin (OJK, ${OJK.licensedPeriod})</b> maupun ${ILL.length} nama pinjol ilegal (Satgas PASTI, ${OJK.illegalPeriod}). Daftar ilegal terus bertambah, jadi <b>anggap belum aman</b>: jangan beri data apa pun sebelum memastikan ke Kontak OJK 157 / WhatsApp 081-157-157-157.<div class="tiny" style="margin-top:6px">Catatan: paylater dari bank atau perusahaan pembiayaan (multifinance) punya izin berbeda dan tidak masuk daftar pindar ini.</div>${R.dym?.length ? `<div style="margin-top:8px"><b>Mungkin maksudmu:</b> ${R.dym.map(x => x.t === 'lic' ? `<a href="#pinjol" data-act="lender" data-found="1" data-id="${x.id}">${esc(x.name)}</a> <span class="pill z-safe">Berizin</span>` : `<button class="linkbtn" data-act="os-pick-ill" data-v="${x.n}">${esc(x.name)}</button> <span class="pill z-danger">Ilegal</span>`).join(' · ')}</div>` : ''}</div>`;
 }
 function osNav() {
@@ -2512,7 +2474,7 @@ function vStatistik() {
 }
 const starBar = (n, max) => `<div class="bar" style="flex:1" aria-hidden="true"><i style="width:${max ? (n / max * 100).toFixed(1) : 0}%;background:var(--amber-strong)"></i></div>`;
 /* ================= TEST MODE ================= */
-const TSTEPS = ['Siap main', 'Babak 1 · Tebak cepat', 'Babak 2 · Selamatkan Dimas', 'Babak 3 · Tebak lagi', 'Nilai tantangan ini'];
+const TSTEPS = ['Siap main', 'Babak 1 · Tebak cepat', 'Babak 2 · Selamatkan Dimas', 'Babak 3 · Tebak lagi', 'Nilai game ini'];
 function newTest() {
   const p = clone(DATA.personas.dimas);
   return { id: 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), stage: 0, startedAt: Date.now(), consent: false, age: '', status: '', pre: Array(5).fill(null), post: Array(5).fill(null),
@@ -2528,14 +2490,14 @@ function gameStars(r) { return (r.completed ? 1 : 0) + (r.safer ? 1 : 0) + (r.po
 const BADGES = ['Pemula Penasaran', 'Pemula Cerdas', 'Pejuang Hemat', 'Penjaga Dompet'];
 function vUji() {
   const t = S.test;
-  if (!t) return `<section class="gamehero"><div><div class="eyebrow" style="color:#FFD58A;font-weight:800;letter-spacing:.06em">TANTANGAN 3 HARI · ±10 MENIT</div><h1 tabindex="-1">Tantangan 3 Hari: bisakah Dimas lolos tanpa terjebak pinjol?</h1>
+  if (!t) return `<section class="gamehero"><div><div class="eyebrow" style="color:#FFD58A;font-weight:800;letter-spacing:.06em">GAME LITERASI KEUANGAN · 3 BABAK · ±10 MENIT</div><h1 tabindex="-1">Lolos Jebakan Pinjol: bantu Dimas dapat dana tanpa terjebak</h1>
      <p class="lead">Ayah Dimas masuk rumah sakit. Dia butuh <b>Rp12 juta dalam 3 hari</b>, tabungannya cuma Rp3 juta, dan iklan pinjol “cair 5 menit” terus muncul. Kamu yang memutuskan.</p>
-     <button class="btn amber" data-act="t-start" style="margin-top:12px">Mulai tantangan</button></div>
+     <button class="btn amber" data-act="t-start" style="margin-top:12px">Mulai main</button></div>
      <div class="levels">${[['1', 'Tebak cepat', '5 soal tentang situasi Dimas. Tebak saja, boleh pilih “Tidak tahu”.'], ['2', 'Selamatkan Dimas', 'Pakai FinWise: hitung batas aman, susun tangga dana, pilih pinjaman.'], ['3', 'Tebak lagi', 'Soal yang sama. Lihat seberapa jauh kamu naik level.'], ['★', 'Skor & lencana', 'Dapatkan sampai 3 bintang dan lencana Penjaga Dompet.']].map(([n, tt, d]) => `<div class="lvl"><span>${n}</span><div><b>${tt}</b><p class="small">${d}</p></div></div>`).join('')}</div></section>
    <div class="grid g2" style="margin-top:16px"><div class="card small"><b>Aman & anonim.</b> Tidak ada nama atau data pribadi yang diminta. Jawabanmu membantu tim FinWise melihat apakah aplikasinya benar-benar membuat orang lebih paham utang.</div>
     <div class="card small"><b>Untuk fasilitator:</b> jalankan di perangkat yang masuk ke akun pemilik agar hasil tersimpan otomatis. Pemain di perangkatnya sendiri akan mendapat <b>kode hasil</b> untuk dikirim ke tim. Penyimpanan otomatis: <b>${S.cap.ready ? (S.cap.canWrite && S.cap.team ? 'aktif di perangkat ini' : 'tidak aktif, pakai kode hasil') : 'memeriksa…'}</b></div></div>`;
   const prog = `<div class="gprog" aria-hidden="true">${[1, 2, 3].map(n => `<i class="${t.stage > n ? 'done' : t.stage === n ? 'on' : ''}"></i>`).join('')}</div>`;
-  const bar = `<div class="testbar game"><span class="small"><b>Tantangan 3 Hari</b> · ${TSTEPS[Math.min(t.stage, 4)]}</span>${t.stage >= 1 && t.stage <= 3 ? prog : ''}<span class="row">${t.stage === 2 ? `<button class="btn ghost sm" data-act="t-help">💡 Minta petunjuk</button>` : ''}<button class="btn ghost sm" data-act="t-quit">Keluar</button></span></div>`;
+  const bar = `<div class="testbar game"><span class="small"><b>Lolos Jebakan Pinjol</b> · ${TSTEPS[Math.min(t.stage, 4)]}</span>${t.stage >= 1 && t.stage <= 3 ? prog : ''}<span class="row">${t.stage === 2 ? `<button class="btn ghost sm" data-act="t-help">💡 Minta petunjuk</button>` : ''}<button class="btn ghost sm" data-act="t-quit">Keluar</button></span></div>`;
   if (t.stage === 0) return bar + `<div class="card stack" style="max-width:640px"><h2>Sebelum mulai</h2>
     <label class="chk"><input type="checkbox" id="t-consent" data-act-change="t-field" data-f="consent" ${t.consent ? 'checked' : ''}><span>Saya setuju jawaban saya (tanpa nama) dipakai tim FinWise untuk menilai aplikasinya.</span></label>
     <div class="grid g2"><label class="f">Usia<select class="in" id="t-age" data-act-change="t-field" data-f="age"><option value="">Pilih</option>${['<18', '18–22', '23–27', '28–35', '>35'].map(a => `<option ${t.age === a ? 'selected' : ''}>${a}</option>`).join('')}</select></label>
@@ -2550,14 +2512,14 @@ function vUji() {
       ${t.chosen ? `<div class="card" style="margin-top:16px;border-color:var(--amber-strong)"><div class="row between"><span>Pilihanmu: <b>${esc(t.chosen.name)}</b> ${zpill(t.chosen.zone)}</span><button class="btn amber" data-act="t-next">Kunci pilihan, lanjut Babak 3</button></div></div>` : ''}`;
   }
   if (t.stage === 3) return bar + `<div class="card" style="margin-bottom:14px"><h2>Babak 3 · Tebak lagi</h2><p class="small muted" style="margin-top:4px">Soal yang sama. Kali ini pakai apa yang kamu lihat di FinWise.</p></div>${quizBlock('post', t.post)}<div style="margin-top:16px"><button class="btn amber" data-act="t-next" ${t.post.every(a => a !== null) ? '' : 'disabled'}>Lihat skorku</button></div>`;
-  if (t.stage === 4) { const f = t.feedback; return bar + `<div class="card stack" style="max-width:680px"><h2>Satu langkah lagi: nilai tantangan ini</h2>
-    <div><b>Apakah kamu butuh bantuan orang lain untuk menyelesaikan tantangan?</b><div class="seg" style="margin-top:8px">${[['tidak', 'Tidak'], ['sedikit', 'Sedikit'], ['ya', 'Ya']].map(([k, l]) => `<button class="${f.help === k ? 'on' : ''}" aria-pressed="${f.help === k}" data-act="t-fb" data-f="help" data-v="${k}">${l}</button>`).join('')}</div></div>
+  if (t.stage === 4) { const f = t.feedback; return bar + `<div class="card stack" style="max-width:680px"><h2>Satu langkah lagi: nilai game ini</h2>
+    <div><b>Apakah kamu butuh bantuan orang lain untuk menyelesaikan game ini?</b><div class="seg" style="margin-top:8px">${[['tidak', 'Tidak'], ['sedikit', 'Sedikit'], ['ya', 'Ya']].map(([k, l]) => `<button class="${f.help === k ? 'on' : ''}" aria-pressed="${f.help === k}" data-act="t-fb" data-f="help" data-v="${k}">${l}</button>`).join('')}</div></div>
     <div><b>Seberapa mudah dimainkan?</b> <span class="tiny muted">(1 sulit – 5 mudah)</span><div class="seg" style="margin-top:8px">${[1, 2, 3, 4, 5].map(n => `<button class="${f.ease === n ? 'on' : ''}" aria-pressed="${f.ease === n}" aria-label="Mudah ${n} dari 5" data-act="t-fb" data-f="ease" data-v="${n}">${n}</button>`).join('')}</div></div>
     <div><b>Seberapa yakin kamu dengan keputusan untuk Dimas?</b> <span class="tiny muted">(1–5)</span><div class="seg" style="margin-top:8px">${[1, 2, 3, 4, 5].map(n => `<button class="${f.confidence === n ? 'on' : ''}" aria-pressed="${f.confidence === n}" aria-label="Yakin ${n} dari 5" data-act="t-fb" data-f="confidence" data-v="${n}">${n}</button>`).join('')}</div></div>
     <label class="f">Ada yang membingungkan atau perlu diperbaiki? (opsional)<textarea class="in" id="t-comment" rows="3" maxlength="500" data-act-change="t-field" data-f="comment">${esc(f.comment)}</textarea></label>
     <div><button class="btn amber" data-act="t-finish" ${f.help && f.ease && f.confidence ? '' : 'disabled'}>Selesai, tampilkan lencanaku</button></div></div>`; }
   const r = testRecord(t), stars = gameStars(r);
-  return `<div class="card stack result-card" style="max-width:720px"><div class="eyebrow e-pilah" style="font-weight:800;font-size:.8125rem">TANTANGAN SELESAI</div>
+  return `<div class="card stack result-card" style="max-width:720px"><div class="eyebrow e-pilah" style="font-weight:800;font-size:.8125rem">GAME SELESAI</div>
    <div class="stars" role="img" aria-label="${stars} dari 3 bintang">${[1, 2, 3].map(n => `<span class="${n <= stars ? 'on' : ''}">★</span>`).join('')}</div>
    <h2>Lencana: ${BADGES[stars]}</h2>
    <div class="grid g3"><div class="kpi"><div class="k">Skor Babak 1</div><div class="v">${r.preScore}</div></div><div class="kpi"><div class="k">Skor Babak 3</div><div class="v" style="color:var(--safe)">${r.postScore}</div><div class="s">${r.postScore - r.preScore >= 0 ? 'naik ' : 'turun '}${Math.abs(r.postScore - r.preScore)} poin</div></div><div class="kpi"><div class="k">Pilihanmu</div><div class="v" style="font-size:1.05rem">${esc(t.chosen?.name || '-')}</div><div class="s">${t.chosen ? ZONE[t.chosen.zone][0] : ''}</div></div></div>
@@ -2594,7 +2556,7 @@ function vHasil() {
   const imp = n ? FW.sum(R, r => r.postScore - r.preScore) / n : 0, pre = n ? FW.sum(R, r => r.preScore) / n : 0, post = n ? FW.sum(R, r => r.postScore) / n : 0;
   const gates = [['Menyelesaikan alur inti tanpa bantuan', n ? okNoHelp / n : 0, 0.8, v => pct(v, 0)], ['Memilih opsi yang lebih aman (zona Aman)', n ? safer / n : 0, 0.7, v => pct(v, 0)], ['Kenaikan skor pemahaman utang', imp, 30, v => '+' + v.toFixed(1) + ' poin']];
   const csv = ['id,waktu,usia,status,pre,post,naik,pilihan,zona,aman,selesai,bantuan,klik_bingung,mudah,yakin,durasi_detik,perangkat,komentar', ...R.map(r => [r.id, r.at, r.age, r.status, r.preScore, r.postScore, r.postScore - r.preScore, r.chosen, r.chosenZone, r.safer ? 1 : 0, r.completed ? 1 : 0, r.helpNeeded, r.helpClicks, r.ease, r.confidence, r.durationSec, r.device, JSON.stringify(r.comment || '')].join(','))].join('\n');
-  return `<div class="phead"><div><div class="eyebrow e-pilah">DATA VALIDASI · GATE 1</div><h1>${n} tantangan tercatat</h1><p>Target Gate 1 dari proposal: ≥80% menyelesaikan alur tanpa bantuan, ≥70% memilih opsi lebih aman, skor pemahaman naik ≥30 poin, nol cacat kalkulasi/privasi kritis.</p></div></div>
+  return `<div class="phead"><div><div class="eyebrow e-pilah">DATA VALIDASI · GATE 1</div><h1>${n} permainan tercatat</h1><p>Target Gate 1 dari proposal: ≥80% menyelesaikan alur tanpa bantuan, ≥70% memilih opsi lebih aman, skor pemahaman naik ≥30 poin, nol cacat kalkulasi/privasi kritis.</p></div></div>
    ${S.resultsState === 'loading' ? '<p class="muted">Memuat hasil…</p>' : S.resultsState === 'slow' ? '<div class="note amber">Data belum bisa dijangkau. Coba buka ulang halaman ini nanti.</div>' : S.resultsState === 'error' ? '<div class="note danger">Gagal memuat hasil.</div>' : ''}
    <div class="grid g-side">
     <div class="card"><h3>Status Gate 1</h3>
@@ -2605,7 +2567,7 @@ function vHasil() {
     <div class="card stack"><h3>Tempel kode hasil dari pemain</h3><textarea class="in" id="imp-code" rows="4" placeholder="FW1.…"></textarea><div class="row"><button class="btn sm" data-act="import-code">Simpan hasil</button><button class="btn ghost sm" data-act="copy" data-src="csv-out">Salin CSV</button></div>${S.importMsg ? `<p class="small">${esc(S.importMsg)}</p>` : ''}<textarea id="csv-out" class="sr" readonly>${esc(csv)}</textarea></div>
    </div>
    <div class="tbl-wrap" style="margin-top:16px"><table><thead><tr><th>Waktu</th><th>Usia</th><th>Status</th><th>Skor</th><th>Pilihan</th><th>Bantuan</th><th>Mudah</th><th>Yakin</th><th>Durasi</th><th>Komentar</th></tr></thead><tbody>
-    ${R.map(r => `<tr><td class="small">${esc(new Date(r.at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }))}${r.imported ? ' <span class="tag">kode</span>' : ''}</td><td>${esc(r.age)}</td><td class="small">${esc(r.status)}</td><td class="num">${r.preScore} → <b>${r.postScore}</b></td><td>${esc(DATA.products.find(x => x.id === r.chosen)?.name || '-')} ${r.chosenZone ? zpill(r.chosenZone) : ''}</td><td>${esc(r.helpNeeded)}${r.helpClicks ? ` · ${r.helpClicks} klik` : ''}</td><td class="num">${r.ease}</td><td class="num">${r.confidence}</td><td class="num">${Math.round(r.durationSec / 60)} mnt</td><td class="small">${esc(r.comment)}</td></tr>`).join('') || '<tr><td colspan="10" class="muted">Belum ada tantangan tercatat. Jalankan lewat menu Tantangan.</td></tr>'}
+    ${R.map(r => `<tr><td class="small">${esc(new Date(r.at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }))}${r.imported ? ' <span class="tag">kode</span>' : ''}</td><td>${esc(r.age)}</td><td class="small">${esc(r.status)}</td><td class="num">${r.preScore} → <b>${r.postScore}</b></td><td>${esc(DATA.products.find(x => x.id === r.chosen)?.name || '-')} ${r.chosenZone ? zpill(r.chosenZone) : ''}</td><td>${esc(r.helpNeeded)}${r.helpClicks ? ` · ${r.helpClicks} klik` : ''}</td><td class="num">${r.ease}</td><td class="num">${r.confidence}</td><td class="num">${Math.round(r.durationSec / 60)} mnt</td><td class="small">${esc(r.comment)}</td></tr>`).join('') || '<tr><td colspan="10" class="muted">Belum ada permainan tercatat. Jalankan lewat menu Game.</td></tr>'}
    </tbody></table></div>`;
 }
 

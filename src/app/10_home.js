@@ -1,48 +1,8 @@
 /* ================= HOME =================
    Three main functions: the personal loan assessment (a route of three steps), the pinjol database,
    and the loan calculator. The 3-day challenge sits underneath as an extra. */
-// hero art: a "cair 5 menit" ad struck through next to a phone that checks first (pure SVG, theme-aware)
-const HERO_ART = `<svg class="hero-art" viewBox="0 0 520 400" aria-hidden="true" focusable="false">
-  <path d="M70 236c-30-84 22-182 128-200 80-14 134 25 192 16 68-10 110 52 96 128-16 86-80 170-194 182-116 11-194-34-222-126z" fill="var(--green-tint)"/>
-  <ellipse cx="300" cy="374" rx="200" ry="12" fill="var(--line)" opacity=".7"/>
-  <rect x="262" y="44" width="170" height="306" rx="30" fill="#fff" stroke="#13231B" stroke-width="3"/>
-  <rect x="321" y="58" width="52" height="7" rx="3.5" fill="#D9E3DD"/>
-  <g stroke-linecap="round"><path d="M294 96h40" stroke="#1E6B4E" stroke-width="6"/><path d="M334 96h32" stroke="#E09A2D" stroke-width="6"/><path d="M366 96h34" stroke="#2B7FA3" stroke-width="6"/></g>
-  <circle cx="294" cy="96" r="8" fill="#1E6B4E"/><circle cx="347" cy="96" r="8" fill="#E09A2D"/><circle cx="400" cy="96" r="8" fill="#2B7FA3"/>
-  <path d="M347 126l-38 15v28c0 24 16 43 38 52 22-9 38-28 38-52v-28z" fill="#1E6B4E"/>
-  <path d="m331 172 11 11 22-23" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="290" y="244" width="114" height="9" rx="4.5" fill="#EAF1EC"/><rect x="290" y="262" width="78" height="9" rx="4.5" fill="#EAF1EC"/>
-  <rect x="290" y="292" width="56" height="12" rx="6" fill="#167349"/><rect x="348" y="292" width="28" height="12" rx="6" fill="#C58A1E"/><rect x="378" y="292" width="26" height="12" rx="6" fill="#B8302A"/>
-  <g transform="rotate(4 452 156)">
-    <rect x="398" y="134" width="114" height="44" rx="22" fill="#fff" stroke="#D9E3DD" stroke-width="2"/>
-    <circle cx="421" cy="156" r="11" fill="#167349"/><path d="m415.5 156 4 4 7-8" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="439" y="161" font-size="14" font-weight="800" fill="#167349">Berizin</text>
-  </g>
-  <g fill="#E09A2D" stroke="#94590A" stroke-width="2">
-    <ellipse cx="470" cy="352" rx="28" ry="9"/><path d="M442 352v-11M498 352v-11"/><ellipse cx="470" cy="341" rx="28" ry="9"/><path d="M442 341v-11M498 341v-11"/><ellipse cx="470" cy="330" rx="28" ry="9"/>
-  </g>
-  <g transform="rotate(-7 116 70)">
-    <rect x="14" y="36" width="200" height="66" rx="16" fill="#FBE6E4" stroke="#B8302A" stroke-width="2"/>
-    <text x="114" y="67" text-anchor="middle" font-size="20" font-weight="800" fill="#B8302A">Cair 5 menit!</text>
-    <text x="114" y="88" text-anchor="middle" font-size="12.5" font-weight="600" fill="#B8302A">tanpa cek, tanpa syarat</text>
-    <path d="M26 80 202 58" stroke="#B8302A" stroke-width="4" stroke-linecap="round"/>
-    <circle cx="210" cy="40" r="15" fill="#B8302A"/><path d="m204 34 12 12m0-12-12 12" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
-  </g>
-  <g>
-    <rect x="132" y="300" width="20" height="66" rx="9" fill="#4A5B66"/><rect x="158" y="300" width="20" height="66" rx="9" fill="#4A5B66"/>
-    <ellipse cx="140" cy="368" rx="15" ry="6.5" fill="#13231B"/><ellipse cx="172" cy="368" rx="15" ry="6.5" fill="#13231B"/>
-    <path d="M124 208h62l20 104c-30 8-72 8-102 0z" fill="#E09A2D"/>
-    <path d="M118 214 104 262l12 30" fill="none" stroke="#E09A2D" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="117" cy="296" r="8.5" fill="#B9774A"/>
-    <path d="M186 216 248 176" fill="none" stroke="#E09A2D" stroke-width="17" stroke-linecap="round"/>
-    <circle cx="254" cy="172" r="9" fill="#B9774A"/><path d="M258 168l14-6" stroke="#B9774A" stroke-width="6" stroke-linecap="round"/>
-    <path d="M155 128c-27 0-40 21-40 42 0 15 4 26 11 34l-16 40h90l-16-40c7-8 11-19 11-34 0-21-13-42-40-42z" fill="#2B7FA3"/>
-    <path d="M128 228c8 8 46 8 54 0" fill="none" stroke="#1F5F7A" stroke-width="3" stroke-linecap="round"/>
-    <ellipse cx="155" cy="171" rx="18" ry="21" fill="#B9774A"/>
-    <circle cx="149" cy="168" r="2.2" fill="#13231B"/><circle cx="162" cy="168" r="2.2" fill="#13231B"/>
-    <path d="M149 179q6 5 12 0" fill="none" stroke="#13231B" stroke-width="2" stroke-linecap="round"/>
-  </g>
-</svg>`;
+// hero: illustration from the team (img/hero.webp, background removed, "Cair" typo fixed)
+const HERO_IMG = `<img class="hero-img" src="img/hero.webp" width="1120" height="844" alt="" decoding="async" fetchpriority="high">`;
 // one small scene per step, drawn to sit inside the round station on the route
 const STAGE_ART = {
   cek: `<svg viewBox="0 0 200 200" aria-hidden="true" focusable="false">
@@ -103,7 +63,7 @@ function vHome() {
       <div class="row">${ready ? '<a class="btn big-btn" href="#cek">Lihat kondisi keuanganku</a>' : '<a class="btn big-btn" href="#mulai">Mulai asesmen (±3 menit)</a>'}<a class="btn ghost big-btn" href="#openspace">Cek legalitas pinjol</a></div>
       <p class="hh-note">${ico('db')}<span>Gratis, tanpa login. Datamu hanya tersimpan di browser ini, dan nama pinjol dicocokkan dengan daftar resmi OJK dan Satgas PASTI.</span></p>
     </div>
-    ${HERO_ART}
+    ${HERO_IMG}
   </section>
 
   <section class="journey" aria-labelledby="j-h">
@@ -149,8 +109,8 @@ function vHome() {
   </section>
 
   <a class="challenge" href="#main">
-    <span class="ch-ico">${ico('timer')}</span>
-    <span class="ch-text"><b>Tantangan 3 Hari</b><span>Simulasi ±10 menit: bantu Dimas mendapat Rp12 juta dalam 3 hari tanpa terjebak pinjol ilegal.</span></span>
-    <span class="btn amber">Mulai tantangan</span>
+    <span class="ch-ico">${ico('game')}</span>
+    <span class="ch-text"><small>Game literasi keuangan · 3 babak · ±10 menit</small><b>Lolos Jebakan Pinjol</b><span>Bantu Dimas mendapat Rp12 juta dalam 3 hari tanpa terjebak pinjol ilegal, lalu kumpulkan 3 bintang.</span></span>
+    <span class="btn amber">Main sekarang</span>
   </a>`;
 }

@@ -6,7 +6,7 @@ A single-page web app for young Indonesians with three main functions, which are
 2. Database Pinjol (`#openspace`, OJK legality lookup).
 3. Kalkulator.
 
-A 3-round game ("Tantangan 3 Hari") used for user testing is an extra. The illustrations are hand-made inline SVG (`HERO_ART` and `STAGE_ART` in `src/app/10_home.js`), and the icons are in `ICONS` in `00_core.js`. It is built from `src/` into one self-contained file, `docs/index.html`, which GitHub Pages serves.
+A 3-round financial-literacy game ("Lolos Jebakan Pinjol", menu "Game", route `#main`) used for user testing is an extra. The hero image is `src/img/hero.webp` (copied to `docs/img/` by build.py); the step illustrations are hand-made inline SVG (`STAGE_ART` in `src/app/10_home.js`), and the icons are in `ICONS` in `00_core.js`. It is built from `src/` into one self-contained file, `docs/index.html`, which GitHub Pages serves.
 
 ## Build and test
 - `python3 build.py` writes `docs/index.html`. Always rebuild after editing `src/`, and commit `src/` and `docs/` together.

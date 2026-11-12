@@ -9,7 +9,7 @@ Pendamping keuangan untuk anak muda Indonesia, dengan tiga fungsi utama:
 2. **Database pinjol**: legalitas aplikasi pinjaman dari daftar OJK dan Satgas PASTI, profil, ulasan, dan statistik industri.
 3. **Kalkulator pinjaman**: cicilan, total yang dikembalikan, dan bunga sebenarnya.
 
-Ada juga **Tantangan 3 Hari**, simulasi singkat untuk uji coba pengguna.
+Ada juga **game Lolos Jebakan Pinjol**, game literasi keuangan singkat (3 babak) yang juga dipakai untuk uji coba pengguna.
 
 Prototipe Tim 20 elevATE. **Bukan nasihat keuangan.**
 

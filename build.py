@@ -19,4 +19,8 @@ out = ROOT / 'docs'
 out.mkdir(exist_ok=True)
 (out / 'index.html').write_text(html)
 (out / '.nojekyll').touch()
+# images (src/img/*) are served next to the page
+import shutil
+if (src / 'img').is_dir():
+    shutil.copytree(src / 'img', out / 'img', dirs_exist_ok=True)
 print(f'docs/index.html: {len(html):,} karakter')

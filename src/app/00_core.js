@@ -6,7 +6,7 @@ const fmtIn = n => (Math.round(n) || 0).toLocaleString('id-ID');
 const ROUTES = ['home', 'mulai', 'cek', 'pilah', 'pulih', 'kalkulator', 'openspace', 'berizin', 'pinjol', 'ilegal', 'keluhan', 'bandingkan', 'statistik', 'main', 'hasil'];
 const ALIAS = { uji: 'main', ringkasan: 'cek', misi: 'main' };
 const OS_ROUTES = ['openspace', 'berizin', 'pinjol', 'ilegal', 'keluhan', 'bandingkan', 'statistik'];
-const TITLES = { home: 'Beranda', mulai: 'Isi data saya', ringkasan: 'Hasil keuanganmu', cek: 'CEK', pilah: 'PILAH', pulih: 'PULIH', kalkulator: 'Kalkulator pinjaman', openspace: 'Database Pinjol', berizin: 'Pindar berizin', pinjol: 'Profil pinjol', ilegal: 'Pinjol ilegal', keluhan: 'Pemantau keluhan', bandingkan: 'Bandingkan pinjol', statistik: 'Statistik industri', main: 'Tantangan 3 Hari', hasil: 'Data validasi' };
+const TITLES = { home: 'Beranda', mulai: 'Isi data saya', ringkasan: 'Hasil keuanganmu', cek: 'CEK', pilah: 'PILAH', pulih: 'PULIH', kalkulator: 'Kalkulator pinjaman', openspace: 'Database Pinjol', berizin: 'Pindar berizin', pinjol: 'Profil pinjol', ilegal: 'Pinjol ilegal', keluhan: 'Pemantau keluhan', bandingkan: 'Bandingkan pinjol', statistik: 'Statistik industri', main: 'Game Lolos Jebakan Pinjol', hasil: 'Data validasi' };
 const ZONE = { safe: ['Aman', 'z-safe'], stretch: ['Mepet', 'z-stretch'], danger: ['Bahaya', 'z-danger'] };
 const zpill = z => `<span class="pill ${ZONE[z][1]}">${ZONE[z][0]}</span>`;
 const AV = { kirana: '#2E8B6A', dimas: '#C9801A', bima: '#134A36', saya: '#5B6B8A' };
@@ -256,14 +256,14 @@ const SIZES = ['Normal', 'Besar', 'Sangat besar'];
 const sizeBtn = () => `<button class="btn ghost sm textsize" data-act="textsize" aria-label="Ukuran teks: ${SIZES[S.textSize]}. Klik untuk ganti">Aa<span class="tiny">${['', '+', '++'][S.textSize]}</span></button>`;
 function header() {
   const r = S.route, on = (...ss) => ss.includes(r) ? ' on" aria-current="page' : '', p = P(), blank = needsSetup();
-  if (r === 'main' && S.test && S.test.stage > 0 && S.test.stage < 5) return `<header class="top"><div class="wrap">${LOGO}<span class="pill z-amber">Tantangan 3 Hari sedang berjalan</span><div class="who">${sizeBtn()}</div></div></header>`;
+  if (r === 'main' && S.test && S.test.stage > 0 && S.test.stage < 5) return `<header class="top"><div class="wrap">${LOGO}<span class="pill z-amber">Game sedang berjalan</span><div class="who">${sizeBtn()}</div></div></header>`;
   return `<header class="top"><div class="wrap">
     ${LOGO}
     <nav class="mainnav" aria-label="Menu utama">
       <a href="#cek" class="${on(...JOURNEY_ROUTES)}">${ico('route')}<span>Asesmen<span class="nl-x"> Pinjaman</span></span></a>
       <a href="#openspace" class="${on(...OS_ROUTES)}">${ico('db')}<span>Database<span class="nl-x"> Pinjol</span></span></a>
       <a href="#kalkulator" class="${on('kalkulator')}">${ico('calc')}<span>Kalkulator</span></a>
-      <a href="#main" class="game${on('main')}">${ico('timer')}<span>Tantangan</span></a>
+      <a href="#main" class="game${on('main')}">${ico('game')}<span>Game</span></a>
       ${S.cap.team ? `<a href="#hasil" class="${on('hasil')}">Data validasi</a>` : ''}
     </nav>
     <div class="who">${blank ? '<a class="btn sm" href="#mulai">Isi data saya</a>' : `<a class="userchip" href="#mulai" data-act="wiz-edit" title="Ubah data"><span class="avatar sm" aria-hidden="true">${esc(displayName(p)[0])}</span><span>${esc(displayName(p))}<span class="tiny muted"> · ubah</span></span></a>`}<button class="btn sm amber" data-act="drawer" data-v="chat" aria-expanded="${!!S.drawer}">✦ Tanya FinWise</button>${sizeBtn()}</div>
@@ -276,6 +276,7 @@ const ICONS = {
   pulih: '<path d="M12 20.5v-8.5"/><path d="M12 12c0-3.6 2.5-6.2 6.6-6.2 0 3.9-2.5 6.2-6.6 6.2z"/><path d="M12 14.2c0-3-2-5.1-5.6-5.1 0 3.3 2 5.1 5.6 5.1z"/><path d="M6.5 20.5h11"/>',
   db: '<path d="M12 3 5 6v5.5c0 4.3 3 7.8 7 9.5 4-1.7 7-5.2 7-9.5V6l-7-3z"/><path d="m8.8 12 2.2 2.2 4.4-4.6"/>',
   calc: '<rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8.5 7.2h7"/><path d="M8.6 11.5h.01M12 11.5h.01M15.4 11.5h.01M8.6 14.9h.01M12 14.9h.01M15.4 14.9h.01M8.6 18.1h.01M12 18.1h.01"/>',
+  game: '<path d="M7.5 7.5h9a5 5 0 0 1 4.9 6l-.6 2.8a2.4 2.4 0 0 1-4.2 1L15 15.5H9l-1.6 1.8a2.4 2.4 0 0 1-4.2-1l-.6-2.8a5 5 0 0 1 4.9-6z"/><path d="M8 10.2v3.2M6.4 11.8h3.2"/><path d="M15.6 11h.01M17.6 12.8h.01"/>',
   timer: '<circle cx="12" cy="13.5" r="7"/><path d="M12 13.5V10"/><path d="M10 3h4"/><path d="M12 3v3.5"/><path d="m18.4 7.6 1.4-1.4"/>',
   route: '<circle cx="5" cy="17" r="2.2"/><circle cx="19" cy="7" r="2.2"/><path d="M7.2 17H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7.8"/>',
   check: '<path d="m5 12.5 4.3 4.3L19 7.2"/>',
@@ -307,7 +308,7 @@ function userChip() {
 const secHead = (n, id, title, sub) => `<div class="sec-h" id="${id}" tabindex="-1"><span class="sec-n" aria-hidden="true">${n}</span><div><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ''}</div></div>`;
 const secNav = items => `<nav class="secnav" aria-label="Bagian di halaman ini">${items.map(([id, l], i) => `<button data-act="goto-sec" data-id="${id}"><span>${i + 1}</span>${l}</button>`).join('')}</nav>`;
 function footer() {
-  return `<footer><div class="wrap"><span><b>FinWise</b> · prototipe Tim 20 elevATE untuk validasi pengguna. Data: daftar pindar berizin OJK (${OJK.licensedPeriod}), daftar pinjol ilegal Satgas PASTI (${OJK.illegalPeriod}), statistik LPBBTI OJK (${OJK.stats.period}), tarif RIPLAY per ${dateID('2026-04-30')}, dan ulasan Google Play. Tokoh dan pemberi pinjaman di Tantangan 3 Hari adalah fiktif. Bukan nasihat keuangan.</span><span class="row" style="gap:12px"><button class="linkbtn" data-act="glossary">Kamus istilah</button><span>Cek legalitas resmi: Kontak OJK 157 · WhatsApp 081-157-157-157</span></span></div></footer>`;
+  return `<footer><div class="wrap"><span><b>FinWise</b> · prototipe Tim 20 elevATE untuk validasi pengguna. Data: daftar pindar berizin OJK (${OJK.licensedPeriod}), daftar pinjol ilegal Satgas PASTI (${OJK.illegalPeriod}), statistik LPBBTI OJK (${OJK.stats.period}), tarif RIPLAY per ${dateID('2026-04-30')}, dan ulasan Google Play. Tokoh dan pemberi pinjaman di game Lolos Jebakan Pinjol adalah fiktif. Bukan nasihat keuangan.</span><span class="row" style="gap:12px"><button class="linkbtn" data-act="glossary">Kamus istilah</button><span>Cek legalitas resmi: Kontak OJK 157 · WhatsApp 081-157-157-157</span></span></div></footer>`;
 }
 /* glossary: plain-language definitions, opened from any underlined term */
 const TERMS = {

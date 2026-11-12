@@ -521,9 +521,9 @@ table.cmp td.best{background:var(--safe-tint)}
 .home-hero .lead{font-size:1.0938rem;color:var(--muted);margin:16px 0 24px;max-width:50ch}
 .hh-note{display:flex;gap:8px;align-items:flex-start;margin-top:16px;font-size:.8125rem;color:var(--muted);max-width:52ch}
 .hh-note .ico{color:var(--green);margin-top:2px}
-.hero-art{width:100%;max-width:460px;height:auto;justify-self:center}
+.hero-art,.hero-img{width:100%;max-width:520px;height:auto;justify-self:center}
 .hero-art text{font-family:var(--display)}
-@media (max-width:860px){.home-hero{grid-template-columns:minmax(0,1fr)}.hero-art{max-width:320px}}
+@media (max-width:860px){.home-hero{grid-template-columns:minmax(0,1fr)}.hero-art,.hero-img{max-width:360px}}
 
 /* assessment route: three stops on one line */
 .journey{margin:36px 0 12px}
@@ -595,6 +595,7 @@ table.cmp td.best{background:var(--safe-tint)}
 .challenge .ch-text{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
 .challenge .ch-text b{font-family:var(--display);font-size:1.125rem}
 .challenge .ch-text span{color:#D6EADF;font-size:.875rem}
+.challenge .ch-text small{color:#FFD58A;font-weight:700;font-size:.75rem}
 .challenge:hover .btn{filter:brightness(1.05)}
 @media (max-width:600px){.challenge{flex-wrap:wrap}.challenge .btn{width:100%}}
 .cloned p{font-size:.8125rem;color:var(--muted)}
