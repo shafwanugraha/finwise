@@ -1,12 +1,15 @@
 # FinWise
 
-Pendamping keuangan untuk anak muda Indonesia, dipakai sebelum, saat, dan setelah berutang:
+Pendamping keuangan untuk anak muda Indonesia, dengan tiga fungsi utama:
 
-- **CEK**: kondisi keuangan, rasio keuangan rumah tangga, skor kesehatan (8 indikator), dan rencana hemat.
-- **PILAH**: batas cicilan aman, tangga dana tanpa utang, lalu perbandingan pinjaman legal berdasarkan total biaya.
-- **PULIH**: jadwal bayar, urutan pelunasan, dan cek "pinjam untuk bayar pinjaman".
-- **Cek Pinjol**: legalitas aplikasi pinjaman dari daftar OJK dan Satgas PASTI.
-- **Tantangan 3 Hari**: simulasi singkat untuk uji coba pengguna.
+1. **Asesmen pinjaman pribadi**, tiga langkah berurutan:
+   - **CEK** (sebelum berutang): kondisi keuangan, rasio, skor kesehatan, dan rencana hemat.
+   - **PILAH** (saat butuh dana): batas cicilan aman, tangga dana tanpa utang, dan perbandingan pinjaman legal berdasarkan total biaya.
+   - **PULIH** (setelah berutang): jadwal bayar, urutan pelunasan, dan cek "pinjam untuk bayar pinjaman".
+2. **Database pinjol**: legalitas aplikasi pinjaman dari daftar OJK dan Satgas PASTI, profil, ulasan, dan statistik industri.
+3. **Kalkulator pinjaman**: cicilan, total yang dikembalikan, dan bunga sebenarnya.
+
+Ada juga **Tantangan 3 Hari**, simulasi singkat untuk uji coba pengguna.
 
 Prototipe Tim 20 elevATE. **Bukan nasihat keuangan.**
 

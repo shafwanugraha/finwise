@@ -6,7 +6,7 @@ const fmtIn = n => (Math.round(n) || 0).toLocaleString('id-ID');
 const ROUTES = ['home', 'mulai', 'cek', 'pilah', 'pulih', 'kalkulator', 'openspace', 'berizin', 'pinjol', 'ilegal', 'keluhan', 'bandingkan', 'statistik', 'main', 'hasil'];
 const ALIAS = { uji: 'main', ringkasan: 'cek', misi: 'main' };
 const OS_ROUTES = ['openspace', 'berizin', 'pinjol', 'ilegal', 'keluhan', 'bandingkan', 'statistik'];
-const TITLES = { home: 'Beranda', mulai: 'Isi data saya', ringkasan: 'Hasil keuanganmu', cek: 'CEK', pilah: 'PILAH', pulih: 'PULIH', kalkulator: 'Kalkulator pinjaman', openspace: 'Openspace', berizin: 'Pindar berizin', pinjol: 'Profil pinjol', ilegal: 'Pinjol ilegal', keluhan: 'Pemantau keluhan', bandingkan: 'Bandingkan pinjol', statistik: 'Statistik industri', main: 'Tantangan 3 Hari', hasil: 'Data validasi' };
+const TITLES = { home: 'Beranda', mulai: 'Isi data saya', ringkasan: 'Hasil keuanganmu', cek: 'CEK', pilah: 'PILAH', pulih: 'PULIH', kalkulator: 'Kalkulator pinjaman', openspace: 'Database Pinjol', berizin: 'Pindar berizin', pinjol: 'Profil pinjol', ilegal: 'Pinjol ilegal', keluhan: 'Pemantau keluhan', bandingkan: 'Bandingkan pinjol', statistik: 'Statistik industri', main: 'Tantangan 3 Hari', hasil: 'Data validasi' };
 const ZONE = { safe: ['Aman', 'z-safe'], stretch: ['Mepet', 'z-stretch'], danger: ['Bahaya', 'z-danger'] };
 const zpill = z => `<span class="pill ${ZONE[z][1]}">${ZONE[z][0]}</span>`;
 const AV = { kirana: '#2E8B6A', dimas: '#C9801A', bima: '#134A36', saya: '#5B6B8A' };
@@ -260,16 +260,40 @@ function header() {
   return `<header class="top"><div class="wrap">
     ${LOGO}
     <nav class="mainnav" aria-label="Menu utama">
-      <a href="#cek" class="${on('cek', 'mulai')}"><b>CEK</b> Keuangan</a>
-      <a href="#pilah" class="${on('pilah')}"><b>PILAH</b> Pinjaman</a>
-      <a href="#pulih" class="${on('pulih')}"><b>PULIH</b> Utang</a>
-      <a href="#kalkulator" class="${on('kalkulator')}">Kalkulator</a>
-      <a href="#openspace" class="${on(...OS_ROUTES)}">Cek Pinjol</a>
-      <a href="#main" class="game${on('main')}">Tantangan</a>
+      <a href="#cek" class="${on(...JOURNEY_ROUTES)}">${ico('route')}<span>Asesmen<span class="nl-x"> Pinjaman</span></span></a>
+      <a href="#openspace" class="${on(...OS_ROUTES)}">${ico('db')}<span>Database<span class="nl-x"> Pinjol</span></span></a>
+      <a href="#kalkulator" class="${on('kalkulator')}">${ico('calc')}<span>Kalkulator</span></a>
+      <a href="#main" class="game${on('main')}">${ico('timer')}<span>Tantangan</span></a>
       ${S.cap.team ? `<a href="#hasil" class="${on('hasil')}">Data validasi</a>` : ''}
     </nav>
     <div class="who">${blank ? '<a class="btn sm" href="#mulai">Isi data saya</a>' : `<a class="userchip" href="#mulai" data-act="wiz-edit" title="Ubah data"><span class="avatar sm" aria-hidden="true">${esc(displayName(p)[0])}</span><span>${esc(displayName(p))}<span class="tiny muted"> · ubah</span></span></a>`}<button class="btn sm amber" data-act="drawer" data-v="chat" aria-expanded="${!!S.drawer}">✦ Tanya FinWise</button>${sizeBtn()}</div>
-  </div></header>`;
+  </div>${journeyBar()}</header>`;
+}
+/* ---------- icons (24px line icons, inherit currentColor) ---------- */
+const ICONS = {
+  cek: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.3 15.3 4.7 4.7"/><path d="M6.6 10.8h1.7l1.3-2.7 2 5 1.3-2.3h1.6"/>',
+  pilah: '<path d="M12 4v15"/><path d="M8 19.5h8"/><path d="M5 7h14"/><path d="M5 7 2.6 12.6h4.8L5 7z"/><path d="M19 7l-2.4 5.6h4.8L19 7z"/><path d="M2.6 12.6a2.4 2.4 0 0 0 4.8 0"/><path d="M16.6 12.6a2.4 2.4 0 0 0 4.8 0"/>',
+  pulih: '<path d="M12 20.5v-8.5"/><path d="M12 12c0-3.6 2.5-6.2 6.6-6.2 0 3.9-2.5 6.2-6.6 6.2z"/><path d="M12 14.2c0-3-2-5.1-5.6-5.1 0 3.3 2 5.1 5.6 5.1z"/><path d="M6.5 20.5h11"/>',
+  db: '<path d="M12 3 5 6v5.5c0 4.3 3 7.8 7 9.5 4-1.7 7-5.2 7-9.5V6l-7-3z"/><path d="m8.8 12 2.2 2.2 4.4-4.6"/>',
+  calc: '<rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8.5 7.2h7"/><path d="M8.6 11.5h.01M12 11.5h.01M15.4 11.5h.01M8.6 14.9h.01M12 14.9h.01M15.4 14.9h.01M8.6 18.1h.01M12 18.1h.01"/>',
+  timer: '<circle cx="12" cy="13.5" r="7"/><path d="M12 13.5V10"/><path d="M10 3h4"/><path d="M12 3v3.5"/><path d="m18.4 7.6 1.4-1.4"/>',
+  route: '<circle cx="5" cy="17" r="2.2"/><circle cx="19" cy="7" r="2.2"/><path d="M7.2 17H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7.8"/>',
+  check: '<path d="m5 12.5 4.3 4.3L19 7.2"/>',
+};
+const ico = (k, cls = '') => `<svg class="ico ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${ICONS[k] || ''}</svg>`;
+/* the three steps of the personal loan assessment, shared by the home page and the step bar */
+const STEPS = [
+  { r: 'cek', name: 'CEK', when: 'Sebelum berutang', q: 'Seberapa sehat keuanganku?', gets: ['Skor kesehatan keuangan dari 8 kebiasaan', 'Rasio keuanganmu dibanding patokan umum', 'Rencana hemat yang bisa langsung dijalankan'] },
+  { r: 'pilah', name: 'PILAH', when: 'Saat butuh dana', q: 'Berapa yang aman, dan dari mana?', gets: ['Batas cicilan baru yang aman untukmu', 'Tutup kebutuhan tanpa utang dulu', '3 pinjaman legal yang paling cocok'] },
+  { r: 'pulih', name: 'PULIH', when: 'Setelah berutang', q: 'Bagaimana cara keluar dari utang?', gets: ['Jadwal bayar dan pengingat di kalender', 'Urutan pelunasan paling hemat', 'Cek dulu sebelum pinjam untuk bayar pinjaman'] },
+];
+const JOURNEY_ROUTES = ['mulai', 'cek', 'pilah', 'pulih'];
+function journeyBar() {
+  if (!JOURNEY_ROUTES.includes(S.route) || (S.route === 'main')) return '';
+  return `<nav class="jbar" aria-label="Langkah asesmen pinjaman"><div class="wrap"><span class="jbar-l">Asesmen pinjaman</span><ol>${STEPS.map((st, i) => {
+    const on = S.route === st.r || (st.r === 'cek' && S.route === 'mulai');
+    return `<li><a href="#${st.r}" class="st-${st.r}${on ? ' on' : ''}"${on ? ' aria-current="step"' : ''}><span class="jn">${i + 1}</span>${ico(st.r)}<span><b>${st.name}</b><small>${st.when}</small></span></a></li>`;
+  }).join('')}</ol></div></nav>`;
 }
 // page banner (Wasapada-style): one title, one sentence of purpose, the user's key number on the right
 function banner({ tone = 'green', eyebrow, title, sub, right = '' }) {

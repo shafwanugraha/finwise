@@ -1,7 +1,12 @@
 # FinWise – notes for Claude
 
 ## What this is
-A single-page web app for young Indonesians: CEK (financial health), PILAH (choose a safe, legal loan), PULIH (get out of debt), Cek Pinjol (OJK legality lookup), and a 3-round game ("Tantangan 3 Hari") used for user testing. It is built from `src/` into one self-contained file, `docs/index.html`, which GitHub Pages serves.
+A single-page web app for young Indonesians with three main functions, which are also the main menu:
+1. Asesmen Pinjaman: CEK (financial health) → PILAH (choose a safe, legal loan) → PULIH (get out of debt). It is shown as one route with a step bar (`journeyBar()` in `src/app/00_core.js`).
+2. Database Pinjol (`#openspace`, OJK legality lookup).
+3. Kalkulator.
+
+A 3-round game ("Tantangan 3 Hari") used for user testing is an extra. The illustrations are hand-made inline SVG (`HERO_ART` and `STAGE_ART` in `src/app/10_home.js`), and the icons are in `ICONS` in `00_core.js`. It is built from `src/` into one self-contained file, `docs/index.html`, which GitHub Pages serves.
 
 ## Build and test
 - `python3 build.py` writes `docs/index.html`. Always rebuild after editing `src/`, and commit `src/` and `docs/` together.

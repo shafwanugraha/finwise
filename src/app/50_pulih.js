@@ -38,7 +38,7 @@ function vPulih() {
   const kol = { lancar: ['Kol 1 · Lancar', 'z-safe'], kosong: ['Belum ada riwayat', 'z-grey'], tidaktahu: ['Belum dicek', 'z-grey'], dpk: ['Kol 2 · Dalam perhatian khusus', 'z-stretch'], macet: ['Kol 5 · Macet', 'z-danger'] }[base.slik] || ['Belum dicek', 'z-grey'];
   const letterLoan = p.loans.find(l => l.id === st.letterLoan) || p.loans[0];
   const firstPay = Math.min(...p.incomes.map(i => i.payday || 1));
-  return banner({ tone: 'deep', eyebrow: 'PULIH · SETELAH BERUTANG', title: 'Bayar tepat waktu, keluar dari utang', sub: 'Semua cicilan di satu tempat, uang yang perlu disisihkan, dan urutan pelunasan yang paling hemat.', right: userChip() })
+  return banner({ tone: 'pulih', eyebrow: 'PULIH · SETELAH BERUTANG', title: 'Bayar tepat waktu, keluar dari utang', sub: 'Semua cicilan di satu tempat, uang yang perlu disisihkan, dan urutan pelunasan yang paling hemat.', right: userChip() })
   + secNav([['p1', 'Ringkasan utang'], ['p2', 'Jadwal bayar'], ['p3', 'Urutan pelunasan'], ['p4', 'Pinjam lagi?'], ['p5', 'Riwayat kredit']]) + `
   <section class="sec">${secHead(1, 'p1', 'Ringkasan utangmu', 'Semua cicilan aktif dalam satu angka.')}
    <div class="panel"><div class="grid g4">

@@ -46,7 +46,7 @@ function lookupResult(R) {
 }
 function osNav() {
   const tabs = [['openspace', 'Beranda'], ['berizin', `Berizin (${LIC.length})`], ['ilegal', `Ilegal (${ILL.length})`], ['keluhan', 'Pemantau keluhan'], ['bandingkan', `Bandingkan${S.os.cmp.length ? ' (' + S.os.cmp.length + ')' : ''}`], ['statistik', 'Statistik industri']];
-  return `<nav class="ostabs" aria-label="Openspace">${tabs.map(([r, l]) => `<a href="#${r}" class="${S.route === r || (r === 'berizin' && S.route === 'pinjol') ? 'on' : ''}" ${S.route === r ? 'aria-current="page"' : ''}>${l}</a>`).join('')}</nav>`;
+  return `<nav class="ostabs" aria-label="Database pinjol">${tabs.map(([r, l]) => `<a href="#${r}" class="${S.route === r || (r === 'berizin' && S.route === 'pinjol') ? 'on' : ''}" ${S.route === r ? 'aria-current="page"' : ''}>${l}</a>`).join('')}</nav>`;
 }
 // typo tolerance: closest names by edit distance ("akadami" -> AdaKami)
 function lev(a, b) { if (Math.abs(a.length - b.length) > 3) return 9; let prev = Array.from({ length: b.length + 1 }, (_, j) => j); for (let i = 1; i <= a.length; i++) { const cur = [i]; for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = cur; } return prev[b.length]; }
@@ -85,7 +85,7 @@ function foundNote(l) {
 function vOpenspace() {
   const st = OJK.stats, revApps = RL.filter(l => l.reviews).length;
   return `${osNav()}
-   <section class="oshero"><div class="eyebrow e-os">OPENSPACE · TERBUKA UNTUK SEMUA, TANPA LOGIN</div><h1 tabindex="-1">Pinjol ini legal atau tidak?</h1><p class="lead" style="margin:8px 0 16px">Cek sebelum memberi data apa pun. Dicocokkan dengan daftar resmi OJK dan Satgas PASTI.</p>${searchBox(true)}</section>
+   <section class="oshero"><div class="eyebrow e-os">DATABASE PINJOL · TERBUKA UNTUK SEMUA, TANPA LOGIN</div><h1 tabindex="-1">Pinjol ini legal atau tidak?</h1><p class="lead" style="margin:8px 0 16px">Cek sebelum memberi data apa pun. Dicocokkan dengan daftar resmi OJK dan Satgas PASTI.</p>${searchBox(true)}</section>
    <div class="grid g4 stats">
     <a class="stat" href="#berizin"><span class="ic safe" aria-hidden="true">✓</span><span class="k">Pindar berizin</span><b>${LIC.length}</b><span class="s">daftar OJK ${OJK.licensedPeriod} · ${st.companies} per ${st.period}</span></a>
     <a class="stat" href="#ilegal"><span class="ic danger" aria-hidden="true">!</span><span class="k">Pinjol ilegal tercatat</span><b>${OJK.illegalEntries.toLocaleString('id-ID')}</b><span class="s">${ILL.length} nama · Satgas PASTI ${OJK.illegalPeriod}</span></a>
@@ -129,7 +129,7 @@ function vPinjol() {
   const l = licById(S.os.lender) || LIC[0], d = l.d, sf = safety(l);
   const reviews = S.reviews.filter(r => r.lender === l.id), f = S.os.rv || {};
   const radio5 = (name, label) => `<fieldset class="qq" style="margin:0"><legend class="small" style="font-weight:700">${label}</legend><div class="seg" style="margin-top:6px">${[1, 2, 3, 4, 5].map(n => `<label class="segr"><input type="radio" name="${name}" value="${n}" data-rv="${name}" ${String(f[name]) === String(n) ? 'checked' : ''}><span>${n}</span></label>`).join('')}</div></fieldset>`;
-  const head = `${osNav()}<nav class="crumbs small" aria-label="Lokasi"><a href="#openspace">Openspace</a> › <a href="#berizin">Berizin</a> › <span aria-current="page">${esc(l.name)}</span></nav>
+  const head = `${osNav()}<nav class="crumbs small" aria-label="Lokasi"><a href="#openspace">Database pinjol</a> › <a href="#berizin">Berizin</a> › <span aria-current="page">${esc(l.name)}</span></nav>
    ${S.os.found === l.id ? foundNote(l) : ''}
    <div class="grid g-side" style="align-items:start">
     <div class="card phero"><div class="row" style="gap:14px;align-items:flex-start;flex-wrap:nowrap"><div class="logo-ph" aria-hidden="true">${esc(l.name.slice(0, 2).toUpperCase())}</div><div style="min-width:0"><div class="row" style="gap:8px"><h1 tabindex="-1" style="font-size:clamp(1.6rem,3vw,2.2rem)">${esc(l.name)}</h1><span class="pill z-safe">Berizin OJK</span></div>
