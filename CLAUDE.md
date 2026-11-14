@@ -20,18 +20,33 @@ A 3-round financial-literacy game ("Lolos Jebakan Pinjol", menu "Game", route `#
 - `data/raw/` is never committed: it holds raw Google Play reviews with reviewer names. Only aggregated data goes into `src/realdata.js`.
 - Do not name or link to illegal lending apps beyond what the Satgas PASTI list states. Do not show developers' personal names.
 
-## Open work (Nov 2026)
-1. Feedback from user testing:
-   - CEK plan tasks (SLIK, BPJS) need to be checkable and update the score.
-   - PILAH cards should be split into 3 parts (about the lender / about this loan / impact on you), with "total yang dikembalikan" instead of "total biaya maks".
-   - PULIH payoff order should become a real choice ("Hemat bunga" / "Cepat lega") and be hidden when there is only one debt.
-   - Remove the game's result code.
-2. Cia's benchmark doc:
-   - Add total spending ÷ income (≤80% wajar, ≥90% bahaya) and make the Safe zone require ≤90%.
-   - Add a red flag for ≥4 active credits.
-   - Non-KPR instalments: ≤15% / ≥20%.
-   - Savings: 10% minimum, 20% target.
-   - Emergency fund ÷ total monthly spending including instalments.
-   - Self-employed income should be profit, not turnover.
-   - Change the game star "zona Aman" to "opsi legal termurah".
-3. Accounts and database (planned: Supabase with Google login, row-level security, an anonymous research snapshot with explicit consent per UU PDP / PP 33/2026, and a team dashboard).
+## Core rule: decide first, size second, compare third, always show an exit
+- `FW.readiness(p)` gives one verdict for the whole app. Level 0 is "Belum bisa berutang", 1 is "Hanya untuk darurat", 2 is "Boleh, dengan batas", and 3 is "Siap berutang dengan sehat". It also returns the reasons and `max` (the largest safe loan for 3/6/12 months).
+  - Show it as the CEK hero, as the strip at the top of PILAH, and as the chip in the header.
+  - The names and colours are in `READY` in `00_core.js`.
+- `FW.headroom(p).ceiling` is the safe instalment, after protecting planned monthly saving. `FW.maxSafeLoan(p, months)` converts it into a loan size at ±1.5%/month.
+- Never write "paling cocok" or "Ajukan tepat" for an option in the Bahaya zone. When every option is red, the result is "pilihan yang paling sedikit merugikan", sorted by the smallest monthly shortfall.
+- The health score keeps 8 indicators (FinHealth), and a monthly deficit always reads "Rentan". It is labelled "Kondisi keuangan" on screen.
+- Emergency fund months are the fund ÷ total monthly outflow, including instalments (Cia's benchmark).
+- In PULIH, interest is only simulated for loans whose rate the user entered. Otherwise the instalments already include it.
+- One vocabulary: Porsi cicilan, Sisa uang, Total dikembalikan, Pinjaman maksimal yang aman, Kesiapan berutang.
+
+## Open work (after P0, 14 Nov 2026)
+- **P1**
+  - PILAH Step 0 "Untuk apa?" (purpose + urgency) and the readiness gate:
+    - no-debt plan;
+    - emergency mode with acknowledgement first;
+    - amount capped at the max safe loan.
+  - Extended ladder rungs: reduce/delay, payment plan, campus/employer fund, quick cash.
+  - Loan purpose on existing loans with a per-loan "Analisis pinjaman" (Bijak / Pertimbangkan lagi / Tidak disarankan).
+  - "Jalan naik level" levers and emergency-fund milestones.
+  - Kalkulator: real-rate default, readiness chip, CTA by level.
+  - PULIH "Tidak sanggup bayar bulan ini?" with an editable message to the lender.
+  - Cia's remaining ratios: non-KPR ≤15/20%, savings 10/20%, profit for the self-employed.
+  - A new game ("Sebulan Bertahan" plus a 60-second "Legal atau Ilegal"), with the pre/post quiz kept.
+- **P2**
+  - Intent question at entry.
+  - Collapsed ratios, a sticky mobile summary, and smaller banners.
+  - Monthly re-check and data export/import.
+  - Restyle the inner pages.
+- **Later:** accounts and a database (Supabase with Google login, row-level security, an anonymous research snapshot with explicit consent per UU PDP / PP 33/2026, and a team dashboard).

@@ -24,7 +24,9 @@ function vPulih() {
   const h = FW.headroom(p), out = FW.sum(p.loans, l => l.outstanding);
   const loansSorted = [...p.loans].sort((a, b) => a.dueDay - b.dueDay);
   const av = FW.route(p.loans, st.extra || 0, 'avalanche'), sn = FW.route(p.loans, st.extra || 0, 'snowball');
-  const better = av.interest <= sn.interest ? 'avalanche' : 'snowball';
+  // with known rates the cheaper route wins; without them, the one that clears every debt sooner
+  const better = av.interestKnown ? (av.interest <= sn.interest ? 'avalanche' : 'snowball') : (av.months <= sn.months ? 'avalanche' : 'snowball');
+  const one = p.loans.length === 1, solo = one ? FW.route(p.loans, st.extra || 0, 'avalanche') : null;
   const T = st.temp, tReady = T.amount > 0 && T.months > 0 && T.rate != null, LT = FW.loan({ principal: T.amount, rate: T.rate, unit: T.unit, months: T.months });
   const baseSur = FW.surplus(base), withNew = baseSur - LT.inst;
   const coverMonths = withNew < 0 ? Math.max(1, Math.floor(T.amount / -withNew)) : null;
@@ -42,27 +44,29 @@ function vPulih() {
   + secNav([['p1', 'Ringkasan utang'], ['p2', 'Jadwal bayar'], ['p3', 'Urutan pelunasan'], ['p4', 'Pinjam lagi?'], ['p5', 'Riwayat kredit']]) + `
   <section class="sec">${secHead(1, 'p1', 'Ringkasan utangmu', 'Semua cicilan aktif dalam satu angka.')}
    <div class="panel"><div class="grid g4">
-    <div class="kpi"><div class="k">Total sisa utang</div><div class="v">${rp(out)}</div><div class="s">${p.loans.length} pinjaman</div></div>
+    <div class="kpi"><div class="k">Total sisa pembayaran</div><div class="v">${rp(out)}</div><div class="s">${p.loans.length} pinjaman</div></div>
     <div class="kpi"><div class="k">Cicilan per bulan</div><div class="v">${rp(h.ex)}</div><div class="s">${st.restructure ? 'setelah restrukturisasi' : 'saat ini'}</div></div>
-    <div class="kpi"><div class="k">${term('DSR', 'Porsi gaji untuk cicilan')}</div><div class="v" style="color:${h.dsrNow > 0.4 ? 'var(--danger)' : h.dsrNow > 0.3 ? 'var(--stretch)' : 'var(--safe)'}">${pct(h.dsrNow)}</div><div class="s">batas sehat 30%</div></div>
-    <div class="kpi"><div class="k">Sisa uang per bulan</div><div class="v" style="color:${h.sur < 0 ? 'var(--danger)' : 'var(--safe)'}">${rp(h.sur, { plus: true })}</div><div class="s">setelah semua cicilan</div></div>
+    <div class="kpi"><div class="k">${term('Porsi cicilan')}</div><div class="v" style="color:${h.dsrNow > 0.4 ? 'var(--danger)' : h.dsrNow > 0.3 ? 'var(--stretch)' : 'var(--safe)'}">${pct(h.dsrNow)}</div><div class="s">batas sehat 30%</div></div>
+    <div class="kpi"><div class="k">${term('Sisa uang')}</div><div class="v" style="color:${h.sur < 0 ? 'var(--danger)' : 'var(--safe)'}">${rp(h.sur, { plus: true })}</div><div class="s">setelah semua cicilan</div></div>
    </div></div></section>
   <section class="sec">${secHead(2, 'p2', 'Jadwal bayar & uang yang disisihkan', 'Kapan tiap cicilan jatuh tempo, dan berapa yang harus dikunci saat gajian.')}
      <div class="panel">
       ${monthStrip([...p.incomes.map(i => ({ day: i.payday || 1, label: 'Uang masuk', color: 'var(--safe)' })), ...loansSorted.map(l => ({ day: l.dueDay, label: rps(l.instalment), color: 'var(--amber)' }))])}
       <div class="tbl-wrap" style="margin-top:12px"><table><thead><tr><th>Cicilan</th><th>Jatuh tempo</th><th>Bunga/bln</th><th>Sisa</th><th>Jumlah</th></tr></thead><tbody>
-       ${loansSorted.map(l => `<tr><td><b>${esc(l.name)}</b>${l.restructured ? ' <span class="pill z-green">Direstrukturisasi</span>' : ''}<div><a class="tiny" href="${gcalLink(l, firstPay)}" target="_blank" rel="noopener noreferrer">+ Pengingat di Google Calendar<span class="sr"> untuk ${esc(l.name)} (tab baru)</span></a></div></td><td>tgl ${l.dueDay}</td><td class="num">${((l.rateMonthly || 0) * 100).toLocaleString('id-ID')}%</td><td class="num">${rps(l.outstanding)} · ${l.months} bln</td><td class="num"><b>${rp(l.instalment)}</b></td></tr>`).join('') || '<tr><td colspan="5" class="muted">Tidak ada cicilan aktif.</td></tr>'}
+       ${loansSorted.map(l => `<tr><td><b>${esc(l.name)}</b>${l.restructured ? ' <span class="pill z-green">Direstrukturisasi</span>' : ''}<div><a class="tiny" href="${gcalLink(l, firstPay)}" target="_blank" rel="noopener noreferrer">+ Pengingat di Google Calendar<span class="sr"> untuk ${esc(l.name)} (tab baru)</span></a></div></td><td>tgl ${l.dueDay}</td><td class="num">${((l.rateMonthly || 0) * 100).toLocaleString('id-ID')}%${l.rateGuess ? '<div class="tiny muted">perkiraan</div>' : ''}</td><td class="num">${rps(l.outstanding)} · ${l.months} bln</td><td class="num"><b>${rp(l.instalment)}</b></td></tr>`).join('') || '<tr><td colspan="5" class="muted">Tidak ada cicilan aktif.</td></tr>'}
       </tbody></table></div>
       ${p.loans.length ? `<div class="note amber" style="margin-top:12px">Saat uang masuk tanggal <b>${firstPay}</b>, langsung kunci <b>${rp(h.ex)}</b> di kantong terpisah untuk ${p.loans.length} cicilan bulan ini. Sisanya, ${rp(h.inc - h.ex)}, baru dipakai untuk kebutuhan.</div>` : ''}
      </div></section>
-  <section class="sec">${secHead(3, 'p3', 'Urutan pelunasan', 'Mana yang dilunasi dulu agar total bunga paling kecil.')}
+  <section class="sec">${secHead(3, 'p3', one ? 'Lunasi lebih cepat' : 'Urutan pelunasan', one ? 'Kalau ada uang lebih, berapa bulan lebih cepat utangmu lunas.' : 'Mana yang dilunasi dulu kalau ada uang lebih.')}
      ${!p.loans.length ? '<div class="panel"><p class="small muted">Kamu tidak punya cicilan aktif, jadi tidak ada yang perlu dilunasi. Pertahankan, dan sebelum berutang mulai dari CEK.</p></div>' : `<div class="panel"><div class="row between"><p class="small">Punya uang ekstra untuk melunasi lebih cepat? Isi jumlahnya.</p><label class="f" style="flex-direction:row;align-items:center;gap:8px">Dana ekstra/bln <span style="width:150px">${rpInput('x-extra', st.extra, 'data-k="pulih.extra" data-t="rpn" placeholder="0"')}</span></label></div>
-      <div class="grid g2" style="margin-top:12px">
-       ${[['avalanche', 'Avalanche', 'Bunga tertinggi dulu: total bunga paling kecil', av], ['snowball', 'Snowball', 'Saldo terkecil dulu: cepat terasa ada yang lunas', sn]].map(([k, t, d, r]) => `<div class="opt ${better === k ? 'best' : ''}"><div class="row between"><b>${term(t)}</b>${better === k ? '<span class="pill z-safe">Lebih hemat</span>' : ''}</div><div class="tiny muted">${d}</div>
+      ${one ? `<div class="grid g2" style="margin-top:12px"><div class="kpi"><div class="k">Lunas dalam</div><div class="v">${solo.months} bulan</div><div class="s">${st.extra > 0 ? `${Math.max(0, p.loans[0].months - solo.months)} bulan lebih cepat dari jadwal (${p.loans[0].months} bulan)` : 'sesuai jadwal; isi dana ekstra untuk mempercepat'}</div></div>
+        <div class="kpi"><div class="k">Bunga</div><div class="v">${solo.interestKnown ? rps(solo.interest) : 'sudah di cicilan'}</div><div class="s">${solo.interestKnown ? 'perkiraan sisa bunga' : 'tanya pemberi pinjaman apakah pelunasan lebih cepat mengurangi bunga'}</div></div></div>`
+      : `<div class="grid g2" style="margin-top:12px">
+       ${[['avalanche', 'Hemat bunga', 'Avalanche', 'Bayar dulu yang bunganya paling tinggi; total bunga paling kecil', av], ['snowball', 'Cepat lega', 'Snowball', 'Bayar dulu yang sisanya paling kecil; cepat terasa ada yang lunas', sn]].map(([k, t, tt, d, r]) => `<div class="opt ${better === k ? 'best' : ''}"><div class="row between"><b>${t} <span class="tiny muted">(${term(tt)})</span></b>${better === k ? `<span class="pill z-safe">${av.interestKnown ? 'Lebih hemat' : 'Lebih cepat'}</span>` : ''}</div><div class="tiny muted">${d}</div>
         <div class="small">Urutan: ${r.order.map(id => esc(p.loans.find(l => l.id === id)?.name || id)).join(' → ')}</div>
-        <div class="facts" style="grid-template-columns:1fr 1fr"><div><div class="k">Semua lunas</div><div class="v">${r.months} bulan</div></div><div><div class="k">Perkiraan bunga</div><div class="v">${rps(r.interest)}</div></div></div></div>`).join('')}
+        <div class="facts" style="grid-template-columns:1fr 1fr"><div><div class="k">Semua lunas</div><div class="v">${r.months} bulan</div></div><div><div class="k">Perkiraan bunga</div><div class="v">${r.interestKnown ? rps(r.interest) : '—'}</div></div></div></div>`).join('')}
       </div>
-      <p class="tiny muted" style="margin-top:8px">Perkiraan memakai bunga bulanan di atas saldo; cicilan yang sudah lunas otomatis dialihkan ke utang berikutnya. Selisihnya ${rp(Math.abs(av.interest - sn.interest))}.${p.loans.some(l => l.rateGuess) ? ' Bunga yang tidak kamu isi memakai perkiraan umum per jenis utang.' : ''}</p>
+      <p class="tiny muted" style="margin-top:8px">Cicilan yang sudah lunas otomatis dialihkan ke utang berikutnya. ${av.interestKnown ? `Selisih bunga kedua cara ${rp(Math.abs(av.interest - sn.interest))}.` : 'Bunga baru dihitung untuk utang yang bunganya kamu isi di Data saya; urutan "hemat bunga" memakai perkiraan bunga per jenis utang.'}</p>`}
      </div>`}</section>
   <section class="sec">${secHead(4, 'p4', 'Ditawari pinjaman untuk menutup cicilan?', 'Cek dulu dampaknya sebelum “gali lubang tutup lubang”.')}
      <div class="panel" style="border-left:5px solid var(--danger)">
@@ -74,7 +78,7 @@ function vPulih() {
       </div>
       ${!tReady ? '<p class="small muted" style="margin-top:12px">Sedang ditawari pinjaman baru untuk menutup cicilan? Isi jumlah, tenor, dan bunganya untuk melihat dampaknya ke sisa uangmu.</p>' : `<div class="grid g2" style="margin-top:12px">
        <div class="kpi"><div class="k">Cicilan baru</div><div class="v">${rp(LT.inst)}</div><div class="s">${(T.rate * 100).toLocaleString('id-ID')}% per ${T.unit === 'day' ? 'hari' : 'bulan'}</div></div>
-       <div class="kpi"><div class="k">Total biaya pinjaman</div><div class="v">${rp(LT.total)}</div></div>
+       <div class="kpi"><div class="k">Biaya pinjaman (bunga + admin)</div><div class="v">${rp(LT.total)}</div></div>
       </div>
       ${withNew < 0 || baseSur < 0 ? `<div class="note danger" style="margin-top:12px">Dengan cicilan baru, sisa uangmu jadi <b>${rp(withNew, { plus: true })}</b> per bulan${coverMonths !== null ? `, sehingga dana ${rps(T.amount)} habis dalam ±${coverMonths} bulan dan kamu kembali tekor lebih dalam` : ''}. <b>Tidak disarankan</b>: ini memperbesar lubang, bukan menutupnya.</div>` : `<div class="note amber" style="margin-top:12px">Dengan cicilan baru, sisa uangmu jadi <b>${rp(withNew, { plus: true })}</b> per bulan. Masih positif, tapi meminjam untuk membayar pinjaman biasanya hanya menunda masalah; cek dulu restrukturisasi dengan pemberi pinjaman lamamu.</div>`}`}
       ${(steps.hasR || steps.hasS) ? `<div class="lab" style="margin-top:14px">Jalan yang lebih sehat</div>

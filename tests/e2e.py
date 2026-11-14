@@ -33,6 +33,39 @@ async def fill_profile(pg):
     await sy(pg, 'emergencyFund', '1500000'); await sy(pg, 'savingMonthly', '200000')
     for k, v in [('onTimeAns', 'ya'), ('pinjolExp', 'lancar'), ('slik', 'tidaktahu'), ('insurance', '1'), ('plan', '0'), ('access.koperasi', '0'), ('access.bank', '1')]: await radio(pg, k, v)
     await pg.click('[data-act="wiz-next"]'); await pg.wait_for_timeout(400)
+
+# acceptance checks from the UX revision plan (Alsya, 13 Nov 2026)
+def _items(needs, wants):
+    return [{'id': 's0', 'name': 'Kebutuhan pokok', 'kind': 'need', 'amount': needs, 'day': None}, {'id': 's5', 'name': 'Keinginan', 'kind': 'want', 'amount': wants, 'day': None}]
+async def _setp(pg, prof):
+    await pg.evaluate("p => { localStorage.setItem('finwise:saya', JSON.stringify(p)); location.hash = '#home'; }", prof); await pg.reload(); await pg.wait_for_timeout(300)
+async def _pilah3(pg, need):
+    await go(pg, 'pilah'); await pg.locator('[data-act="pilah-step"][data-v="2"]').first.click(); await pg.wait_for_timeout(150)
+    await pg.fill('#n-amount', need); await pg.press('#n-amount', 'Tab'); await pg.select_option('#n-hours', '168'); await pg.select_option('#n-purpose', 'konsumtif'); await pg.select_option('#n-months', '6'); await pg.wait_for_timeout(150)
+    await pg.locator('[data-act="pilah-step"][data-v="3"]').last.click(); await pg.wait_for_timeout(300)
+async def acceptance(pg):
+    import copy, json
+    base = json.loads(await pg.evaluate("localStorage.getItem('finwise:saya')"))
+    A = copy.deepcopy(base); A['incomes'][0]['amount'] = 5000000; A['items'] = A['spending'] = _items(3600000, 1000000); A['family'] = 0; A['familyAns'] = False
+    A['loans'] = [dict(base['loans'][0], instalment=300000, months=6, name='Paylater')]; A['emergencyFund'] = 300000; A['savingMonthly'] = 0
+    B = copy.deepcopy(A); B['stability'] = 'tidak'; B['incomes'][0]['amount'] = 3500000; B['incomes'][0]['type'] = 'tidak tetap'; B['items'] = B['spending'] = _items(3050000, 850000)
+    B['loans'] = [dict(base['loans'][0], instalment=250000, months=6, name='Paylater')]; B['emergencyFund'] = 0
+    ok = True
+    def check(name, cond):
+        nonlocal ok; ok = ok and cond; print(('PASS ' if cond else 'FAIL ') + name)
+    await _setp(pg, A); await go(pg, 'cek')
+    check('A: Hanya untuk darurat', (await pg.inner_text('.rc-level')).strip() == 'Hanya untuk darurat')
+    amts = await pg.evaluate("[...document.querySelectorAll('.rc-amts dd')].map(d => +d.innerText.replace(/[^0-9]/g, ''))")
+    check(f'A: max safe 6 bln Rp380-390 rb ({amts[1] if len(amts) > 1 else None})', len(amts) == 3 and 370000 <= amts[1] <= 390000)
+    await _pilah3(pg, '3000000'); t = await pg.evaluate('document.body.innerText')
+    check('A: danger copy (no "paling cocok" / "Ajukan tepat", has "paling sedikit merugikan")', 'paling cocok' not in t and 'Ajukan tepat' not in t and 'paling sedikit merugikan' in t)
+    await _setp(pg, B); await go(pg, 'cek')
+    check('B: Belum bisa berutang', (await pg.inner_text('.rc-level')).strip() == 'Belum bisa berutang')
+    check('B: health status Rentan', 'Rentan' in await pg.inner_text('.hero-sum .ring'))
+    await go(pg, 'pulih')
+    t = await pg.evaluate('document.body.innerText')
+    check('PULIH: one loan, no phantom interest (lunas 6 bulan)', 'Lunas dalam\n6 bulan' in t or 'Lunas dalam 6 bulan' in t.replace('\n', ' '))
+    print('acceptance:', 'ALL PASS' if ok else 'FAILURES')
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch()
@@ -64,6 +97,7 @@ async def main():
         await go(pg, 'openspace'); await pg.screenshot(path=OUT + 'os.png', full_page=True)
         await go(pg, 'main'); await pg.screenshot(path=OUT + 'game.png'); print('game title:', await pg.inner_text('main h1'))
         await go(pg, 'uji'); print('uji ->', await pg.evaluate('location.hash'))
+        await acceptance(pg)
         print('desktop errors:', errs)
         await ctx.close()
         ctx = await b.new_context(viewport={'width': 390, 'height': 844}); pg = await ctx.new_page(); errs = []

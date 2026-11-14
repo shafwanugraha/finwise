@@ -30,8 +30,8 @@ function saferOptions(p, c, n) {
   if (h.ceiling <= 0) return [{ t: 'Tunda & perbaiki arus kas dulu', risk: 'Paling aman', d: 'Saat ini belum ada ruang cicilan baru. Gunakan rencana di CEK untuk menambah sisa uang.', href: '#cek' }];
   for (let m = c.months + 1; m <= 24; m++) { const L = calcNumbers({ ...c, months: m }).L; if (L.inst <= h.ceiling) { out.push({ t: `Perpanjang tenor jadi ${m} bulan`, risk: 'Sedang', d: `Cicilan turun ke ${rp(L.inst)}, tapi total biaya naik jadi ${rp(L.total)}.`, set: { months: m } }); break; } }
   let lo = 0, hi = c.amount; for (let k = 0; k < 40; k++) { const mid = (lo + hi) / 2; if (calcNumbers({ ...c, amount: mid }).L.inst <= h.ceiling) lo = mid; else hi = mid; }
-  const amt = Math.floor(lo / 100000) * 100000;
-  if (amt >= 500000 && amt < c.amount) out.push({ t: `Kurangi pinjaman jadi ${rps(amt)}`, risk: 'Rendah', d: `Dengan tenor ${c.months} bulan, cicilan masuk batas amanmu ${rp(h.ceiling)}. Sisanya tutup dari tangga dana.`, set: { amount: amt } });
+  const amt = Math.floor(lo / 10000) * 10000;
+  if (amt > 0 && amt < c.amount) out.push({ t: `Pinjaman maksimal yang aman: ${rps(amt)}`, risk: 'Rendah', d: `Dengan tenor ${c.months} bulan dan tarif ini, cicilannya masuk batas amanmu ${rp(h.ceiling)}. Sisanya tutup dari tangga dana atau tunda.`, set: { amount: amt } });
   const sur = FW.surplus(p);
   if (sur > 0) out.push({ t: 'Tunda & menabung', risk: 'Sangat rendah', d: `Dengan menyisihkan ${rp(sur)} per bulan, ${rps(c.amount)} terkumpul dalam ±${Math.ceil(c.amount / sur)} bulan tanpa bunga sama sekali.`, href: '#cek' });
   return out.slice(0, 3);
@@ -80,7 +80,7 @@ function vKalkulator() {
        <div class="row between"><span>Total bunga + biaya</span><b class="num">${rp(L.total)}</b></div>
        <div class="row between"><span>Total dibayar</span><b class="num">${rp(L.repay + L.fee)}</b></div>
        <div class="row between"><span>${term('Bunga efektif')} per tahun</span><b class="num">${pct(L.ear, 0)}</b></div>
-       ${z ? `<div class="row between"><span>${term('DSR', 'Porsi gaji untuk cicilan')}</span><b class="num">${pct(z.dsr, 1)}</b></div><div class="bar" aria-hidden="true"><i style="width:${Math.min(100, z.dsr / 0.6 * 100).toFixed(0)}%;background:var(--${z.zone})"></i></div>
+       ${z ? `<div class="row between"><span>${term('Porsi cicilan')}</span><b class="num">${pct(z.dsr, 1)}</b></div><div class="bar" aria-hidden="true"><i style="width:${Math.min(100, z.dsr / 0.6 * 100).toFixed(0)}%;background:var(--${z.zone})"></i></div>
        <div class="row between"><span>Sisa uang per bulan</span><b class="num" style="color:${z.left < 0 ? 'var(--danger)' : 'inherit'}">${rp(z.left, { plus: true })}</b></div>` : ''}
       </div>
       <div class="note ${z ? { safe: 'safe', stretch: 'amber', danger: 'danger' }[z.zone] : ''} small" style="margin-top:12px"><b>Saran FinWise:</b> ${esc(advice)}</div>

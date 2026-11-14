@@ -148,6 +148,8 @@ const ACT = {
   'cek-applied': el => { S.cek.applied = el.dataset.v === '1'; render(); },
   'pilah-step': el => { S.pilah.step = +el.dataset.v; render(); window.scrollTo({ top: 0 }); },
   mode: el => { (el.dataset.scope === 't' ? S.test.st : S.pilah).mode = el.dataset.v; render(); },
+  'pilah-cap': el => { S.pilah.cap = +el.dataset.v || 0; S.pilah.picked = null; render(); announce(S.pilah.cap ? 'Jumlah pinjaman diganti ke jumlah aman' : 'Jumlah pinjaman dikembalikan'); },
+  'goto-plan': (el, e) => { e?.preventDefault?.(); location.hash = '#cek'; setTimeout(() => { const t = document.getElementById('s4'); t?.scrollIntoView(); t?.focus({ preventScroll: true }); }, 120); },
   toggle: el => { const [scope, k] = el.dataset.k.split('.'); const o = scope === 't' ? S.test.st : S.pilah; o[k] = !o[k]; render(); },
   pick: el => { S.overlay = { type: 'pick', id: el.dataset.id, ack: false }; render(); },
   't-pick': el => { S.overlay = { type: 'pick', id: el.dataset.id, ack: false, test: true }; render(); },
@@ -222,7 +224,7 @@ const CHG = {
 };
 async function sendChat(q) {
   q = (q || '').trim(); if (!q || S.chatBusy) return;
-  if (!S.cap.sample) { S.chat.push({ role: 'user', content: q }, { role: 'assistant', content: ruleAnswer(q) || 'Pertanyaan bebas butuh AI, yang aktif saat FinWise dibuka di claude.ai dalam keadaan login. Coba pertanyaan cepat di atas atau lihat Kamus istilah.' }); S.drawer = S.drawer || { tab: 'chat' }; render(); return; }
+  if (!S.cap.sample) { S.chat.push({ role: 'user', content: q }, { role: 'assistant', content: ruleAnswer(q) || 'Pertanyaan bebas belum bisa dijawab di versi ini. Coba pertanyaan cepat di atas atau lihat Kamus istilah.' }); S.drawer = S.drawer || { tab: 'chat' }; render(); return; }
   S.chat.push({ role: 'user', content: q }); S.chat.push({ role: 'assistant', content: 'Sedang berpikir…' }); S.chatBusy = true; render();
   const turns = [{ role: 'user', content: AI_RULES + '\n\nData pengguna:\n' + context() + '\n\nJawab pertanyaan berikutnya berdasarkan data ini.' }, ...S.chat.slice(0, -1).slice(-8)];
   try {

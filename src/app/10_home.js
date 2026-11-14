@@ -48,8 +48,9 @@ const STAGE_ART = {
 function stepStatus(st) {
   if (needsSetup()) return '';
   const p = P(), h = FW.headroom(p);
-  const txt = st.r === 'cek' ? `Skor kesehatanmu ${FW.health(p).total}/100 (${FW.health(p).status})`
-    : st.r === 'pilah' ? (h.ceiling > 0 ? `Batas cicilan amanmu ${rps(h.ceiling)}/bulan` : 'Belum ada ruang untuk cicilan baru')
+  const R = FW.readiness(p);
+  const txt = st.r === 'cek' ? `Kesiapan berutang: ${READY[R.level].name}`
+    : st.r === 'pilah' ? (R.level ? `Pinjaman maksimal aman ${rps(R.max[6])} (6 bulan)` : 'Belum ada ruang untuk pinjaman baru')
     : p.loans.length ? `${p.loans.length} utang aktif, cicilan ${rps(h.ex)}/bulan` : 'Belum ada utang aktif';
   return `<p class="stop-you">${ico('check')}<span>${txt}</span></p>`;
 }

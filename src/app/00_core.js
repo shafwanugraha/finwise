@@ -158,7 +158,8 @@ function aiBlock(key, label, prompt) {
   </div>`;
 }
 // three-column AI analysis (fits / watch out / next step) with a rule-based version that always shows
-function ai3(key, prompt, fallback, { auto = false, label = 'Analisis dengan AI', noAI = false } = {}) {
+function ai3(key, prompt, fallback, { auto = false, label = 'Analisis dengan AI', noAI = false, heads = null } = {}) {
+  const H = heads || ['Kenapa cocok', 'Yang perlu diwaspadai', 'Saran spesifik'];
   if (auto && !noAI) aiAuto(key, prompt, { json: true });
   const st = noAI ? null : S.ai[key], j = st?.json;
   const cols = j ? { cocok: j.cocok, waspada: j.waspada, saran: j.saran } : fallback;
@@ -166,12 +167,12 @@ function ai3(key, prompt, fallback, { auto = false, label = 'Analisis dengan AI'
   return `<div class="ai3"><div class="row between"><div class="row" style="gap:8px"><span class="ai-badge">${j ? 'Analisis AI' : 'Analisis FinWise'}</span>${st?.loading ? '<span class="tiny muted" role="status">AI sedang menganalisis…</span>' : ''}</div>
     ${S.cap.sample && !noAI && !auto && !st?.loading ? `<button class="btn ghost sm" data-act="ai3" data-key="${key}" data-prompt="${esc(prompt)}">${j ? 'Analisis ulang' : label}</button>` : ''}</div>
     <div class="grid g3" style="margin-top:10px">
-     <div class="ai3c ok"><b>Kenapa cocok</b><ul>${list(cols.cocok)}</ul></div>
-     <div class="ai3c warn"><b>Yang perlu diwaspadai</b><ul>${list(cols.waspada)}</ul></div>
-     <div class="ai3c tip"><b>Saran spesifik</b><ul>${list(cols.saran)}</ul></div>
+     <div class="ai3c ok"><b>${H[0]}</b><ul>${list(cols.cocok)}</ul></div>
+     <div class="ai3c warn"><b>${H[1]}</b><ul>${list(cols.waspada)}</ul></div>
+     <div class="ai3c tip"><b>${H[2]}</b><ul>${list(cols.saran)}</ul></div>
     </div>
     ${st?.error ? `<p class="tiny" style="color:var(--danger);margin-top:6px">${esc(st.error)}</p>` : ''}
-    <p class="tiny muted" style="margin-top:6px">${j ? 'Ditulis AI dari angka mesin hitung FinWise; bukan nasihat keuangan profesional.' : S.cap.sample || noAI ? 'Disusun dari aturan FinWise.' : 'Disusun dari aturan FinWise. Penjelasan AI muncul jika FinWise dibuka di claude.ai dalam keadaan login.'}</p></div>`;
+    <p class="tiny muted" style="margin-top:6px">${j ? 'Ditulis AI dari angka mesin hitung FinWise; bukan nasihat keuangan profesional.' : 'Disusun dari aturan FinWise.'}</p></div>`;
 }
 const AI3_FORMAT = 'Format JSON: {"cocok":["…"],"waspada":["…"],"saran":["…"]}, masing-masing 2–3 poin singkat (maks 25 kata per poin), Bahasa Indonesia santai.';
 
@@ -192,12 +193,32 @@ function monthStrip(markers) {
   return `<div class="month${groups.some((g, i) => i && g.day - groups[i - 1].day < 4 + groups[i].items.map(m => m.label).join(' + ').length / 3) ? ' two' : ''}" role="img" aria-label="${esc(desc)}"><div class="ln"></div>${html}</div>`;
 }
 function zoneBar(h, mark) {
+  if (h.ceiling <= 0) return `<div class="zbar" aria-hidden="true"><i style="width:100%;background:var(--danger)"></i></div><div class="zlabels"><span style="flex:1;color:var(--danger)">Belum ada ruang untuk cicilan baru</span></div>`;
   const max = Math.max(h.stretchMax * 1.25, h.ceiling * 1.6, 100000, mark ? mark * 1.1 : 0);
   const a = h.ceiling / max * 100, b = Math.max(0, h.stretchMax - h.ceiling) / max * 100, c = 100 - a - b;
   return `<div class="zbar" aria-hidden="true"><i style="width:${a}%;background:var(--safe)"></i><i style="width:${b}%;background:var(--stretch)"></i><i style="width:${c}%;background:var(--danger)"></i></div>
    <div class="zlabels"><span style="width:${a}%;color:var(--safe)">Aman ≤ ${rps(h.ceiling)}</span><span style="width:${b}%;color:var(--stretch)">${b > 8 ? 'Mepet' : ''}</span><span style="flex:1;text-align:right;color:var(--danger)">Bahaya &gt; ${rps(h.stretchMax)}</span></div>`;
 }
 function whoCard() { return ''; }
+
+/* ---------- kesiapan berutang: one verdict, one colour scale ---------- */
+const READY = [
+  { name: 'Belum bisa berutang', short: 'Belum siap berutang', tone: 'danger' },
+  { name: 'Hanya untuk darurat', short: 'Darurat saja', tone: 'orange' },
+  { name: 'Boleh, dengan batas', short: 'Boleh, terbatas', tone: 'stretch' },
+  { name: 'Siap berutang dengan sehat', short: 'Siap berutang', tone: 'safe' },
+];
+const readyOf = p => FW.readiness(p || P());
+const readyPill = R => `<span class="pill z-${READY[R.level].tone}">${READY[R.level].name}</span>`;
+// a label with its one-line meaning right under it (the "?" still opens the glossary)
+const lab = (label, def, t) => `<span class="lab-def"><span class="lab">${t ? term(t, label) : esc(label)}</span>${def ? `<span class="def">${def}</span>` : ''}</span>`;
+function readyNext(R) {
+  const m6 = R.max[6];
+  return ['Jangan ambil utang baru dulu. Tutup dulu yang membuatmu belum siap; langkahnya ada di rencana CEK.',
+    `Pinjam hanya untuk keperluan mendesak (kesehatan, pendidikan, kebutuhan pokok), maksimal ${rp(m6)} untuk 6 bulan. Selain itu, tunda dan menabung.`,
+    `Boleh meminjam, asal tidak lebih dari ${rp(m6)} untuk 6 bulan dan dari pemberi pinjaman legal yang total biayanya paling murah.`,
+    `Kalau memang perlu, pilih yang total biayanya paling murah dan tetap di bawah ${rp(R.max[12])} untuk 12 bulan.`][R.level];
+}
 
 /* ---------- real lender data (team spreadsheets; see realdata.js) ---------- */
 const RL = REAL.lenders;
@@ -266,7 +287,7 @@ function header() {
       <a href="#main" class="game${on('main')}">${ico('game')}<span>Game</span></a>
       ${S.cap.team ? `<a href="#hasil" class="${on('hasil')}">Data validasi</a>` : ''}
     </nav>
-    <div class="who">${blank ? '<a class="btn sm" href="#mulai">Isi data saya</a>' : `<a class="userchip" href="#mulai" data-act="wiz-edit" title="Ubah data"><span class="avatar sm" aria-hidden="true">${esc(displayName(p)[0])}</span><span>${esc(displayName(p))}<span class="tiny muted"> · ubah</span></span></a>`}<button class="btn sm amber" data-act="drawer" data-v="chat" aria-expanded="${!!S.drawer}">✦ Tanya FinWise</button>${sizeBtn()}</div>
+    <div class="who">${blank ? '<a class="btn sm" href="#mulai">Isi data saya</a>' : `<a class="userchip" href="#mulai" data-act="wiz-edit" title="Ubah data"><span class="avatar sm" aria-hidden="true">${esc(displayName(p)[0])}</span><span>${esc(displayName(p))}<span class="ready-dot rd-${READY[readyOf(p).level].tone}" aria-hidden="true"></span><span class="tiny muted">${READY[readyOf(p).level].short}</span></span></a>`}<button class="btn sm amber" data-act="drawer" data-v="chat" aria-expanded="${!!S.drawer}">✦ Tanya FinWise</button>${sizeBtn()}</div>
   </div>${journeyBar()}</header>`;
 }
 /* ---------- icons (24px line icons, inherit currentColor) ---------- */
@@ -302,7 +323,7 @@ function banner({ tone = 'green', eyebrow, title, sub, right = '' }) {
 }
 function userChip() {
   const p = P(); if (needsSetup()) return '';
-  return `<div class="pbchip"><span class="avatar sm" aria-hidden="true">${esc(displayName(p)[0])}</span><div><b>${esc(displayName(p))}</b><div class="tiny">Masuk ${rps(FW.income(p))}/bln · aman cicil ≤ ${rps(FW.headroom(p).ceiling)}</div></div><a class="btn sm ghost" href="#mulai" data-act="wiz-edit">Ubah data</a></div>`;
+  return `<div class="pbchip"><span class="avatar sm" aria-hidden="true">${esc(displayName(p)[0])}</span><div><b>${esc(displayName(p))}</b><div class="tiny">${(R => `${READY[R.level].name}${R.level ? ` · maks ${rps(R.max[6])} (6 bln)` : ''}`)(readyOf(p))}</div></div><a class="btn sm ghost" href="#mulai" data-act="wiz-edit">Ubah data</a></div>`;
 }
 // numbered section header so every page reads top-to-bottom as a sequence
 const secHead = (n, id, title, sub) => `<div class="sec-h" id="${id}" tabindex="-1"><span class="sec-n" aria-hidden="true">${n}</span><div><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ''}</div></div>`;
@@ -331,7 +352,13 @@ const TERMS = {
   'Restrukturisasi': 'Permintaan resmi ke pemberi pinjaman untuk mengubah jadwal bayar (mis. tenor diperpanjang) agar cicilan lebih ringan.',
   'CAMILAN': 'Aturan OJK: pindar hanya boleh mengakses kamera, mikrofon, dan lokasi di ponselmu.',
   'Skor kesehatan': 'Nilai 0–100 dari 8 kebiasaan keuangan (menabung, bayar tepat waktu, dana darurat, cicilan, riwayat kredit, asuransi, rencana). Sehat 80–100, Bertahan 40–79, Rentan 0–39.',
-  'Batas cicilan aman': 'Cicilan baru per bulan yang masih aman untukmu. Diambil dari angka yang lebih kecil antara (30% pendapatan − cicilan lama) dan 70% sisa uangmu per bulan.',
+  'Kesiapan berutang': 'Putusan FinWise apakah kamu boleh berutang sekarang: Belum bisa berutang, Hanya untuk darurat, Boleh dengan batas, atau Siap berutang dengan sehat. Dihitung dari sisa uang, porsi cicilan, dana darurat, riwayat kredit, dan jumlah kredit aktif.',
+  'Pinjaman maksimal yang aman': 'Jumlah pinjaman terbesar yang cicilannya masih muat di batas cicilan amanmu, dihitung dengan bunga legal termurah (±1,5% per bulan). Kalau butuh lebih, sisanya dari tangga dana atau ditunda.',
+  'Kondisi keuangan': 'Skor 0–100 dari 8 kebiasaan keuangan. Sehat 80–100, Bertahan 40–79, Rentan 0–39. Kalau pengeluaran lebih besar dari pemasukan, statusnya selalu Rentan. Skor ini menilai kebiasaan, bukan izin berutang; untuk itu lihat Kesiapan berutang.',
+  'Porsi cicilan': 'Bagian gajimu yang dipakai untuk membayar semua cicilan (lama dan baru). Aman ≤30%, bahaya >40%. Istilah resminya DSR.',
+  'Sisa uang': 'Uang yang tersisa tiap bulan setelah semua pengeluaran, kiriman keluarga, dan cicilan. Kalau minus, artinya kamu tekor.',
+  'Total dikembalikan': 'Semua uang yang kamu bayar sampai lunas: pokok pinjaman ditambah bunga dan biaya.',
+  'Batas cicilan aman': 'Cicilan baru per bulan yang masih aman untukmu. Diambil dari angka yang lebih kecil antara (30% pendapatan − cicilan lama) dan 70% sisa uangmu setelah tabungan rutin.',
   'Zona': 'Aman: cicilan masih dalam batas aman. Mepet: masih bisa dibayar tapi sisa uang tipis. Bahaya: porsi cicilan di atas 40% atau uangmu jadi minus.',
   'Rasio likuiditas': 'Berapa bulan kebutuhan pokok bisa ditutup dengan tabungan yang bisa langsung dipakai. Patokan: minimal 3 bulan (6 bulan jika penghasilan tidak stabil).',
   'Rasio tabungan': 'Porsi pendapatan yang benar-benar disisihkan untuk ditabung setiap bulan. Patokan: minimal 10%.',

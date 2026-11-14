@@ -179,7 +179,7 @@ function vPinjol() {
       ${d.perms ? `<p class="small" style="margin-top:10px">Aplikasi Android-nya mencantumkan <b>${d.perms.total} izin</b>, <b>${d.perms.high}</b> berisiko tinggi:</p><div class="row" style="margin-top:6px">${d.perms.groups.map(g => `<span class="pill ${CAMILAN.includes(g) ? 'z-safe' : 'z-danger'}">${esc(g)}${CAMILAN.includes(g) ? '' : '<span class="sr"> (di luar izin yang dibolehkan OJK)</span>'}</span>`).join('')}</div><p class="tiny muted" style="margin-top:6px">Aturan ${term('CAMILAN')}: hijau dibolehkan, merah di luar itu. Izin tercantum belum tentu aktif dipakai.</p>` : '<p class="small muted" style="margin-top:8px">Izin akses aplikasi untuk platform ini belum dipetakan.</p>'}</div>
      <div class="card"><div class="row between"><h3>Ulasan komunitas FinWise</h3><span class="tiny muted">${reviews.length} ulasan</span></div>
       ${reviews.length ? reviews.map(r => `<div class="note small" style="margin-top:8px"><div class="row between"><b class="num">${r.amount ? rp(r.amount) : ''}${r.months ? ' · ' + r.months + ' bln' : ''}${r.paid ? ' · total bayar ' + rp(r.paid) : ''}</b><span class="tiny muted">Penagihan ${r.collection}/5 · transparansi ${r.fees}/5</span></div>${r.text ? `<div style="margin-top:4px">${esc(r.text)}</div>` : ''}</div>`).join('') : '<p class="small muted" style="margin-top:6px">Belum ada ulasan komunitas untuk platform ini.</p>'}
-      <details style="margin-top:12px" ${S.os.reviewPreview || S.os.rvErr ? 'open' : ''}><summary class="btn ghost sm" style="display:inline-flex">Tulis ulasan</summary>
+${S.cap.db ? `      <details style="margin-top:12px" ${S.os.reviewPreview || S.os.rvErr ? 'open' : ''}><summary class="btn ghost sm" style="display:inline-flex">Tulis ulasan</summary>
        <form class="stack" style="margin-top:10px" data-form="review" novalidate>
         <div class="grid g2"><label class="f">Pinjam (opsional)${rpInput('rv-amount', f.amount ? digits(f.amount) : null, 'data-rv="amount" placeholder="mis. 2.000.000"')}</label><label class="f">Tenor, bulan (opsional)<input class="in" id="rv-months" type="number" min="1" max="36" value="${esc(f.months || '')}" data-rv="months"></label></div>
         <label class="f">Total dibayar (opsional)${rpInput('rv-paid', f.paid ? digits(f.paid) : null, 'data-rv="paid"')}</label>
@@ -188,7 +188,7 @@ function vPinjol() {
         ${S.os.rvErr ? `<div class="note danger small" role="alert">${esc(S.os.rvErr)}</div>` : ''}
         <div class="row"><button class="btn sm">Kirim ulasan</button><span class="tiny muted">${S.cap.canWrite ? 'Tampil untuk semua pengunjung. Jangan tulis nama atau nomor telepon.' : 'Di tampilan ini ulasan hanya pratinjau; pengiriman aktif di versi pilot.'}</span></div>
         ${S.os.reviewPreview ? `<div class="note amber small" role="status">Pratinjau (belum terkirim): ${esc(S.os.reviewPreview)}</div>` : ''}
-       </form></details></div>
+       </form></details>` : '<p class="tiny muted" style="margin-top:10px">Menulis ulasan segera hadir di versi berikutnya.</p>'}</div>
     </div>
    </div>`;
 }
@@ -235,7 +235,7 @@ function vBandingkan() {
     ${ids.length < 3 ? `<label class="f">Tambah pindar<select class="in" id="cmp-add" data-act-change="cmp-add" style="width:auto"><option value="">Pilih…</option>${pickable.map(l => `<option value="${l.id}">${esc(l.name)}</option>`).join('')}</select></label>` : ''}
    </div></div>
    ${rows.length ? `<div class="tbl-wrap" style="margin-top:16px"><table class="cmp"><caption class="sr">Perbandingan ${rows.length} pindar</caption><thead><tr><th scope="col"><span class="sr">Ukuran</span></th>${rows.map(r => `<th scope="col"><div class="row between" style="flex-wrap:nowrap"><a href="#pinjol" data-act="lender" data-id="${r.l.id}">${esc(r.l.name)}</a><button class="btn ghost sm" data-act="cmp" data-id="${r.l.id}" aria-label="Hapus ${esc(r.l.name)} dari perbandingan">×</button></div></th>`).join('')}</tr></thead><tbody>
-     ${line('Total biaya maks', r => r.L ? `<b>${rp(r.L.total)}</b>` : '<span class="muted">tidak diketahui</span>', bCost)}
+     ${line('Biaya pinjaman (tarif maks)', r => r.L ? `<b>${rp(r.L.total)}</b>` : '<span class="muted">tidak diketahui</span>', bCost)}
      ${line('Cicilan per bulan', r => r.L ? rp(r.L.inst) : '–')}
      ${line('Bunga efektif/tahun', r => r.L ? pct(r.L.ear, 0) : '–')}
      ${line('Tarif resmi', r => r.ri ? esc(r.ri.label) : '–')}

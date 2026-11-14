@@ -32,11 +32,13 @@ const FW = (() => {
   /* ---------- PILAH: headroom ---------- */
   function headroom(p) {
     const inc = income(p), ex = instalments(p), sur = surplus(p);
+    // planned monthly saving is protected: new instalments may only use what is left after it
+    const save = Math.max(0, Math.min(p.savingMonthly || 0, sur));
     const lens1 = 0.30 * inc - ex;
-    const lens2 = 0.70 * sur;
+    const lens2 = 0.70 * (sur - save);
     const ceiling = Math.max(0, Math.min(lens1, lens2));
     const stretchMax = Math.max(0, Math.min(0.40 * inc - ex, sur));
-    return { inc, ex, sur, dsrNow: inc ? ex / inc : 0, lens1, lens2, ceiling, stretchMax,
+    return { inc, ex, sur, save, dsrNow: inc ? ex / inc : 0, lens1, lens2, ceiling, stretchMax,
       binding: lens1 <= lens2 ? 'dsr' : 'cash' };
   }
   function zoneOf(p, inst) {
@@ -74,7 +76,7 @@ const FW = (() => {
 
   /* ---------- CEK: health score (8 indicators x 12.5) ---------- */
   function health(p) {
-    const inc = income(p), ess = needs(p) + (p.family || 0);
+    const inc = income(p), outflow = spendTotal(p) + (p.family || 0) + instalments(p);
     const sav = p.savingMonthly || 0;
     const balance = surplus(p);
     const savingsRate = inc ? Math.max(0, Math.min(sav, sav + Math.min(0, balance))) / inc : 0;
@@ -83,7 +85,7 @@ const FW = (() => {
     const ind = [
       { pillar: 'Spend', key: 'savings', label: 'Rasio menabung ≥ 10% pendapatan', score: clamp(realSaving / 0.10, 0, 1) },
       { pillar: 'Spend', key: 'ontime', label: 'Semua tagihan dibayar tepat waktu', score: p.onTime ? 1 : 0 },
-      { pillar: 'Save', key: 'buffer', label: 'Dana darurat ≥ 3 bulan kebutuhan pokok', score: ess ? clamp((p.emergencyFund || 0) / (3 * ess), 0, 1) : 0 },
+      { pillar: 'Save', key: 'buffer', label: 'Dana darurat ≥ 3 bulan pengeluaran', score: outflow ? clamp((p.emergencyFund || 0) / (3 * outflow), 0, 1) : 0 },
       { pillar: 'Save', key: 'regular', label: 'Menabung rutin setiap bulan', score: (sav > 0 && balance >= 0) ? 1 : 0 },
       { pillar: 'Borrow', key: 'dsr', label: 'Rasio cicilan (DSR) ≤ 30%', score: h.dsrNow <= 0.30 ? 1 : h.dsrNow <= 0.40 ? 0.5 : 0 },
       { pillar: 'Borrow', key: 'slik', label: 'Status SLIK lancar / tanpa catatan buruk', score: { lancar: 1, kosong: 1, tidaktahu: 0.5, dpk: 0.5, macet: 0 }[p.slik] ?? 0.5 },
@@ -92,9 +94,11 @@ const FW = (() => {
     ];
     ind.forEach(i => i.points = i.score * 12.5);
     const total = Math.round(sum(ind, i => i.points));
-    const status = total >= 80 ? 'Sehat' : total >= 40 ? 'Bertahan' : 'Rentan';
+    // a monthly deficit can never read as 'coping', whatever the habit points add up to
+    const deficit = balance < 0;
+    const status = deficit ? 'Rentan' : total >= 80 ? 'Sehat' : total >= 40 ? 'Bertahan' : 'Rentan';
     const weakest = [...ind].sort((a, b) => a.points - b.points)[0];
-    return { total, status, ind, weakest };
+    return { total, status, ind, weakest, deficit };
   }
 
   /* ---------- CEK: cash runway (first day the balance goes below zero) ---------- */
@@ -145,6 +149,46 @@ const FW = (() => {
     return { months: m, series };
   }
 
+  /* ---------- Kesiapan berutang: one verdict for the whole app ---------- */
+  // cheapest legal pricing used to turn the safe instalment into a loan size (flat add-on per month)
+  const SAFE_RATE = 0.015;
+  function maxSafeLoan(p, months, r = SAFE_RATE) {
+    const c = headroom(p).ceiling;
+    if (c <= 0 || months <= 0) return 0;
+    return Math.floor(c * months / (1 + r * months) / 10000) * 10000;
+  }
+  const unstableIncome = p => p.stability === 'tidak' || (p.incomes.some(i => i.type && i.type !== 'tetap') && p.stability !== 'sangat');
+  function readiness(p) {
+    const inc = income(p), h = headroom(p), sur = h.sur, n = p.loans.length;
+    const outflow = spendTotal(p) + (p.family || 0) + h.ex;
+    const efM = outflow ? (p.emergencyFund || 0) / outflow : 0, efTarget = unstableIncome(p) ? 6 : 3;
+    const spendR = inc ? outflow / inc : 1;
+    const max = { 3: maxSafeLoan(p, 3), 6: maxSafeLoan(p, 6), 12: maxSafeLoan(p, 12) };
+    const base = { h, sur, efM, efTarget, spendR, max, n, rate: SAFE_RATE };
+    const run = sur > 0 ? runway(p) : null;
+    const r0 = [];
+    if (!inc) r0.push('Belum ada pemasukan yang tercatat.');
+    else if (sur < 0) r0.push(`Pengeluaranmu lebih besar dari pemasukan: tekor ${rp(-sur)} per bulan.`);
+    else if (sur === 0) r0.push('Pemasukanmu habis tepat untuk pengeluaran, tanpa sisa.');
+    if (h.dsrNow > 0.40) r0.push(`Cicilanmu sudah ${pct(h.dsrNow, 0)} dari pendapatan, di atas batas bahaya 40%.`);
+    if (p.slik === 'macet' || p.pinjolExp === 'masalah') r0.push('Ada riwayat telat bayar atau kredit bermasalah yang perlu dipulihkan dulu.');
+    if (run) r0.push(`Uangmu habis sebelum gajian berikutnya (sekitar tanggal ${run.date}).`);
+    if (inc && sur > 0 && h.dsrNow <= 0.40 && h.ceiling <= 0) r0.push('Setelah cicilan lama dan tabungan rutin, tidak ada ruang untuk cicilan baru.');
+    if (r0.length) return { ...base, level: 0, reasons: r0 };
+    const r1 = [];
+    if (spendR > 0.90) r1.push(`${pct(spendR, 0)} pendapatanmu sudah terpakai (patokan bahaya: 90% ke atas).`);
+    if (h.dsrNow > 0.30) r1.push(`Cicilanmu ${pct(h.dsrNow, 0)} dari pendapatan, di atas batas aman 30%.`);
+    if (efM < 1) r1.push('Dana daruratmu belum cukup untuk 1 bulan pengeluaran.');
+    if (max[6] < 0.10 * inc) r1.push(`Pinjaman yang aman sangat kecil: maksimal ${rpShort(max[6])} untuk 6 bulan.`);
+    if (n >= 4) r1.push(`Kamu sudah punya ${n} kredit aktif; menambah satu lagi memperbesar risiko gali lubang.`);
+    if (r1.length) return { ...base, level: 1, reasons: r1 };
+    const r2 = [];
+    if (efM < efTarget) r2.push(`Dana daruratmu ${efM.toLocaleString('id-ID', { maximumFractionDigits: 1 })} bulan, belum mencapai target ${efTarget} bulan.`);
+    if (spendR > 0.80) r2.push(`${pct(spendR, 0)} pendapatanmu terpakai (patokan wajar: 80% ke bawah).`);
+    if (r2.length) return { ...base, level: 2, reasons: r2 };
+    return { ...base, level: 3, reasons: ['Arus uang, porsi cicilan, dan dana daruratmu sudah di zona sehat.'] };
+  }
+
   /* ---------- PILAH: funding ladder ---------- */
   function ladder(need, rungs) {
     let left = need; const steps = [];
@@ -158,7 +202,8 @@ const FW = (() => {
   };
   function modeWeights(mode) {
     const base = WEIGHTS.seimbang; if (mode === 'seimbang') return base;
-    const key = { termurah: 'cost', tersehat: 'health', reputasi: 'rep', tercepat: 'speed' }[mode];
+    const key = { termurah: 'cost', ringan: 'health', reputasi: 'rep' }[mode];
+    if (!key) return base;
     const rest = 1 - base[key]; const w = {};
     Object.keys(base).forEach(k => w[k] = k === key ? 0.5 : base[k] * 0.5 / rest);
     return w;
@@ -196,12 +241,22 @@ const FW = (() => {
       r.factors = f;
       r.score = sum(Object.keys(w), k => w[k] * f[k]);
     });
-    ok.sort((a, b) => (a.zone === 'danger') - (b.zone === 'danger') || b.score - a.score);
+    const allDanger = ok.length > 0 && ok.every(r => r.zone === 'danger');
+    const by = {
+      termurah: (a, b) => a.total - b.total || a.inst - b.inst,
+      ringan: (a, b) => a.inst - b.inst || a.total - b.total,
+      reputasi: (a, b) => (b.rating || 0) - (a.rating || 0) || a.total - b.total,
+      // when nothing is safe, the least harmful option is the one that leaves the smallest monthly shortfall
+      seimbang: allDanger ? (a, b) => b.left - a.left || a.total - b.total : (a, b) => b.score - a.score,
+    }[mode] || ((a, b) => b.score - a.score);
+    // safer zones always come first; the chosen mode orders options inside each zone
+    const tier = { safe: 0, stretch: 1, danger: 2 };
+    ok.sort((a, b) => tier[a.zone] - tier[b.zone] || by(a, b));
     ok.forEach((r, i) => r.rank = i + 1);
     // only compare against "the fastest" when every option publishes its speed
     const fastest = ok.some(r => r.hours == null) ? null : [...ok].sort((a, b) => a.hours - b.hours)[0];
     const best = ok[0];
-    return { rows, ok, weights: w, fastest, best, h };
+    return { rows, ok, weights: w, fastest, best, h, allDanger };
   }
   function hoursLabel(h) { if (h == null) return 'tidak dipublikasikan'; if (h < 1) return Math.round(h * 60) + ' menit'; if (h < 24) return Math.round(h) + ' jam'; return Math.round(h / 24) + ' hari'; }
 
@@ -212,9 +267,15 @@ const FW = (() => {
   }
 
   /* ---------- PULIH: repayment routing ---------- */
+  // remaining principal of a loan: with a rate the user entered, the present value of the remaining instalments;
+  // without one, the remaining payments themselves (interest is already inside the instalment)
+  function loanBalance(l) {
+    const n = l.months || 0, r = l.rateIn > 0 ? l.rateIn : 0;
+    return r ? l.instalment * (1 - Math.pow(1 + r, -n)) / r : l.instalment * n;
+  }
   function route(loans, extra, method) {
-    // amortising each month: interest = balance * monthlyRate (approximation of remaining cost); min payment = instalment
-    let L = loans.map(l => ({ ...l, bal: l.outstanding }));
+    // interest is only simulated for loans whose rate the user entered; guessed rates only decide the avalanche order
+    let L = loans.map(l => ({ ...l, bal: loanBalance(l), rateMonthly: l.rateIn > 0 ? l.rateIn : 0, orderRate: l.rateMonthly || 0 }));
     let month = 0, interestPaid = 0; const payoff = {};
     while (L.some(l => l.bal > 1) && month < 240) {
       month++;
@@ -223,10 +284,11 @@ const FW = (() => {
       // freed instalments of paid-off loans roll into the pool
       L.forEach(l => { if (l.bal <= 1 && payoff[l.id] === undefined) payoff[l.id] = month; });
       pool += sum(L.filter(l => payoff[l.id] !== undefined && payoff[l.id] < month), l => l.instalment);
-      const order = L.filter(l => l.bal > 1).sort(method === 'avalanche' ? (a, b) => b.rateMonthly - a.rateMonthly : (a, b) => a.bal - b.bal);
+      const order = L.filter(l => l.bal > 1).sort(method === 'avalanche' ? (a, b) => b.orderRate - a.orderRate : (a, b) => a.bal - b.bal);
       for (const l of order) { if (pool <= 0) break; const pay = Math.min(pool, l.bal); l.bal -= pay; pool -= pay; if (l.bal <= 1 && payoff[l.id] === undefined) payoff[l.id] = month; }
     }
-    return { months: month, interest: interestPaid, payoff, order: (method === 'avalanche' ? [...loans].sort((a, b) => b.rateMonthly - a.rateMonthly) : [...loans].sort((a, b) => a.outstanding - b.outstanding)).map(l => l.id) };
+    return { months: month, interest: interestPaid, interestKnown: L.some(l => l.rateMonthly > 0), payoff,
+      order: (method === 'avalanche' ? [...loans].sort((a, b) => (b.rateMonthly || 0) - (a.rateMonthly || 0)) : [...loans].sort((a, b) => loanBalance(a) - loanBalance(b))).map(l => l.id) };
   }
 
   function ringFence(p) {
@@ -235,7 +297,7 @@ const FW = (() => {
     return p.loans.map(l => ({ ...l })).sort((a, b) => a.dueDay - b.dueDay);
   }
 
-  return { rp, rpShort, pct, income, instalments, needs, wants, spendTotal, surplus, headroom, zoneOf, loan, health,
+  return { rp, rpShort, pct, income, instalments, needs, wants, spendTotal, surplus, headroom, zoneOf, loan, health, readiness, maxSafeLoan, loanBalance, SAFE_RATE,
            runway, split, cutSuggestions, goalPlan, ladder, match, modeWeights, hoursLabel, route, ringFence, ojkCap, sum, clamp };
 })();
 if (typeof module !== 'undefined') module.exports = FW;
