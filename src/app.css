@@ -417,17 +417,18 @@ table.cmp td.best{background:var(--safe-tint)}
 @media (max-width:1100px){.top .wrap{flex-wrap:wrap}.mainnav{order:3;flex-basis:100%;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}.who{margin-left:auto}}
 .userchip{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.84rem;border:1px solid var(--line);border-radius:999px;padding:4px 10px 4px 4px;background:var(--card)}
 .avatar.sm{width:28px;height:28px;font-size:.8rem;background:var(--green);color:#fff;border-radius:50%;display:grid;place-items:center;font-weight:800}
-.pbanner{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;border-radius:22px;padding:26px 28px;margin-bottom:18px;color:#fff;background:linear-gradient(120deg,#134A36,#1E6B4E 60%,#2E8B6A)}
-.pbanner.amber{background:linear-gradient(120deg,#5c3a06,#8C5A07 55%,#B9781A)}
-.pbanner.deep{background:linear-gradient(120deg,#0e2f24,#134A36 60%,#1E6B4E)}
-.pbanner.pulih{background:linear-gradient(120deg,#0d2c3a,#1F5F7A 58%,#2B7FA3)}
-.pbanner .eyebrow{font-weight:800;font-size:.78rem;letter-spacing:.08em;color:#FFD58A}
-.pbanner h1{color:#fff;font-size:clamp(1.6rem,3.2vw,2.3rem);margin-top:6px}
-.pbanner p{color:rgba(255,255,255,.86);max-width:62ch;margin-top:6px}
+/* inner-page head: light like the home page, coloured by the step it belongs to */
+.pbanner{--tone:var(--green);--tone-tint:var(--green-tint);display:flex;justify-content:space-between;align-items:center;gap:16px 20px;flex-wrap:wrap;border-radius:20px;padding:18px 22px;margin-bottom:16px;color:var(--ink);background:linear-gradient(100deg,var(--tone-tint),var(--card) 62%);border:1px solid var(--line);border-left:6px solid var(--tone)}
+.pbanner.amber{--tone:var(--amber);--tone-tint:var(--amber-tint)}
+.pbanner.deep{--tone:var(--deep);--tone-tint:var(--deep-tint)}
+.pbanner.pulih{--tone:var(--pulih);--tone-tint:var(--pulih-tint)}
+.pbanner .eyebrow{font-weight:800;font-size:.75rem;letter-spacing:.06em;color:var(--tone)}
+.pbanner h1{color:var(--ink);font-size:clamp(1.45rem,2.6vw,1.95rem);margin-top:4px}
+.pbanner p{color:var(--muted);max-width:62ch;margin-top:4px}
 .pbanner h1:focus{outline:none}
-.pbchip{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:16px;padding:10px 12px;color:#fff}
-.pbchip .tiny{color:rgba(255,255,255,.8)} .pbchip .btn.ghost{color:#fff;border-color:rgba(255,255,255,.4)}
-.pbchip .avatar.sm{background:#FFD58A;color:#1d1403}
+.pbchip{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 12px;color:var(--ink)}
+.pbchip .tiny{color:var(--muted)}
+.pbchip .avatar.sm{background:var(--tone,var(--green));color:var(--card)}
 .secnav{position:sticky;top:64px;z-index:12;display:flex;gap:6px;overflow-x:auto;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(8px);padding:8px 0;margin-bottom:6px;border-bottom:1px solid var(--line)}
 .secnav button{flex:none;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px 6px 6px;font-weight:700;font-size:.8rem;cursor:pointer;color:var(--ink)}
 .secnav button span{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--green);color:#fff;font-size:.7rem}
@@ -460,7 +461,7 @@ table.cmp td.best{background:var(--safe-tint)}
 .qbtn{width:20px;height:20px;min-width:20px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--green);font-weight:800;font-size:.72rem;line-height:1;cursor:pointer;display:inline-grid;place-items:center;padding:0;position:relative}
 .qbtn::after{content:"";position:absolute;inset:-4px}
 .qbtn:hover{background:var(--green);color:#fff;border-color:var(--green)}
-.pbanner .qbtn,.aicard .qbtn,.sumcard .qbtn,.scorecard .qbtn{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.4)}
+.aicard .qbtn,.sumcard .qbtn,.scorecard .qbtn{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.4)}
 .btn.light{color:#fff;border-color:rgba(255,255,255,.35)}
 .badge-ojk{display:inline-flex;gap:6px;align-items:center;background:var(--green-tint);color:var(--green);font-weight:700;font-size:.8rem;border-radius:999px;padding:5px 12px;margin-bottom:12px}
 .big-btn{padding:14px 22px;font-size:.98rem;border-radius:14px}
@@ -718,3 +719,43 @@ table.cmp td.best{background:var(--safe-tint)}
 .qg-last{border-radius:12px;padding:10px 12px}.qg-last.ok{background:var(--green-tint)}.qg-last.no{background:var(--danger-tint)}
 .qg-wrong{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
 @media (max-width:560px){.sb-days{flex-wrap:nowrap;gap:4px}.sb-days li{flex:1 1 0;min-width:0;padding:5px 2px;font-size:.95rem}}
+/* home: what do you need right now? */
+.intent{margin:4px 0 0;max-width:560px}
+.intent-q{font-size:1.05rem;margin-bottom:10px}
+.intent-opts{list-style:none;margin:0 0 8px;padding:0;display:grid;gap:8px}
+.int{display:flex;gap:12px;align-items:center;padding:10px 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);text-decoration:none}
+.int:hover{border-color:var(--green);background:var(--green-tint)}
+.int-ico{flex:none;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--soft);color:var(--green)}
+.int-a .int-ico{background:var(--green);color:var(--card)}
+.int-t{display:flex;flex-direction:column;line-height:1.3}.int-t b{font-size:.9688rem}.int-t small{font-size:.8125rem;color:var(--muted)}
+/* P2: collapsible detail, sticky mobile summary, lighter banners */
+details.more{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+details.more > summary{cursor:pointer;font-weight:700;font-size:.875rem;color:var(--green);padding:4px 0;list-style-position:outside}
+details.more > summary:focus-visible{outline:3px solid var(--amber-strong);outline-offset:2px;border-radius:6px}
+details.more[open] > summary{margin-bottom:6px}
+.msum{display:none}
+@media (max-width:700px){
+  .msum{display:block;border-top:1px solid var(--line);background:var(--card)}
+  .msum .wrap{display:flex;align-items:center;gap:10px;min-height:32px;font-size:.78rem;white-space:nowrap;overflow:hidden}
+  .msum .ready-dot{margin:0;flex:none}
+  .msum b{font-weight:800}
+  .msum span:not(.ready-dot){color:var(--muted)}
+  .msum .neg{color:var(--danger)!important;font-weight:700}
+  .userchip > span > .tiny{display:none}
+  .pb-right .pbchip{display:none}
+  .pbanner{padding:16px 18px;border-radius:18px;margin-bottom:14px}
+  .pbanner p{font-size:.875rem}
+}
+/* P2: monthly re-check and data file */
+.recheck{display:flex;gap:16px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;margin-top:14px;padding:16px 18px;border:1px dashed var(--line);border-radius:16px;background:var(--card)}
+.recheck > div:first-child{flex:1 1 320px}.recheck h3{font-size:1rem}
+.recheck ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.recheck-acts{display:flex;flex-wrap:wrap;gap:8px}
+.imp input:focus-visible + label{outline:3px solid var(--amber-strong);outline-offset:2px;border-radius:4px}
+/* P2 restyle: fewer boxes inside boxes */
+.prio{gap:0}
+.prio li{border:0;border-radius:0;background:none;padding:14px 0;border-top:1px solid var(--line)}
+.prio li:first-child{border-top:0;padding-top:4px}
+.panel .opt,.card .opt{background:var(--paper);border-color:transparent}
+.panel .opt.best,.card .opt.best{border-color:var(--safe)}
+.sec{margin-top:36px}

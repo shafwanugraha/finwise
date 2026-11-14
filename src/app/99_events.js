@@ -97,8 +97,8 @@ document.addEventListener('mousedown', e => { if (e.target.closest?.('.sugg')) e
 document.addEventListener('focusout', e => { const inp = e.target; if (inp.matches?.('[data-sug-input]')) setTimeout(() => { if (document.activeElement !== inp) closeSug(inp); }, 120); });
 
 function finishWizard() {
-  const p = S.profiles.saya; wizFinalize(p); S.personaId = 'saya'; resetStageState(); S.ai = {}; S.chat = []; S.wiz.errors = {};
-  persist(); location.hash = '#cek';
+  const p = S.profiles.saya; wizFinalize(p); p.updatedAt = new Date().toISOString(); S.personaId = 'saya'; resetStageState(); S.ai = {}; S.chat = []; S.wiz.errors = {};
+  persist(); recordCheck(p); const to = { dana: '#pilah', utang: '#pulih' }[S.intent] || '#cek'; S.intent = null; location.hash = to;
 }
 const ACT = {
   'go-persona': () => {},
@@ -142,7 +142,7 @@ const ACT = {
   'wiz-wipe': el => {
     if (el.dataset.v === '1') S.wiz.confirmWipe = true;
     else if (el.dataset.v === '0') S.wiz.confirmWipe = false;
-    else { S.profiles.saya = blankSaya(); S.wiz = { step: 0, errors: {}, confirmWipe: false }; if (S.personaId === 'saya') resetStageState(); persist(); toast('Data saya sudah dihapus'); return; }
+    else { S.profiles.saya = blankSaya(); store.set('history', []); S.wiz = { step: 0, errors: {}, confirmWipe: false }; if (S.personaId === 'saya') resetStageState(); persist(); toast('Data saya sudah dihapus'); return; }
     render();
   },
   'cek-applied': el => { S.cek.applied = el.dataset.v === '1'; render(); },
@@ -200,10 +200,12 @@ const ACT = {
   'il-more': () => { S.os.ilN += 60; render(); },
   calc: el => { const c = calcState(); c[el.dataset.f] = el.dataset.v; if (el.dataset.f === 'type' && el.dataset.v === 'umkm' && c.amount <= 50000000) c.amount = 100000000; if (el.dataset.f === 'type' && el.dataset.v !== 'umkm' && c.amount > 50000000) c.amount = 50000000; render(); },
   'pulih-msg-reset': () => { S.pulih.msg = null; render(); announce('Pesan dikembalikan ke versi awal'); setTimeout(() => document.getElementById('pay-msg')?.focus(), 60); },
+  intent: el => { S.intent = el.dataset.v; },
   'calc-set': el => { Object.assign(calcState(), JSON.parse(el.dataset.v)); render(); window.scrollTo({ top: 0 }); announce('Kalkulator diperbarui'); },
   'calc-to-pilah': () => { const c = calcState(); Object.assign(S.pilah, { need: c.amount, months: c.months, purpose: c.type === 'konsumtif' ? 'konsumtif' : 'produktif', cap: null, picked: null, step: S.pilah.cat ? 2 : 0 }); },
   'calc-lender': el => { const l = licById(el.dataset.id), d = l?.d, ri = d && rateInfo(d); if (!ri || ri.daily == null) return; Object.assign(calcState(), { mode: 'manual', rate: ri.daily, unit: 'day', admin: d.adminPct != null && d.adminUnit !== 'month' ? d.adminPct / 100 : null, lender: l.name, type: d.purpose === 'produktif' ? 'mikro' : 'konsumtif' }); },
   print: () => window.print(),
+  'export-data': () => exportData(),
   glossary: el => { S.drawer = { tab: 'kamus', term: el.dataset.v || null, q: '' }; render(); },
   ai3: el => askAI(el.dataset.key, el.dataset.prompt, { json: true }),
   // test mode
@@ -222,6 +224,18 @@ const ACT = {
   'import-code': async () => { const v = document.getElementById('imp-code').value; try { const rec = decodeRecord(v); const ok = await saveTest(rec); S.importMsg = ok ? 'Hasil tersimpan.' : 'Gagal menyimpan. Pastikan kamu pemilik/editor.'; } catch { S.importMsg = 'Kode tidak valid. Pastikan disalin utuh, diawali FW1.'; } render(); },
 };
 const CHG = {
+  'import-json': async el => {
+    const file = el.files && el.files[0]; el.value = '';
+    if (!file) return;
+    if (file.size > 300000) { toast('File terlalu besar untuk data FinWise'); return; }
+    try {
+      const { m, hist } = importProfile(await file.text());
+      S.profiles.saya = m; S.personaId = 'saya'; resetStageState(); S.ai = {}; S.chat = []; S.wiz = { step: 0, errors: {}, confirmWipe: false };
+      persist();
+      const byDay = {}; [...histGet(), ...hist].forEach(x => { byDay[dayKey(x.at)] = x; }); store.set('history', Object.values(byDay).sort((a, b) => a.at < b.at ? -1 : 1).slice(-HIST_MAX));
+      location.hash = '#cek'; toast('Data dimuat dari file');
+    } catch { toast('File ini bukan data FinWise yang bisa dibaca'); }
+  },
   persona: () => {},
   ack: el => { S.overlay.ack = el.checked; render(); },
   quiz: el => { S.test[el.dataset.set][+el.dataset.i] = +el.value; render(); },

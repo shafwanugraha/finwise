@@ -18,7 +18,7 @@ Prototipe Tim 20 elevATE. **Bukan nasihat keuangan.**
 ## Status
 
 - Prototipe untuk validasi pengguna.
-- Data yang diisi pengguna hanya tersimpan di browser masing-masing (localStorage). Belum ada akun atau database.
+- Data yang diisi pengguna hanya tersimpan di browser masing-masing (localStorage). Belum ada akun atau database; untuk pindah perangkat, pakai "Unduh data (.json)" di CEK lalu "Pakai data dari file" di perangkat lain.
 - Penjelasan AI hanya aktif saat dibuka sebagai artifact di claude.ai. Di GitHub Pages, bantuan memakai jawaban berbasis aturan dan kamus istilah.
 
 ## Struktur

@@ -109,7 +109,7 @@ function levers(p) {
     if (d > 0) out.push({ t: a.title, txt: `sisa uang +${rps(d)} per bulan → ${R1.max[6] > 0 ? `pinjaman maksimal aman ${rps(R1.max[6])}` : `sisa uangmu jadi ${rp(FW.surplus(q), { plus: true })}`}${R1.level > R0.level ? `, naik ke "${READY[R1.level].name}"` : ''}`, up: R1.level > R0.level });
   });
   const ending = [...p.loans].filter(l => l.months <= 12).sort((a, b) => a.months - b.months)[0];
-  if (ending) { const q = clone(p); q.loans = q.loans.filter(l => l.id !== ending.id); const R1 = FW.readiness(q); out.push({ t: `${ending.name} lunas dalam ${ending.months} bulan`, txt: `cicilan ${rps(ending.instalment)} jadi sisa uang${R1.level > R0.level ? `, naik ke "${READY[R1.level].name}"` : ''}`, up: R1.level > R0.level }); }
+  if (ending) { const q = clone(p); q.loans = q.loans.filter(l => l.id !== ending.id); const R1 = FW.readiness(q); out.push({ t: `${ending.name} lunas dalam ${ending.months} bulan`, txt: `cicilan ${rps(ending.instalment)} per bulan kembali jadi sisa uang → pinjaman maksimal aman ${rps(R1.max[6])}${R1.level > R0.level ? `, naik ke "${READY[R1.level].name}"` : ''}`, up: R1.level > R0.level }); }
   if (R0.efM < 1 && R0.level >= 1) { const f = facts(p), gap = Math.max(0, f.out - (p.emergencyFund || 0)), per = Math.max(f.sur, FW.surplus(applyPlan(base))); out.push({ t: 'Dana darurat 1 bulan pengeluaran', txt: `kurang ${rps(gap)}${per > 0 ? `; dengan ${rps(per)} per bulan tercapai ±${Math.ceil(gap / per)} bulan` : ''}`, up: true }); }
   return out.sort((a, b) => b.up - a.up).slice(0, 3);
 }

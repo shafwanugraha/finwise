@@ -54,6 +54,15 @@ function stepStatus(st) {
     : p.loans.length ? `${p.loans.length} utang aktif, cicilan ${rps(h.ex)}/bulan` : 'Belum ada utang aktif';
   return `<p class="stop-you">${ico('check')}<span>${txt}</span></p>`;
 }
+// what the visitor came for decides where the first click goes; the three assessment steps need "Data saya" first
+const INTENTS = [
+  ['sehat', 'cek', 'Tahu kondisi keuanganku', 'CEK: kesiapan berutang dan rencana hemat'],
+  ['dana', 'pilah', 'Butuh dana sekarang', 'PILAH: berapa yang aman dan dari mana'],
+  ['utang', 'pulih', 'Utangku mulai berat', 'PULIH: jadwal bayar dan jalan keluarnya'],
+  ['hitung', 'calc', 'Menghitung sebuah penawaran', 'Kalkulator: cicilan dan total yang dikembalikan'],
+  ['legal', 'db', 'Mengecek pinjol legal atau tidak', 'Database: daftar OJK dan Satgas PASTI'],
+];
+const intentHref = (k, ready) => ({ sehat: ready ? '#cek' : '#mulai', dana: ready ? '#pilah' : '#mulai', utang: ready ? '#pulih' : '#mulai', hitung: '#kalkulator', legal: '#openspace' })[k];
 function vHome() {
   const ready = !needsSetup();
   const ex = FW.loan({ principal: 5e6, rate: 0.003, unit: 'day', months: 6 });
@@ -61,7 +70,9 @@ function vHome() {
     <div class="hh-text">
       <h1 tabindex="-1">Cek dulu sebelum pinjam.</h1>
       <p class="lead">FinWise membaca angkamu sendiri: berapa yang aman dicicil, dari mana dana termurah, dan bagaimana keluar dari utang. Bukan dari iklan pinjol.</p>
-      <div class="row">${ready ? '<a class="btn big-btn" href="#cek">Lihat kondisi keuanganku</a>' : '<a class="btn big-btn" href="#mulai">Mulai asesmen (±3 menit)</a>'}<a class="btn ghost big-btn" href="#openspace">Cek legalitas pinjol</a></div>
+      <div class="intent" role="group" aria-labelledby="int-h"><h2 id="int-h" class="intent-q">Apa yang kamu butuhkan sekarang?</h2>
+        <ul class="intent-opts">${INTENTS.map(([k, ic, t, d], i) => `<li><a class="int${i < 3 ? ' int-a' : ''}" href="${intentHref(k, ready)}" data-act="intent" data-v="${k}"><span class="int-ico">${ico(ic)}</span><span class="int-t"><b>${t}</b><small>${d}</small></span></a></li>`).join('')}</ul>
+        ${ready ? '' : '<p class="tiny muted">Tiga pilihan pertama menghitung dari angkamu, jadi isi data dulu (±3 menit, tersimpan di browser ini saja).</p>'}</div>
       <p class="hh-note">${ico('db')}<span>Gratis, tanpa login. Datamu hanya tersimpan di browser ini, dan nama pinjol dicocokkan dengan daftar resmi OJK dan Satgas PASTI.</span></p>
     </div>
     ${HERO_IMG}

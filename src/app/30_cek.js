@@ -17,7 +17,7 @@ function planActions(base) {
   acts.push({ id: 'plan', title: 'Jalankan sebagai rencana bulanan', desc: 'Rencana tertulis dengan target bulanan, ditinjau setiap gajian.', apply: p => { p.plan = true; } });
   if (base.slik === 'tidaktahu') acts.push(saya ? { id: 'slik', todo: true, title: 'Cek SLIK gratis di iDebKu OJK', desc: 'Skor baru berubah setelah kamu tahu hasilnya. Perbarui jawabanmu di data setelah mengecek.', href: '#mulai', act: 'wiz-edit', v: 4, cta: 'Perbarui data' } : { id: 'slik', title: 'Cek SLIK gratis di iDebKu OJK', desc: 'Di contoh ini hasilnya: belum punya riwayat kredit.', apply: p => { p.slik = 'kosong'; } });
   if (base.insurance === false) acts.push({ id: 'bpjs', todo: true, title: 'Daftar BPJS Kesehatan', desc: 'Biaya berobat adalah alasan paling umum orang meminjam mendadak.' });
-  if (f.dsr > 0.3) acts.push({ id: 'debt', todo: true, title: 'Rapikan cicilan di PULIH', desc: `Rasio cicilanmu ${pct(f.dsr, 0)}, di atas batas aman 30%.`, href: '#pulih', cta: 'Buka PULIH' });
+  if (f.dsr > 0.3) acts.push({ id: 'debt', todo: true, title: 'Rapikan cicilan di PULIH', desc: `Porsi cicilanmu ${pct(f.dsr, 0)}, di atas batas aman 30%.`, href: '#pulih', cta: 'Buka PULIH' });
   return acts;
 }
 function applyPlan(base, acts = planActions(base)) {
@@ -42,7 +42,7 @@ function planCard(base, acts, after) {
      <div class="stack small" style="gap:6px;margin-top:8px">
       <div class="row between"><span>Sisa uang per bulan</span><span class="num">${rp(FW.surplus(base), { plus: true })} → <b>${rp(FW.surplus(after), { plus: true })}</b></span></div>
       <div class="row between"><span>Kesiapan berutang</span><span>${READY[FW.readiness(base).level].short} → <b>${READY[FW.readiness(after).level].short}</b></span></div>
-      <div class="row between"><span>Pinjaman maksimal aman (6 bln)</span><span class="num">${rp(FW.maxSafeLoan(base, 6))} → <b>${rp(FW.maxSafeLoan(after, 6))}</b></span></div>
+      <div class="row between"><span>Pinjaman maksimal yang aman (6 bln)</span><span class="num">${rp(FW.maxSafeLoan(base, 6))} → <b>${rp(FW.maxSafeLoan(after, 6))}</b></span></div>
       <div class="row between"><span>Disisihkan per bulan</span><span class="num">${rp(base.savingMonthly || 0)} → <b>${rp(after.savingMonthly || 0)}</b></span></div>
       <div class="row between"><span>Kondisi keuangan</span><span class="num">${hb.total} → <b>${ha.total}</b> (${ha.status})</span></div>
      </div>
@@ -103,18 +103,21 @@ function vCek() {
       <div class="row" style="margin-top:10px"><button class="btn sm amber" data-act="drawer" data-v="chat">✦ Tanya lebih lanjut</button><button class="btn sm ghost light no-print" data-act="print">Simpan PDF</button></div>
       <p class="tiny" style="margin-top:8px;opacity:.75">${S.cap.sample ? 'AI hanya menjelaskan; semua angka dari mesin hitung FinWise.' : 'Disusun dari aturan FinWise.'}</p></div>
     </div>
+    ${recheckCard(p)}
     ${f.total ? `<div class="note amber" style="margin-top:14px"><b>Mau insight yang lebih dalam?</b> Kamu baru mengisi total pengeluaran. <a href="#mulai" data-act="wiz-edit" data-v="2" data-mode="rinci">Rinci per pos (±2 menit)</a> supaya FinWise bisa menunjukkan pos paling boros dan batas hemat per pos.</div>` : ''}
    </section>
-   <section class="sec">${secHead(2, 's2', 'Analisis kesehatan finansial', 'Rasio keuangan rumah tangga dibanding patokan umum, dan rincian skor kesehatanmu.')}
+   <section class="sec">${secHead(2, 's2', 'Rasio dan kondisi keuangan', 'Rasio keuangan rumah tangga dibanding patokan umum, dan rincian skor kondisi keuanganmu.')}
     <div class="grid g-side" style="align-items:start">
      <div class="panel"><h3>Rasio keuanganmu</h3>
-      <ul class="ratios">${rs.map(r => `<li><div class="r-top"><span class="r-name">${term(r.t, r.k)}</span><b class="num" style="color:var(--${r.s})">${esc(r.show)}</b></div>
+      <p class="small muted" style="margin-top:4px">${(n => n ? `${n} dari ${rs.length} rasio di luar patokan. Mulai dari yang ini:` : `Semua ${rs.length} rasio dalam patokan.`)(rs.filter(r => r.s !== 'safe').length)}</p>
+      ${(row => { const bad = rs.filter(r => r.s !== 'safe'), good = rs.filter(r => r.s === 'safe');
+        return `${bad.length ? `<ul class="ratios">${bad.map(row).join('')}</ul>` : ''}${good.length ? `<details class="more"${bad.length ? '' : ' open'}><summary>${bad.length ? `Lihat ${good.length} rasio yang sudah dalam patokan` : 'Lihat semua rasio'}</summary><ul class="ratios">${good.map(row).join('')}</ul></details>` : ''}`; })(r => `<li><div class="r-top"><span class="r-name">${term(r.t, r.k)}</span><b class="num" style="color:var(--${r.s})">${esc(r.show)}</b></div>
         <div class="bar" aria-hidden="true"><i style="width:${Math.min(100, Math.max(3, (r.t === 'Rasio likuiditas' ? r.v / Math.max(1, f.efTarget) : r.t === 'Daya tahan uang' ? r.v : Math.abs(r.v)) * 100)).toFixed(0)}%;background:var(--${r.s})"></i></div>
-        <div class="r-meta tiny"><span>${esc(r.f)}</span><span>patokan <b>${esc(r.bench)}</b> ${{ safe: '<span class="pill z-safe">Baik</span>', stretch: '<span class="pill z-stretch">Perlu perhatian</span>', danger: '<span class="pill z-danger">Bermasalah</span>' }[r.s]}</span></div>${r.note ? `<div class="tiny muted">${esc(r.note)}</div>` : ''}</li>`).join('')}</ul>
+        <div class="r-meta tiny"><span>${esc(r.f)}</span><span>patokan <b>${esc(r.bench)}</b> ${{ safe: '<span class="pill z-safe">Baik</span>', stretch: '<span class="pill z-stretch">Perlu perhatian</span>', danger: '<span class="pill z-danger">Bermasalah</span>' }[r.s]}</span></div>${r.note ? `<div class="tiny muted">${esc(r.note)}</div>` : ''}</li>`)}
       <p class="tiny muted" style="margin-top:8px">Patokan dari pedoman 50/30/20 dan rasio keuangan rumah tangga (Greninger dkk., 1996). Tekan “?” untuk penjelasan singkat.</p></div>
      <div class="panel"><h3>Rincian ${term('Kondisi keuangan', 'kondisi keuangan')}</h3>
       <p class="small muted" style="margin-top:4px">8 kebiasaan × 12,5 poin. Paling menahan skormu: <b style="color:var(--ink)">${esc(hs.weakest.label)}</b>.</p>
-      <div class="stack" style="margin-top:12px;gap:10px">${pillars.map(pl => `<div><div class="lab">${pname[pl]}</div>${hs.ind.filter(i => i.pillar === pl).map(i => `<div class="row between tiny" style="margin-top:4px;flex-wrap:nowrap"><span>${esc(i.label)}</span><b class="num">${i.points.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}/12,5</b></div><div class="bar" aria-hidden="true"><i style="width:${Math.max(2, i.score * 100)}%;background:${i.score >= 1 ? 'var(--safe)' : i.score > 0 ? 'var(--stretch)' : 'var(--danger)'}"></i></div>`).join('')}</div>`).join('')}</div></div>
+      <details class="more"><summary>Lihat rincian 8 kebiasaan</summary><div class="stack" style="margin-top:12px;gap:10px">${pillars.map(pl => `<div><div class="lab">${pname[pl]}</div>${hs.ind.filter(i => i.pillar === pl).map(i => `<div class="row between tiny" style="margin-top:4px;flex-wrap:nowrap"><span>${esc(i.label)}</span><b class="num">${i.points.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}/12,5</b></div><div class="bar" aria-hidden="true"><i style="width:${Math.max(2, i.score * 100)}%;background:${i.score >= 1 ? 'var(--safe)' : i.score > 0 ? 'var(--stretch)' : 'var(--danger)'}"></i></div>`).join('')}</div>`).join('')}</div></details></div>
     </div>
    </section>
    <section class="sec">${secHead(3, 's3', 'Ke mana uangmu pergi', 'Pemasukan, pengeluaran, dan kapan uangmu menipis dalam sebulan.')}
@@ -146,7 +149,7 @@ function vCek() {
        <label class="f">Bunga (%)<input class="in num" id="o-rate" inputmode="decimal" value="${off.rate == null ? '' : (off.rate * 100).toLocaleString('id-ID', { maximumFractionDigits: 3 })}" placeholder="mis. 3" data-k="cek.offer.rate" data-t="pctn"></label>
        <label class="f">Satuan<select class="in" id="o-unit" data-k="cek.offer.unit" data-t="text"><option value="month" ${off.unit === 'month' ? 'selected' : ''}>% per bulan</option><option value="day" ${off.unit === 'day' ? 'selected' : ''}>% per hari</option></select></label>
       </div>
-      ${offReady ? `<dl class="kv" style="margin-top:12px"><div><dt>Cicilan per bulan</dt><dd>${rp(L.inst)}</dd></div><div><dt>Total dibayar</dt><dd>${rp(L.repay + L.fee)}</dd></div><div><dt>${term('Bunga efektif', 'Bunga sebenarnya per tahun')}</dt><dd>${pct(L.ear, 0)}</dd></div><div><dt>Sisa uangmu setelahnya</dt><dd style="color:${zO.left < 0 ? 'var(--danger)' : 'var(--safe)'}">${rp(zO.left, { plus: true })} ${zpill(zO.zone)}</dd></div></dl>
+      ${offReady ? `<dl class="kv" style="margin-top:12px"><div><dt>Cicilan per bulan</dt><dd>${rp(L.inst)}</dd></div><div><dt>Total dikembalikan</dt><dd>${rp(L.repay + L.fee)}</dd></div><div><dt>${term('Bunga efektif', 'Bunga sebenarnya per tahun')}</dt><dd>${pct(L.ear, 0)}</dd></div><div><dt>Sisa uangmu setelahnya</dt><dd style="color:${zO.left < 0 ? 'var(--danger)' : 'var(--safe)'}">${rp(zO.left, { plus: true })} ${zpill(zO.zone)}</dd></div></dl>
        ${zO.zone === 'danger' ? `<div class="note danger small" style="margin-top:10px">Penawaran ini membuat arus kasmu minus atau porsi cicilanmu di atas 40%. Untuk kebutuhan mendesak, coba <a href="#pilah" data-act="to-pilah" data-amount="${off.amount}">tangga dana di PILAH</a>.</div>` : zO.zone === 'stretch' ? '<div class="note amber small" style="margin-top:10px">Masih bisa dibayar, tapi mepet. Pertimbangkan menabung dulu.</div>' : '<div class="note safe small" style="margin-top:10px">Masih dalam batas aman.</div>'}` : '<p class="small muted" style="margin-top:10px">Isi harga, tenor, dan bunga untuk melihat cicilan dan bunga sebenarnya. Mau versi lengkap dengan slider? <a href="#kalkulator">Buka kalkulator</a>.</p>'}</div>
      <div class="panel"><h3>Tujuan tanpa utang</h3>
       <div class="grid g2" style="margin-top:10px"><label class="f">Tujuan<input class="in" id="g-label" value="${esc(st.goal.label)}" placeholder="mis. Laptop, dana darurat" data-k="cek.goal.label" data-t="text"></label><label class="f">Target${rpInput('g-amount', st.goal.amount, 'data-k="cek.goal.amount" data-t="rpn" placeholder="mis. 6.000.000"')}</label></div>

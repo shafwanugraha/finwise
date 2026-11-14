@@ -69,12 +69,13 @@ function wizFinalize(p) {
   p.loans.forEach(l => { const g = LOAN_TYPES.find(t => t[0] === l.type); if (l.rateIn == null) { l.rateMonthly = g ? g[2] : 0.02; l.rateGuess = true; } else { l.rateMonthly = l.rateIn; l.rateGuess = false; } l.outstanding = l.instalment * l.months; });
   p.setup = true; p.wstep = 4;
 }
+const INTENT_NEXT = { dana: 'Setelah selesai, kamu langsung dibawa ke PILAH untuk melihat berapa yang aman dipinjam.', utang: 'Setelah selesai, kamu langsung dibawa ke PULIH untuk mengatur utangmu.' };
 function vMulai() {
   const p = S.profiles.saya, w = S.wiz, k = Math.min(w.step, 4), err = w.errors;
   const errCount = Object.keys(err).length;
   const rpField = (path, val, label, ph = '0', extra = '') => `<label class="f">${label}${rpInput(fid(path), val, `data-sy="${path}" data-t="rpn" placeholder="${ph}"${err[path] ? ` aria-invalid="true" aria-describedby="${fid(path)}-err"` : ''} ${extra}`)}${fErr(path)}</label>`;
-  const head = `<div class="phead"><div><div class="eyebrow e-cek">DATA SAYA · LANGKAH ${k + 1} DARI ${WSTEPS.length}</div><h1 tabindex="-1">${p.setup ? 'Ubah datamu' : 'Isi datamu, mulai dari nol'}</h1><p>Semua kolom kosong dan tidak ada jawaban yang dipilihkan. Tidak tahu angka pastinya? Pakai perkiraan rata-rata 3 bulan terakhir.</p></div>
-    <div class="note small" style="max-width:340px"><b>Privasi:</b> data ini hanya tersimpan di browser ini dan tidak dikirim ke mana pun. ${w.confirmWipe ? `<span class="row" style="margin-top:6px"><button class="btn danger sm" data-act="wiz-wipe" data-v="2">Ya, hapus semua</button><button class="btn ghost sm" data-act="wiz-wipe" data-v="0">Batal</button></span>` : `<button class="linkbtn" data-act="wiz-wipe" data-v="1">Hapus semua data saya</button>`}</div></div>
+  const head = `<div class="phead"><div><div class="eyebrow e-cek">DATA SAYA · LANGKAH ${k + 1} DARI ${WSTEPS.length}</div><h1 tabindex="-1">${p.setup ? 'Ubah datamu' : 'Isi datamu, mulai dari nol'}</h1><p>Semua kolom kosong dan tidak ada jawaban yang dipilihkan. Tidak tahu angka pastinya? Pakai perkiraan rata-rata 3 bulan terakhir.</p>${INTENT_NEXT[S.intent] ? `<p class="small" style="margin-top:6px"><b>${INTENT_NEXT[S.intent]}</b></p>` : ''}</div>
+    <div class="note small" style="max-width:340px"><b>Privasi:</b> data ini hanya tersimpan di browser ini dan tidak dikirim ke mana pun. ${importBtn()} ${w.confirmWipe ? `<span class="row" style="margin-top:6px"><button class="btn danger sm" data-act="wiz-wipe" data-v="2">Ya, hapus semua</button><button class="btn ghost sm" data-act="wiz-wipe" data-v="0">Batal</button></span>` : `<button class="linkbtn" data-act="wiz-wipe" data-v="1">Hapus semua data saya</button>`}</div></div>
    <div class="wprog" aria-hidden="true"><i style="width:${((k + (p.setup ? 1 : 0)) / WSTEPS.length * 100).toFixed(0)}%"></i></div>
    <ol class="wsteps" aria-label="Langkah pengisian">${WSTEPS.map((t, i) => `<li class="${i === k ? 'on' : i < k ? 'done' : ''}" ${i === k ? 'aria-current="step"' : ''}>${i < k || p.setup ? `<button class="linkbtn" data-act="wiz-goto" data-v="${i}">${i + 1}. ${t}</button>` : `<span>${i + 1}. ${t}</span>`}</li>`).join('')}</ol>
    ${errCount ? `<div class="note danger" role="alert" id="wiz-errors" tabindex="-1" style="margin-bottom:14px"><b>Ada ${errCount} isian yang perlu dilengkapi.</b> ${err._step ? esc(err._step) : 'Lihat tanda merah di bawah.'}</div>` : ''}`;
@@ -149,8 +150,10 @@ function wizFinalizeLight(p) {
   p.name = p.nick || 'Kamu'; syncSpending(p); p.family = p.familyAns ? (p.family || 0) : 0; if (p.onTimeAns) p.onTime = p.onTimeAns !== 'tidak';
   p.loans.forEach(l => { const g = LOAN_TYPES.find(t => t[0] === l.type); l.rateMonthly = l.rateIn != null ? l.rateIn : (g ? g[2] : 0.02); l.rateGuess = l.rateIn == null; l.outstanding = (l.instalment || 0) * (l.months || 0); });
 }
+// moving "Data saya" from another device: a visually hidden file input behind a button-styled label
+const importBtn = () => `<span class="imp"><input type="file" id="imp-json" class="sr" accept=".json,application/json" data-act-change="import-json"><label for="imp-json" class="linkbtn">Pakai data dari file</label></span>`;
 function vNeedSetup() {
-  return banner({ tone: 'green', eyebrow: 'MULAI DARI SINI', title: 'Isi datamu dulu', sub: 'Halaman ini menghitung dari angkamu sendiri. Semua kolom mulai kosong dan tidak ada jawaban yang dipilihkan; butuh sekitar 3 menit.', right: '<a class="btn amber big-btn" href="#mulai">Isi data saya</a>' })
+  return banner({ tone: 'green', eyebrow: 'MULAI DARI SINI', title: 'Isi datamu dulu', sub: 'Halaman ini menghitung dari angkamu sendiri. Semua kolom mulai kosong dan tidak ada jawaban yang dipilihkan; butuh sekitar 3 menit.', right: `<div class="stack" style="gap:8px;align-items:flex-end"><a class="btn amber big-btn" href="#mulai">Isi data saya</a><span class="tiny">Sudah punya file data FinWise? ${importBtn()}</span></div>` })
    + `<div class="grid g3" style="margin-top:4px">${[['Privat', 'Data hanya tersimpan di browser ini. Bisa dihapus kapan saja.'], ['Mulai kosong', 'Tidak ada angka contoh. Boleh pakai perkiraan rata-rata 3 bulan.'], ['Langsung ada hasil', 'Setelah selesai, kamu dapat kesimpulan, rasio keuangan, dan rencana.']].map(([t, d]) => `<div class="panel"><b>${t}</b><p class="small muted" style="margin-top:4px">${d}</p></div>`).join('')}</div>`;
 }
 

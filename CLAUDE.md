@@ -32,10 +32,11 @@ The game ("Lolos Jebakan Pinjol", menu "Game", route `#main`) is an extra: pre-q
 - One vocabulary: Porsi cicilan, Sisa uang, Total dikembalikan, Pinjaman maksimal yang aman, Kesiapan berutang.
 - Kalkulator defaults to the cheapest licensed lender in the database at its RIPLAY maximum (`cheapestReal` in `35_kalkulator.js`, real lenders only, never the illegal list); the OJK cap is shown as the worst case.
 
-## Open work (after P1, 14 Nov 2026)
-- **P2**
-  - Intent question at entry ("Apa yang kamu butuhkan sekarang?").
-  - CEK: collapsed ratios, a sticky mobile summary, and smaller banners.
-  - Monthly re-check loop and data export/import.
-  - Restyle the inner pages.
+## Storage and moving data
+- `finwise:saya` holds "Data saya"; `finwise:history` holds one small snapshot per day the data is saved (`recordCheck` in `src/app/27_history.js`), which CEK uses for "Dibanding cek …". Deleting "Data saya" clears both.
+- "Unduh data (.json)" exports `{ app: 'FinWise', kind: 'data-saya', v: 1, profile, history }`. Import passes the file through `plainData` (plain values only, bounded sizes, no prototype keys) and `wizFinalize`, and refuses anything without income.
+- The home page asks "Apa yang kamu butuhkan sekarang?"; `S.intent` sends a new user to PILAH or PULIH after the form instead of CEK.
+
+## Open work (after P2, 14 Nov 2026)
 - **Later:** accounts and a database (Supabase with Google login, row-level security, an anonymous research snapshot with explicit consent per UU PDP / PP 33/2026, and a team dashboard).
+- Ideas not yet scheduled: a deeper restyle of the Database Pinjol pages, and removing the old PILAH test-mode code paths (`ctx.test`, `t-step`, `t-pick`) now that the game no longer uses PILAH.

@@ -55,9 +55,9 @@ function vKalkulator() {
   const zi = z ? { safe: 0, stretch: 1, danger: 2 }[z.zone] : null, R = blank ? null : FW.readiness(p);
   const advice = blank ? 'Isi datamu dulu supaya FinWise bisa menilai apakah cicilan ini aman untukmu.'
     : R.level === 0 ? `Kesiapan berutangmu: belum bisa berutang. ${R.reasons[0]} Hitungan ini hanya gambaran; yang lebih aman sekarang adalah rencana tanpa utang.`
-    : z.zone === 'safe' ? `Cicilan ${rp(L.inst)} masih di bawah batas amanmu ${rp(h.ceiling)}. Rasio cicilanmu jadi ${pct(z.dsr, 0)}. Tetap bandingkan total biayanya di PILAH sebelum memilih pemberi pinjaman.`
-    : z.zone === 'stretch' ? `Cicilan ini melewati batas amanmu ${rp(h.ceiling)} (rasio cicilan ${pct(z.dsr, 0)}). Masih bisa dibayar, tapi sisa uangmu tinggal ${rp(z.left)} per bulan. Pertimbangkan alternatif di bawah.`
-    : `Cicilan ini membuat ${z.left < 0 ? `uangmu minus ${rp(-z.left)} per bulan` : `rasio cicilanmu ${pct(z.dsr, 0)}`}. Risiko telat bayar dan berutang lagi tinggi. Lihat alternatif yang lebih aman.`;
+    : z.zone === 'safe' ? `Cicilan ${rp(L.inst)} masih di bawah batas amanmu ${rp(h.ceiling)}. Porsi cicilanmu jadi ${pct(z.dsr, 0)}. Tetap bandingkan total biayanya di PILAH sebelum memilih pemberi pinjaman.`
+    : z.zone === 'stretch' ? `Cicilan ini melewati batas amanmu ${rp(h.ceiling)} (porsi cicilan ${pct(z.dsr, 0)}). Masih bisa dibayar, tapi sisa uangmu tinggal ${rp(z.left)} per bulan. Pertimbangkan alternatif di bawah.`
+    : `Cicilan ini membuat ${z.left < 0 ? `uangmu minus ${rp(-z.left)} per bulan` : `porsi cicilanmu ${pct(z.dsr, 0)}`}. Risiko telat bayar dan berutang lagi tinggi. Lihat alternatif yang lebih aman.`;
   const lateFee = c.lateOn && c.lateRate > 0 && c.lateDays > 0 ? Math.min(L.inst * c.lateRate * c.lateDays, N.amount) : null;
   const opts = blank ? [] : saferOptions(p, c, N), safeAmt = opts.find(o => o.set && o.set.amount)?.set.amount;
   const urgentOnly = R && R.level === 1 ? ' Kesiapanmu: hanya untuk darurat, jadi pinjam hanya untuk keperluan mendesak.' : '';

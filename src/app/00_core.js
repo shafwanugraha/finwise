@@ -288,7 +288,13 @@ function header() {
       ${S.cap.team ? `<a href="#hasil" class="${on('hasil')}">Data validasi</a>` : ''}
     </nav>
     <div class="who">${blank ? '<a class="btn sm" href="#mulai">Isi data saya</a>' : `<a class="userchip" href="#mulai" data-act="wiz-edit" title="Ubah data"><span class="avatar sm" aria-hidden="true">${esc(displayName(p)[0])}</span><span>${esc(displayName(p))}<span class="ready-dot rd-${READY[readyOf(p).level].tone}" aria-hidden="true"></span><span class="tiny muted">${READY[readyOf(p).level].short}</span></span></a>`}<button class="btn sm amber" data-act="drawer" data-v="chat" aria-expanded="${!!S.drawer}">✦ Tanya FinWise</button>${sizeBtn()}</div>
-  </div>${journeyBar()}</header>`;
+  </div>${journeyBar()}${mobileSummary()}</header>`;
+}
+// phones only (CSS): the verdict and the one number that matters stay in view while scrolling
+function mobileSummary() {
+  if (!['cek', 'pilah', 'pulih', 'kalkulator'].includes(S.route) || needsSetup()) return '';
+  const p = P(), R = readyOf(p), RD = READY[R.level], sur = FW.surplus(p);
+  return `<div class="msum" aria-hidden="true"><div class="wrap"><span class="ready-dot rd-${RD.tone}"></span><b>${RD.short}</b>${R.level ? `<span>maks ${rps(R.max[6])}/6 bln</span>` : ''}<span class="${sur < 0 ? 'neg' : ''}">sisa ${rps(sur)}</span></div></div>`;
 }
 /* ---------- icons (24px line icons, inherit currentColor) ---------- */
 const ICONS = {
@@ -305,9 +311,9 @@ const ICONS = {
 const ico = (k, cls = '') => `<svg class="ico ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${ICONS[k] || ''}</svg>`;
 /* the three steps of the personal loan assessment, shared by the home page and the step bar */
 const STEPS = [
-  { r: 'cek', name: 'CEK', when: 'Sebelum berutang', q: 'Seberapa sehat keuanganku?', gets: ['Skor kesehatan keuangan dari 8 kebiasaan', 'Rasio keuanganmu dibanding patokan umum', 'Rencana hemat yang bisa langsung dijalankan'] },
-  { r: 'pilah', name: 'PILAH', when: 'Saat butuh dana', q: 'Berapa yang aman, dan dari mana?', gets: ['Batas cicilan baru yang aman untukmu', 'Tutup kebutuhan tanpa utang dulu', '3 pinjaman legal yang paling cocok'] },
-  { r: 'pulih', name: 'PULIH', when: 'Setelah berutang', q: 'Bagaimana cara keluar dari utang?', gets: ['Jadwal bayar dan pengingat di kalender', 'Urutan pelunasan paling hemat', 'Cek dulu sebelum pinjam untuk bayar pinjaman'] },
+  { r: 'cek', name: 'CEK', when: 'Sebelum berutang', q: 'Seberapa sehat keuanganku?', gets: ['Kesiapan berutang dan pinjaman maksimal yang aman', 'Kondisi keuangan dari 8 kebiasaan, dan rasionya', 'Rencana hemat yang bisa langsung dijalankan'] },
+  { r: 'pilah', name: 'PILAH', when: 'Saat butuh dana', q: 'Berapa yang aman, dan dari mana?', gets: ['Untuk apa dananya, dan perlukah berutang', 'Tutup kebutuhan tanpa utang dulu', 'Pinjaman legal dengan total biaya termurah'] },
+  { r: 'pulih', name: 'PULIH', when: 'Setelah berutang', q: 'Bagaimana cara keluar dari utang?', gets: ['Jadwal bayar dan pengingat di kalender', 'Langkah kalau tidak sanggup bayar', 'Urutan pelunasan paling hemat'] },
 ];
 const JOURNEY_ROUTES = ['mulai', 'cek', 'pilah', 'pulih'];
 function journeyBar() {

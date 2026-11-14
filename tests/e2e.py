@@ -82,7 +82,7 @@ async def acceptance(pg):
     check('Kalkulator B: real rate by default, CTA = rencana tanpa utang', await pg.get_attribute('[data-act="calc"][data-v="real"]', 'aria-pressed') == 'true' and 'Lihat rencana tanpa utang' in t and 'Belum bisa berutang' in t)
     await _setp(pg, A); await go(pg, 'kalkulator'); t = await pg.evaluate('document.body.innerText')
     check('Kalkulator A: CTA offers the safe amount', 'Pakai jumlah aman' in t and 'Hanya untuk darurat' in t)
-    await go(pg, 'cek'); t = await pg.evaluate("[...document.querySelectorAll('.ratios .r-name')].map(x => x.innerText).join('|')")
+    await go(pg, 'cek'); t = await pg.evaluate("[...document.querySelectorAll('.ratios .r-name')].map(x => x.textContent).join('|')")
     check('CEK: Cia ratios present', all(k in t for k in ['Total pengeluaran', 'Cicilan selain KPR', 'Kredit aktif']))
     print('acceptance:', 'ALL PASS' if ok else 'FAILURES')
 # P1d: the game. Plays the safest path through "Sebulan Bertahan" and a few answers of the 60-second game.
@@ -124,7 +124,7 @@ async def main():
         await fill_profile(pg)
         print('after finish:', await pg.evaluate('location.hash'))
         await pg.screenshot(path=OUT + 'cek.png', full_page=True); await axe(pg, 'cek')
-        print('ratios:', await pg.evaluate("[...document.querySelectorAll('.ratios li')].map(li => li.querySelector('.r-name').innerText.replace('?','').trim() + ' = ' + li.querySelector('.r-top b').innerText).join(' | ')"))
+        print('ratios:', await pg.evaluate("[...document.querySelectorAll('.ratios li')].map(li => li.querySelector('.r-name').textContent.replace('?','').trim() + ' = ' + li.querySelector('.r-top b').textContent).join(' | ')"))
         await pg.click('.ratios .qbtn >> nth=0'); await pg.wait_for_timeout(150)
         await pg.screenshot(path=OUT + 'drawer_kamus.png'); print('drawer term:', (await pg.inner_text('.gloss .on'))[:100])
         await pg.click('.drawer [data-act="drawer"][data-v="chat"]'); await pg.wait_for_timeout(100)

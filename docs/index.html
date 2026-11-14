@@ -427,17 +427,18 @@ table.cmp td.best{background:var(--safe-tint)}
 @media (max-width:1100px){.top .wrap{flex-wrap:wrap}.mainnav{order:3;flex-basis:100%;flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}.who{margin-left:auto}}
 .userchip{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.84rem;border:1px solid var(--line);border-radius:999px;padding:4px 10px 4px 4px;background:var(--card)}
 .avatar.sm{width:28px;height:28px;font-size:.8rem;background:var(--green);color:#fff;border-radius:50%;display:grid;place-items:center;font-weight:800}
-.pbanner{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;border-radius:22px;padding:26px 28px;margin-bottom:18px;color:#fff;background:linear-gradient(120deg,#134A36,#1E6B4E 60%,#2E8B6A)}
-.pbanner.amber{background:linear-gradient(120deg,#5c3a06,#8C5A07 55%,#B9781A)}
-.pbanner.deep{background:linear-gradient(120deg,#0e2f24,#134A36 60%,#1E6B4E)}
-.pbanner.pulih{background:linear-gradient(120deg,#0d2c3a,#1F5F7A 58%,#2B7FA3)}
-.pbanner .eyebrow{font-weight:800;font-size:.78rem;letter-spacing:.08em;color:#FFD58A}
-.pbanner h1{color:#fff;font-size:clamp(1.6rem,3.2vw,2.3rem);margin-top:6px}
-.pbanner p{color:rgba(255,255,255,.86);max-width:62ch;margin-top:6px}
+/* inner-page head: light like the home page, coloured by the step it belongs to */
+.pbanner{--tone:var(--green);--tone-tint:var(--green-tint);display:flex;justify-content:space-between;align-items:center;gap:16px 20px;flex-wrap:wrap;border-radius:20px;padding:18px 22px;margin-bottom:16px;color:var(--ink);background:linear-gradient(100deg,var(--tone-tint),var(--card) 62%);border:1px solid var(--line);border-left:6px solid var(--tone)}
+.pbanner.amber{--tone:var(--amber);--tone-tint:var(--amber-tint)}
+.pbanner.deep{--tone:var(--deep);--tone-tint:var(--deep-tint)}
+.pbanner.pulih{--tone:var(--pulih);--tone-tint:var(--pulih-tint)}
+.pbanner .eyebrow{font-weight:800;font-size:.75rem;letter-spacing:.06em;color:var(--tone)}
+.pbanner h1{color:var(--ink);font-size:clamp(1.45rem,2.6vw,1.95rem);margin-top:4px}
+.pbanner p{color:var(--muted);max-width:62ch;margin-top:4px}
 .pbanner h1:focus{outline:none}
-.pbchip{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:16px;padding:10px 12px;color:#fff}
-.pbchip .tiny{color:rgba(255,255,255,.8)} .pbchip .btn.ghost{color:#fff;border-color:rgba(255,255,255,.4)}
-.pbchip .avatar.sm{background:#FFD58A;color:#1d1403}
+.pbchip{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 12px;color:var(--ink)}
+.pbchip .tiny{color:var(--muted)}
+.pbchip .avatar.sm{background:var(--tone,var(--green));color:var(--card)}
 .secnav{position:sticky;top:64px;z-index:12;display:flex;gap:6px;overflow-x:auto;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(8px);padding:8px 0;margin-bottom:6px;border-bottom:1px solid var(--line)}
 .secnav button{flex:none;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px 6px 6px;font-weight:700;font-size:.8rem;cursor:pointer;color:var(--ink)}
 .secnav button span{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--green);color:#fff;font-size:.7rem}
@@ -470,7 +471,7 @@ table.cmp td.best{background:var(--safe-tint)}
 .qbtn{width:20px;height:20px;min-width:20px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--green);font-weight:800;font-size:.72rem;line-height:1;cursor:pointer;display:inline-grid;place-items:center;padding:0;position:relative}
 .qbtn::after{content:"";position:absolute;inset:-4px}
 .qbtn:hover{background:var(--green);color:#fff;border-color:var(--green)}
-.pbanner .qbtn,.aicard .qbtn,.sumcard .qbtn,.scorecard .qbtn{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.4)}
+.aicard .qbtn,.sumcard .qbtn,.scorecard .qbtn{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.4)}
 .btn.light{color:#fff;border-color:rgba(255,255,255,.35)}
 .badge-ojk{display:inline-flex;gap:6px;align-items:center;background:var(--green-tint);color:var(--green);font-weight:700;font-size:.8rem;border-radius:999px;padding:5px 12px;margin-bottom:12px}
 .big-btn{padding:14px 22px;font-size:.98rem;border-radius:14px}
@@ -728,6 +729,46 @@ table.cmp td.best{background:var(--safe-tint)}
 .qg-last{border-radius:12px;padding:10px 12px}.qg-last.ok{background:var(--green-tint)}.qg-last.no{background:var(--danger-tint)}
 .qg-wrong{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
 @media (max-width:560px){.sb-days{flex-wrap:nowrap;gap:4px}.sb-days li{flex:1 1 0;min-width:0;padding:5px 2px;font-size:.95rem}}
+/* home: what do you need right now? */
+.intent{margin:4px 0 0;max-width:560px}
+.intent-q{font-size:1.05rem;margin-bottom:10px}
+.intent-opts{list-style:none;margin:0 0 8px;padding:0;display:grid;gap:8px}
+.int{display:flex;gap:12px;align-items:center;padding:10px 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);text-decoration:none}
+.int:hover{border-color:var(--green);background:var(--green-tint)}
+.int-ico{flex:none;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--soft);color:var(--green)}
+.int-a .int-ico{background:var(--green);color:var(--card)}
+.int-t{display:flex;flex-direction:column;line-height:1.3}.int-t b{font-size:.9688rem}.int-t small{font-size:.8125rem;color:var(--muted)}
+/* P2: collapsible detail, sticky mobile summary, lighter banners */
+details.more{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+details.more > summary{cursor:pointer;font-weight:700;font-size:.875rem;color:var(--green);padding:4px 0;list-style-position:outside}
+details.more > summary:focus-visible{outline:3px solid var(--amber-strong);outline-offset:2px;border-radius:6px}
+details.more[open] > summary{margin-bottom:6px}
+.msum{display:none}
+@media (max-width:700px){
+  .msum{display:block;border-top:1px solid var(--line);background:var(--card)}
+  .msum .wrap{display:flex;align-items:center;gap:10px;min-height:32px;font-size:.78rem;white-space:nowrap;overflow:hidden}
+  .msum .ready-dot{margin:0;flex:none}
+  .msum b{font-weight:800}
+  .msum span:not(.ready-dot){color:var(--muted)}
+  .msum .neg{color:var(--danger)!important;font-weight:700}
+  .userchip > span > .tiny{display:none}
+  .pb-right .pbchip{display:none}
+  .pbanner{padding:16px 18px;border-radius:18px;margin-bottom:14px}
+  .pbanner p{font-size:.875rem}
+}
+/* P2: monthly re-check and data file */
+.recheck{display:flex;gap:16px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;margin-top:14px;padding:16px 18px;border:1px dashed var(--line);border-radius:16px;background:var(--card)}
+.recheck > div:first-child{flex:1 1 320px}.recheck h3{font-size:1rem}
+.recheck ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.recheck-acts{display:flex;flex-wrap:wrap;gap:8px}
+.imp input:focus-visible + label{outline:3px solid var(--amber-strong);outline-offset:2px;border-radius:4px}
+/* P2 restyle: fewer boxes inside boxes */
+.prio{gap:0}
+.prio li{border:0;border-radius:0;background:none;padding:14px 0;border-top:1px solid var(--line)}
+.prio li:first-child{border-top:0;padding-top:4px}
+.panel .opt,.card .opt{background:var(--paper);border-color:transparent}
+.panel .opt.best,.card .opt.best{border-color:var(--safe)}
+.sec{margin-top:36px}
 </style>
 </head>
 <body>
@@ -1476,7 +1517,13 @@ function header() {
       ${S.cap.team ? `<a href="#hasil" class="${on('hasil')}">Data validasi</a>` : ''}
     </nav>
     <div class="who">${blank ? '<a class="btn sm" href="#mulai">Isi data saya</a>' : `<a class="userchip" href="#mulai" data-act="wiz-edit" title="Ubah data"><span class="avatar sm" aria-hidden="true">${esc(displayName(p)[0])}</span><span>${esc(displayName(p))}<span class="ready-dot rd-${READY[readyOf(p).level].tone}" aria-hidden="true"></span><span class="tiny muted">${READY[readyOf(p).level].short}</span></span></a>`}<button class="btn sm amber" data-act="drawer" data-v="chat" aria-expanded="${!!S.drawer}">✦ Tanya FinWise</button>${sizeBtn()}</div>
-  </div>${journeyBar()}</header>`;
+  </div>${journeyBar()}${mobileSummary()}</header>`;
+}
+// phones only (CSS): the verdict and the one number that matters stay in view while scrolling
+function mobileSummary() {
+  if (!['cek', 'pilah', 'pulih', 'kalkulator'].includes(S.route) || needsSetup()) return '';
+  const p = P(), R = readyOf(p), RD = READY[R.level], sur = FW.surplus(p);
+  return `<div class="msum" aria-hidden="true"><div class="wrap"><span class="ready-dot rd-${RD.tone}"></span><b>${RD.short}</b>${R.level ? `<span>maks ${rps(R.max[6])}/6 bln</span>` : ''}<span class="${sur < 0 ? 'neg' : ''}">sisa ${rps(sur)}</span></div></div>`;
 }
 /* ---------- icons (24px line icons, inherit currentColor) ---------- */
 const ICONS = {
@@ -1493,9 +1540,9 @@ const ICONS = {
 const ico = (k, cls = '') => `<svg class="ico ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${ICONS[k] || ''}</svg>`;
 /* the three steps of the personal loan assessment, shared by the home page and the step bar */
 const STEPS = [
-  { r: 'cek', name: 'CEK', when: 'Sebelum berutang', q: 'Seberapa sehat keuanganku?', gets: ['Skor kesehatan keuangan dari 8 kebiasaan', 'Rasio keuanganmu dibanding patokan umum', 'Rencana hemat yang bisa langsung dijalankan'] },
-  { r: 'pilah', name: 'PILAH', when: 'Saat butuh dana', q: 'Berapa yang aman, dan dari mana?', gets: ['Batas cicilan baru yang aman untukmu', 'Tutup kebutuhan tanpa utang dulu', '3 pinjaman legal yang paling cocok'] },
-  { r: 'pulih', name: 'PULIH', when: 'Setelah berutang', q: 'Bagaimana cara keluar dari utang?', gets: ['Jadwal bayar dan pengingat di kalender', 'Urutan pelunasan paling hemat', 'Cek dulu sebelum pinjam untuk bayar pinjaman'] },
+  { r: 'cek', name: 'CEK', when: 'Sebelum berutang', q: 'Seberapa sehat keuanganku?', gets: ['Kesiapan berutang dan pinjaman maksimal yang aman', 'Kondisi keuangan dari 8 kebiasaan, dan rasionya', 'Rencana hemat yang bisa langsung dijalankan'] },
+  { r: 'pilah', name: 'PILAH', when: 'Saat butuh dana', q: 'Berapa yang aman, dan dari mana?', gets: ['Untuk apa dananya, dan perlukah berutang', 'Tutup kebutuhan tanpa utang dulu', 'Pinjaman legal dengan total biaya termurah'] },
+  { r: 'pulih', name: 'PULIH', when: 'Setelah berutang', q: 'Bagaimana cara keluar dari utang?', gets: ['Jadwal bayar dan pengingat di kalender', 'Langkah kalau tidak sanggup bayar', 'Urutan pelunasan paling hemat'] },
 ];
 const JOURNEY_ROUTES = ['mulai', 'cek', 'pilah', 'pulih'];
 function journeyBar() {
@@ -1619,6 +1666,15 @@ function stepStatus(st) {
     : p.loans.length ? `${p.loans.length} utang aktif, cicilan ${rps(h.ex)}/bulan` : 'Belum ada utang aktif';
   return `<p class="stop-you">${ico('check')}<span>${txt}</span></p>`;
 }
+// what the visitor came for decides where the first click goes; the three assessment steps need "Data saya" first
+const INTENTS = [
+  ['sehat', 'cek', 'Tahu kondisi keuanganku', 'CEK: kesiapan berutang dan rencana hemat'],
+  ['dana', 'pilah', 'Butuh dana sekarang', 'PILAH: berapa yang aman dan dari mana'],
+  ['utang', 'pulih', 'Utangku mulai berat', 'PULIH: jadwal bayar dan jalan keluarnya'],
+  ['hitung', 'calc', 'Menghitung sebuah penawaran', 'Kalkulator: cicilan dan total yang dikembalikan'],
+  ['legal', 'db', 'Mengecek pinjol legal atau tidak', 'Database: daftar OJK dan Satgas PASTI'],
+];
+const intentHref = (k, ready) => ({ sehat: ready ? '#cek' : '#mulai', dana: ready ? '#pilah' : '#mulai', utang: ready ? '#pulih' : '#mulai', hitung: '#kalkulator', legal: '#openspace' })[k];
 function vHome() {
   const ready = !needsSetup();
   const ex = FW.loan({ principal: 5e6, rate: 0.003, unit: 'day', months: 6 });
@@ -1626,7 +1682,9 @@ function vHome() {
     <div class="hh-text">
       <h1 tabindex="-1">Cek dulu sebelum pinjam.</h1>
       <p class="lead">FinWise membaca angkamu sendiri: berapa yang aman dicicil, dari mana dana termurah, dan bagaimana keluar dari utang. Bukan dari iklan pinjol.</p>
-      <div class="row">${ready ? '<a class="btn big-btn" href="#cek">Lihat kondisi keuanganku</a>' : '<a class="btn big-btn" href="#mulai">Mulai asesmen (±3 menit)</a>'}<a class="btn ghost big-btn" href="#openspace">Cek legalitas pinjol</a></div>
+      <div class="intent" role="group" aria-labelledby="int-h"><h2 id="int-h" class="intent-q">Apa yang kamu butuhkan sekarang?</h2>
+        <ul class="intent-opts">${INTENTS.map(([k, ic, t, d], i) => `<li><a class="int${i < 3 ? ' int-a' : ''}" href="${intentHref(k, ready)}" data-act="intent" data-v="${k}"><span class="int-ico">${ico(ic)}</span><span class="int-t"><b>${t}</b><small>${d}</small></span></a></li>`).join('')}</ul>
+        ${ready ? '' : '<p class="tiny muted">Tiga pilihan pertama menghitung dari angkamu, jadi isi data dulu (±3 menit, tersimpan di browser ini saja).</p>'}</div>
       <p class="hh-note">${ico('db')}<span>Gratis, tanpa login. Datamu hanya tersimpan di browser ini, dan nama pinjol dicocokkan dengan daftar resmi OJK dan Satgas PASTI.</span></p>
     </div>
     ${HERO_IMG}
@@ -1751,12 +1809,13 @@ function wizFinalize(p) {
   p.loans.forEach(l => { const g = LOAN_TYPES.find(t => t[0] === l.type); if (l.rateIn == null) { l.rateMonthly = g ? g[2] : 0.02; l.rateGuess = true; } else { l.rateMonthly = l.rateIn; l.rateGuess = false; } l.outstanding = l.instalment * l.months; });
   p.setup = true; p.wstep = 4;
 }
+const INTENT_NEXT = { dana: 'Setelah selesai, kamu langsung dibawa ke PILAH untuk melihat berapa yang aman dipinjam.', utang: 'Setelah selesai, kamu langsung dibawa ke PULIH untuk mengatur utangmu.' };
 function vMulai() {
   const p = S.profiles.saya, w = S.wiz, k = Math.min(w.step, 4), err = w.errors;
   const errCount = Object.keys(err).length;
   const rpField = (path, val, label, ph = '0', extra = '') => `<label class="f">${label}${rpInput(fid(path), val, `data-sy="${path}" data-t="rpn" placeholder="${ph}"${err[path] ? ` aria-invalid="true" aria-describedby="${fid(path)}-err"` : ''} ${extra}`)}${fErr(path)}</label>`;
-  const head = `<div class="phead"><div><div class="eyebrow e-cek">DATA SAYA · LANGKAH ${k + 1} DARI ${WSTEPS.length}</div><h1 tabindex="-1">${p.setup ? 'Ubah datamu' : 'Isi datamu, mulai dari nol'}</h1><p>Semua kolom kosong dan tidak ada jawaban yang dipilihkan. Tidak tahu angka pastinya? Pakai perkiraan rata-rata 3 bulan terakhir.</p></div>
-    <div class="note small" style="max-width:340px"><b>Privasi:</b> data ini hanya tersimpan di browser ini dan tidak dikirim ke mana pun. ${w.confirmWipe ? `<span class="row" style="margin-top:6px"><button class="btn danger sm" data-act="wiz-wipe" data-v="2">Ya, hapus semua</button><button class="btn ghost sm" data-act="wiz-wipe" data-v="0">Batal</button></span>` : `<button class="linkbtn" data-act="wiz-wipe" data-v="1">Hapus semua data saya</button>`}</div></div>
+  const head = `<div class="phead"><div><div class="eyebrow e-cek">DATA SAYA · LANGKAH ${k + 1} DARI ${WSTEPS.length}</div><h1 tabindex="-1">${p.setup ? 'Ubah datamu' : 'Isi datamu, mulai dari nol'}</h1><p>Semua kolom kosong dan tidak ada jawaban yang dipilihkan. Tidak tahu angka pastinya? Pakai perkiraan rata-rata 3 bulan terakhir.</p>${INTENT_NEXT[S.intent] ? `<p class="small" style="margin-top:6px"><b>${INTENT_NEXT[S.intent]}</b></p>` : ''}</div>
+    <div class="note small" style="max-width:340px"><b>Privasi:</b> data ini hanya tersimpan di browser ini dan tidak dikirim ke mana pun. ${importBtn()} ${w.confirmWipe ? `<span class="row" style="margin-top:6px"><button class="btn danger sm" data-act="wiz-wipe" data-v="2">Ya, hapus semua</button><button class="btn ghost sm" data-act="wiz-wipe" data-v="0">Batal</button></span>` : `<button class="linkbtn" data-act="wiz-wipe" data-v="1">Hapus semua data saya</button>`}</div></div>
    <div class="wprog" aria-hidden="true"><i style="width:${((k + (p.setup ? 1 : 0)) / WSTEPS.length * 100).toFixed(0)}%"></i></div>
    <ol class="wsteps" aria-label="Langkah pengisian">${WSTEPS.map((t, i) => `<li class="${i === k ? 'on' : i < k ? 'done' : ''}" ${i === k ? 'aria-current="step"' : ''}>${i < k || p.setup ? `<button class="linkbtn" data-act="wiz-goto" data-v="${i}">${i + 1}. ${t}</button>` : `<span>${i + 1}. ${t}</span>`}</li>`).join('')}</ol>
    ${errCount ? `<div class="note danger" role="alert" id="wiz-errors" tabindex="-1" style="margin-bottom:14px"><b>Ada ${errCount} isian yang perlu dilengkapi.</b> ${err._step ? esc(err._step) : 'Lihat tanda merah di bawah.'}</div>` : ''}`;
@@ -1831,8 +1890,10 @@ function wizFinalizeLight(p) {
   p.name = p.nick || 'Kamu'; syncSpending(p); p.family = p.familyAns ? (p.family || 0) : 0; if (p.onTimeAns) p.onTime = p.onTimeAns !== 'tidak';
   p.loans.forEach(l => { const g = LOAN_TYPES.find(t => t[0] === l.type); l.rateMonthly = l.rateIn != null ? l.rateIn : (g ? g[2] : 0.02); l.rateGuess = l.rateIn == null; l.outstanding = (l.instalment || 0) * (l.months || 0); });
 }
+// moving "Data saya" from another device: a visually hidden file input behind a button-styled label
+const importBtn = () => `<span class="imp"><input type="file" id="imp-json" class="sr" accept=".json,application/json" data-act-change="import-json"><label for="imp-json" class="linkbtn">Pakai data dari file</label></span>`;
 function vNeedSetup() {
-  return banner({ tone: 'green', eyebrow: 'MULAI DARI SINI', title: 'Isi datamu dulu', sub: 'Halaman ini menghitung dari angkamu sendiri. Semua kolom mulai kosong dan tidak ada jawaban yang dipilihkan; butuh sekitar 3 menit.', right: '<a class="btn amber big-btn" href="#mulai">Isi data saya</a>' })
+  return banner({ tone: 'green', eyebrow: 'MULAI DARI SINI', title: 'Isi datamu dulu', sub: 'Halaman ini menghitung dari angkamu sendiri. Semua kolom mulai kosong dan tidak ada jawaban yang dipilihkan; butuh sekitar 3 menit.', right: `<div class="stack" style="gap:8px;align-items:flex-end"><a class="btn amber big-btn" href="#mulai">Isi data saya</a><span class="tiny">Sudah punya file data FinWise? ${importBtn()}</span></div>` })
    + `<div class="grid g3" style="margin-top:4px">${[['Privat', 'Data hanya tersimpan di browser ini. Bisa dihapus kapan saja.'], ['Mulai kosong', 'Tidak ada angka contoh. Boleh pakai perkiraan rata-rata 3 bulan.'], ['Langsung ada hasil', 'Setelah selesai, kamu dapat kesimpulan, rasio keuangan, dan rencana.']].map(([t, d]) => `<div class="panel"><b>${t}</b><p class="small muted" style="margin-top:4px">${d}</p></div>`).join('')}</div>`;
 }
 
@@ -1947,9 +2008,76 @@ function levers(p) {
     if (d > 0) out.push({ t: a.title, txt: `sisa uang +${rps(d)} per bulan → ${R1.max[6] > 0 ? `pinjaman maksimal aman ${rps(R1.max[6])}` : `sisa uangmu jadi ${rp(FW.surplus(q), { plus: true })}`}${R1.level > R0.level ? `, naik ke "${READY[R1.level].name}"` : ''}`, up: R1.level > R0.level });
   });
   const ending = [...p.loans].filter(l => l.months <= 12).sort((a, b) => a.months - b.months)[0];
-  if (ending) { const q = clone(p); q.loans = q.loans.filter(l => l.id !== ending.id); const R1 = FW.readiness(q); out.push({ t: `${ending.name} lunas dalam ${ending.months} bulan`, txt: `cicilan ${rps(ending.instalment)} jadi sisa uang${R1.level > R0.level ? `, naik ke "${READY[R1.level].name}"` : ''}`, up: R1.level > R0.level }); }
+  if (ending) { const q = clone(p); q.loans = q.loans.filter(l => l.id !== ending.id); const R1 = FW.readiness(q); out.push({ t: `${ending.name} lunas dalam ${ending.months} bulan`, txt: `cicilan ${rps(ending.instalment)} per bulan kembali jadi sisa uang → pinjaman maksimal aman ${rps(R1.max[6])}${R1.level > R0.level ? `, naik ke "${READY[R1.level].name}"` : ''}`, up: R1.level > R0.level }); }
   if (R0.efM < 1 && R0.level >= 1) { const f = facts(p), gap = Math.max(0, f.out - (p.emergencyFund || 0)), per = Math.max(f.sur, FW.surplus(applyPlan(base))); out.push({ t: 'Dana darurat 1 bulan pengeluaran', txt: `kurang ${rps(gap)}${per > 0 ? `; dengan ${rps(per)} per bulan tercapai ±${Math.ceil(gap / per)} bulan` : ''}`, up: true }); }
   return out.sort((a, b) => b.up - a.up).slice(0, 3);
+}
+/* ================= monthly re-check and moving "Data saya" between devices =================
+   A small snapshot is kept in this browser each time the data is saved, so CEK can say what changed since
+   the last check. Export writes the data to a JSON file; import reads it back after checking its shape. */
+const HIST_MAX = 24;
+const dayKey = d => new Date(d).toISOString().slice(0, 10);
+function snapshot(p) {
+  const R = FW.readiness(p), H = FW.health(p);
+  return { at: new Date().toISOString(), level: R.level, score: H.total, sur: Math.round(FW.surplus(p)), dsr: +FW.headroom(p).dsrNow.toFixed(4), max6: R.max[6], ef: p.emergencyFund || 0 };
+}
+function histGet() { const h = store.get('history'); return Array.isArray(h) ? h.filter(x => x && typeof x.at === 'string') : []; }
+function recordCheck(p) {
+  try {
+    const h = histGet(), s = snapshot(p), today = dayKey(s.at);
+    const keep = h.filter(x => dayKey(x.at) !== today); keep.push(s);
+    store.set('history', keep.slice(-HIST_MAX));
+  } catch {}
+}
+// the latest snapshot from an earlier day: today's own save is not a "previous check"
+function prevCheck() { const today = dayKey(Date.now()); return histGet().filter(x => dayKey(x.at) < today).pop() || null; }
+const daysSince = iso => iso ? Math.floor((Date.now() - new Date(iso).getTime()) / 864e5) : null;
+function recheckCard(p) {
+  const prev = prevCheck(), now = snapshot(p), age = daysSince(p.updatedAt);
+  const d = (a, b, f) => b === a ? 'tetap' : `${f(a)} → <b>${f(b)}</b>`;
+  const lines = prev ? [
+    `Kesiapan berutang: ${prev.level === now.level ? `tetap <b>${READY[now.level].name}</b>` : `${READY[prev.level].name} → <b>${READY[now.level].name}</b>`}`,
+    `Kondisi keuangan: ${d(prev.score, now.score, x => x + '/100')}`,
+    `Sisa uang per bulan: ${d(prev.sur, now.sur, x => rp(x, { plus: true }))}`,
+    `Pinjaman maksimal yang aman (6 bln): ${d(prev.max6, now.max6, rp)}`,
+  ] : [];
+  return `<div class="recheck">
+    <div><h3>${prev ? `Dibanding cek ${dateID(dayKey(prev.at))}` : 'Cek ulang tiap bulan'}</h3>
+     ${prev ? `<ul class="small">${lines.map(x => `<li>${x}</li>`).join('')}</ul>` : '<p class="small muted">Perbarui datamu setelah gajian bulan depan. FinWise akan menunjukkan apa yang berubah: kesiapan, kondisi, sisa uang, dan pinjaman maksimal yang aman.</p>'}
+     ${age != null && age > 30 ? `<p class="small" style="margin-top:6px"><b>Datamu terakhir diperbarui ${age} hari lalu.</b> Angka di halaman ini memakai data itu.</p>` : ''}</div>
+    <div class="recheck-acts"><a class="btn sm" href="#mulai" data-act="wiz-edit">Perbarui data</a><a class="btn sm ghost" href="${recheckLink((p.incomes[0] || {}).payday)}" target="_blank" rel="noopener noreferrer">Pengingat bulan depan<span class="sr"> di Google Calendar (tab baru)</span></a><button class="btn sm ghost" data-act="export-data">Unduh data (.json)</button></div>
+   </div>`;
+}
+function exportData() {
+  const p = S.profiles.saya, body = { app: 'FinWise', kind: 'data-saya', v: 1, exportedAt: new Date().toISOString(), profile: p, history: histGet() };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(body, null, 2)], { type: 'application/json' }));
+  const a = document.createElement('a'); a.href = url; a.download = `finwise-data-saya-${dayKey(Date.now())}.json`; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast('File data tersimpan di folder unduhan');
+}
+// only plain data of a bounded size survives: no functions, no prototype keys, short strings, short lists
+function plainData(x, depth = 0) {
+  if (x === null || typeof x === 'boolean') return x;
+  if (typeof x === 'number') return Number.isFinite(x) ? x : null;
+  if (typeof x === 'string') return x.slice(0, 200);
+  if (depth > 5) return null;
+  if (Array.isArray(x)) return x.slice(0, 40).map(v => plainData(v, depth + 1));
+  if (typeof x === 'object') { const o = {}; Object.keys(x).slice(0, 80).forEach(k => { if (!['__proto__', 'constructor', 'prototype'].includes(k)) o[k] = plainData(x[k], depth + 1); }); return o; }
+  return null;
+}
+function importProfile(text) {
+  const raw = JSON.parse(text), src = raw && raw.app === 'FinWise' ? raw.profile : raw;
+  const p = plainData(src);
+  if (!p || p.id !== 'saya' || !Array.isArray(p.incomes) || !Array.isArray(p.items) || !Array.isArray(p.loans)) throw new Error('shape');
+  p.incomes.forEach(r => { r.label = typeof r.label === 'string' ? r.label : ''; });
+  p.items.forEach(c => { c.name = typeof c.name === 'string' ? c.name : 'Pos'; });
+  p.loans.forEach(l => { l.name = typeof l.name === 'string' ? l.name : 'Pinjaman'; });
+  const m = migrateSaya({ ...blankSaya(), ...p, v: 3 });
+  wizFinalize(m);
+  FW.readiness(m); // throws if the numbers cannot be computed
+  if (!(FW.income(m) > 0)) throw new Error('income');
+  const hist = raw && Array.isArray(raw.history) ? plainData(raw.history).filter(x => x && typeof x.at === 'string' && Number.isFinite(x.level)) : [];
+  return { m, hist };
 }
 /* ================= CEK ================= */
 // The FinWise plan is a list of concrete actions. Only actions the user keeps switched on change the "after" numbers,
@@ -1970,7 +2098,7 @@ function planActions(base) {
   acts.push({ id: 'plan', title: 'Jalankan sebagai rencana bulanan', desc: 'Rencana tertulis dengan target bulanan, ditinjau setiap gajian.', apply: p => { p.plan = true; } });
   if (base.slik === 'tidaktahu') acts.push(saya ? { id: 'slik', todo: true, title: 'Cek SLIK gratis di iDebKu OJK', desc: 'Skor baru berubah setelah kamu tahu hasilnya. Perbarui jawabanmu di data setelah mengecek.', href: '#mulai', act: 'wiz-edit', v: 4, cta: 'Perbarui data' } : { id: 'slik', title: 'Cek SLIK gratis di iDebKu OJK', desc: 'Di contoh ini hasilnya: belum punya riwayat kredit.', apply: p => { p.slik = 'kosong'; } });
   if (base.insurance === false) acts.push({ id: 'bpjs', todo: true, title: 'Daftar BPJS Kesehatan', desc: 'Biaya berobat adalah alasan paling umum orang meminjam mendadak.' });
-  if (f.dsr > 0.3) acts.push({ id: 'debt', todo: true, title: 'Rapikan cicilan di PULIH', desc: `Rasio cicilanmu ${pct(f.dsr, 0)}, di atas batas aman 30%.`, href: '#pulih', cta: 'Buka PULIH' });
+  if (f.dsr > 0.3) acts.push({ id: 'debt', todo: true, title: 'Rapikan cicilan di PULIH', desc: `Porsi cicilanmu ${pct(f.dsr, 0)}, di atas batas aman 30%.`, href: '#pulih', cta: 'Buka PULIH' });
   return acts;
 }
 function applyPlan(base, acts = planActions(base)) {
@@ -1995,7 +2123,7 @@ function planCard(base, acts, after) {
      <div class="stack small" style="gap:6px;margin-top:8px">
       <div class="row between"><span>Sisa uang per bulan</span><span class="num">${rp(FW.surplus(base), { plus: true })} → <b>${rp(FW.surplus(after), { plus: true })}</b></span></div>
       <div class="row between"><span>Kesiapan berutang</span><span>${READY[FW.readiness(base).level].short} → <b>${READY[FW.readiness(after).level].short}</b></span></div>
-      <div class="row between"><span>Pinjaman maksimal aman (6 bln)</span><span class="num">${rp(FW.maxSafeLoan(base, 6))} → <b>${rp(FW.maxSafeLoan(after, 6))}</b></span></div>
+      <div class="row between"><span>Pinjaman maksimal yang aman (6 bln)</span><span class="num">${rp(FW.maxSafeLoan(base, 6))} → <b>${rp(FW.maxSafeLoan(after, 6))}</b></span></div>
       <div class="row between"><span>Disisihkan per bulan</span><span class="num">${rp(base.savingMonthly || 0)} → <b>${rp(after.savingMonthly || 0)}</b></span></div>
       <div class="row between"><span>Kondisi keuangan</span><span class="num">${hb.total} → <b>${ha.total}</b> (${ha.status})</span></div>
      </div>
@@ -2056,18 +2184,21 @@ function vCek() {
       <div class="row" style="margin-top:10px"><button class="btn sm amber" data-act="drawer" data-v="chat">✦ Tanya lebih lanjut</button><button class="btn sm ghost light no-print" data-act="print">Simpan PDF</button></div>
       <p class="tiny" style="margin-top:8px;opacity:.75">${S.cap.sample ? 'AI hanya menjelaskan; semua angka dari mesin hitung FinWise.' : 'Disusun dari aturan FinWise.'}</p></div>
     </div>
+    ${recheckCard(p)}
     ${f.total ? `<div class="note amber" style="margin-top:14px"><b>Mau insight yang lebih dalam?</b> Kamu baru mengisi total pengeluaran. <a href="#mulai" data-act="wiz-edit" data-v="2" data-mode="rinci">Rinci per pos (±2 menit)</a> supaya FinWise bisa menunjukkan pos paling boros dan batas hemat per pos.</div>` : ''}
    </section>
-   <section class="sec">${secHead(2, 's2', 'Analisis kesehatan finansial', 'Rasio keuangan rumah tangga dibanding patokan umum, dan rincian skor kesehatanmu.')}
+   <section class="sec">${secHead(2, 's2', 'Rasio dan kondisi keuangan', 'Rasio keuangan rumah tangga dibanding patokan umum, dan rincian skor kondisi keuanganmu.')}
     <div class="grid g-side" style="align-items:start">
      <div class="panel"><h3>Rasio keuanganmu</h3>
-      <ul class="ratios">${rs.map(r => `<li><div class="r-top"><span class="r-name">${term(r.t, r.k)}</span><b class="num" style="color:var(--${r.s})">${esc(r.show)}</b></div>
+      <p class="small muted" style="margin-top:4px">${(n => n ? `${n} dari ${rs.length} rasio di luar patokan. Mulai dari yang ini:` : `Semua ${rs.length} rasio dalam patokan.`)(rs.filter(r => r.s !== 'safe').length)}</p>
+      ${(row => { const bad = rs.filter(r => r.s !== 'safe'), good = rs.filter(r => r.s === 'safe');
+        return `${bad.length ? `<ul class="ratios">${bad.map(row).join('')}</ul>` : ''}${good.length ? `<details class="more"${bad.length ? '' : ' open'}><summary>${bad.length ? `Lihat ${good.length} rasio yang sudah dalam patokan` : 'Lihat semua rasio'}</summary><ul class="ratios">${good.map(row).join('')}</ul></details>` : ''}`; })(r => `<li><div class="r-top"><span class="r-name">${term(r.t, r.k)}</span><b class="num" style="color:var(--${r.s})">${esc(r.show)}</b></div>
         <div class="bar" aria-hidden="true"><i style="width:${Math.min(100, Math.max(3, (r.t === 'Rasio likuiditas' ? r.v / Math.max(1, f.efTarget) : r.t === 'Daya tahan uang' ? r.v : Math.abs(r.v)) * 100)).toFixed(0)}%;background:var(--${r.s})"></i></div>
-        <div class="r-meta tiny"><span>${esc(r.f)}</span><span>patokan <b>${esc(r.bench)}</b> ${{ safe: '<span class="pill z-safe">Baik</span>', stretch: '<span class="pill z-stretch">Perlu perhatian</span>', danger: '<span class="pill z-danger">Bermasalah</span>' }[r.s]}</span></div>${r.note ? `<div class="tiny muted">${esc(r.note)}</div>` : ''}</li>`).join('')}</ul>
+        <div class="r-meta tiny"><span>${esc(r.f)}</span><span>patokan <b>${esc(r.bench)}</b> ${{ safe: '<span class="pill z-safe">Baik</span>', stretch: '<span class="pill z-stretch">Perlu perhatian</span>', danger: '<span class="pill z-danger">Bermasalah</span>' }[r.s]}</span></div>${r.note ? `<div class="tiny muted">${esc(r.note)}</div>` : ''}</li>`)}
       <p class="tiny muted" style="margin-top:8px">Patokan dari pedoman 50/30/20 dan rasio keuangan rumah tangga (Greninger dkk., 1996). Tekan “?” untuk penjelasan singkat.</p></div>
      <div class="panel"><h3>Rincian ${term('Kondisi keuangan', 'kondisi keuangan')}</h3>
       <p class="small muted" style="margin-top:4px">8 kebiasaan × 12,5 poin. Paling menahan skormu: <b style="color:var(--ink)">${esc(hs.weakest.label)}</b>.</p>
-      <div class="stack" style="margin-top:12px;gap:10px">${pillars.map(pl => `<div><div class="lab">${pname[pl]}</div>${hs.ind.filter(i => i.pillar === pl).map(i => `<div class="row between tiny" style="margin-top:4px;flex-wrap:nowrap"><span>${esc(i.label)}</span><b class="num">${i.points.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}/12,5</b></div><div class="bar" aria-hidden="true"><i style="width:${Math.max(2, i.score * 100)}%;background:${i.score >= 1 ? 'var(--safe)' : i.score > 0 ? 'var(--stretch)' : 'var(--danger)'}"></i></div>`).join('')}</div>`).join('')}</div></div>
+      <details class="more"><summary>Lihat rincian 8 kebiasaan</summary><div class="stack" style="margin-top:12px;gap:10px">${pillars.map(pl => `<div><div class="lab">${pname[pl]}</div>${hs.ind.filter(i => i.pillar === pl).map(i => `<div class="row between tiny" style="margin-top:4px;flex-wrap:nowrap"><span>${esc(i.label)}</span><b class="num">${i.points.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}/12,5</b></div><div class="bar" aria-hidden="true"><i style="width:${Math.max(2, i.score * 100)}%;background:${i.score >= 1 ? 'var(--safe)' : i.score > 0 ? 'var(--stretch)' : 'var(--danger)'}"></i></div>`).join('')}</div>`).join('')}</div></details></div>
     </div>
    </section>
    <section class="sec">${secHead(3, 's3', 'Ke mana uangmu pergi', 'Pemasukan, pengeluaran, dan kapan uangmu menipis dalam sebulan.')}
@@ -2099,7 +2230,7 @@ function vCek() {
        <label class="f">Bunga (%)<input class="in num" id="o-rate" inputmode="decimal" value="${off.rate == null ? '' : (off.rate * 100).toLocaleString('id-ID', { maximumFractionDigits: 3 })}" placeholder="mis. 3" data-k="cek.offer.rate" data-t="pctn"></label>
        <label class="f">Satuan<select class="in" id="o-unit" data-k="cek.offer.unit" data-t="text"><option value="month" ${off.unit === 'month' ? 'selected' : ''}>% per bulan</option><option value="day" ${off.unit === 'day' ? 'selected' : ''}>% per hari</option></select></label>
       </div>
-      ${offReady ? `<dl class="kv" style="margin-top:12px"><div><dt>Cicilan per bulan</dt><dd>${rp(L.inst)}</dd></div><div><dt>Total dibayar</dt><dd>${rp(L.repay + L.fee)}</dd></div><div><dt>${term('Bunga efektif', 'Bunga sebenarnya per tahun')}</dt><dd>${pct(L.ear, 0)}</dd></div><div><dt>Sisa uangmu setelahnya</dt><dd style="color:${zO.left < 0 ? 'var(--danger)' : 'var(--safe)'}">${rp(zO.left, { plus: true })} ${zpill(zO.zone)}</dd></div></dl>
+      ${offReady ? `<dl class="kv" style="margin-top:12px"><div><dt>Cicilan per bulan</dt><dd>${rp(L.inst)}</dd></div><div><dt>Total dikembalikan</dt><dd>${rp(L.repay + L.fee)}</dd></div><div><dt>${term('Bunga efektif', 'Bunga sebenarnya per tahun')}</dt><dd>${pct(L.ear, 0)}</dd></div><div><dt>Sisa uangmu setelahnya</dt><dd style="color:${zO.left < 0 ? 'var(--danger)' : 'var(--safe)'}">${rp(zO.left, { plus: true })} ${zpill(zO.zone)}</dd></div></dl>
        ${zO.zone === 'danger' ? `<div class="note danger small" style="margin-top:10px">Penawaran ini membuat arus kasmu minus atau porsi cicilanmu di atas 40%. Untuk kebutuhan mendesak, coba <a href="#pilah" data-act="to-pilah" data-amount="${off.amount}">tangga dana di PILAH</a>.</div>` : zO.zone === 'stretch' ? '<div class="note amber small" style="margin-top:10px">Masih bisa dibayar, tapi mepet. Pertimbangkan menabung dulu.</div>' : '<div class="note safe small" style="margin-top:10px">Masih dalam batas aman.</div>'}` : '<p class="small muted" style="margin-top:10px">Isi harga, tenor, dan bunga untuk melihat cicilan dan bunga sebenarnya. Mau versi lengkap dengan slider? <a href="#kalkulator">Buka kalkulator</a>.</p>'}</div>
      <div class="panel"><h3>Tujuan tanpa utang</h3>
       <div class="grid g2" style="margin-top:10px"><label class="f">Tujuan<input class="in" id="g-label" value="${esc(st.goal.label)}" placeholder="mis. Laptop, dana darurat" data-k="cek.goal.label" data-t="text"></label><label class="f">Target${rpInput('g-amount', st.goal.amount, 'data-k="cek.goal.amount" data-t="rpn" placeholder="mis. 6.000.000"')}</label></div>
@@ -2166,9 +2297,9 @@ function vKalkulator() {
   const zi = z ? { safe: 0, stretch: 1, danger: 2 }[z.zone] : null, R = blank ? null : FW.readiness(p);
   const advice = blank ? 'Isi datamu dulu supaya FinWise bisa menilai apakah cicilan ini aman untukmu.'
     : R.level === 0 ? `Kesiapan berutangmu: belum bisa berutang. ${R.reasons[0]} Hitungan ini hanya gambaran; yang lebih aman sekarang adalah rencana tanpa utang.`
-    : z.zone === 'safe' ? `Cicilan ${rp(L.inst)} masih di bawah batas amanmu ${rp(h.ceiling)}. Rasio cicilanmu jadi ${pct(z.dsr, 0)}. Tetap bandingkan total biayanya di PILAH sebelum memilih pemberi pinjaman.`
-    : z.zone === 'stretch' ? `Cicilan ini melewati batas amanmu ${rp(h.ceiling)} (rasio cicilan ${pct(z.dsr, 0)}). Masih bisa dibayar, tapi sisa uangmu tinggal ${rp(z.left)} per bulan. Pertimbangkan alternatif di bawah.`
-    : `Cicilan ini membuat ${z.left < 0 ? `uangmu minus ${rp(-z.left)} per bulan` : `rasio cicilanmu ${pct(z.dsr, 0)}`}. Risiko telat bayar dan berutang lagi tinggi. Lihat alternatif yang lebih aman.`;
+    : z.zone === 'safe' ? `Cicilan ${rp(L.inst)} masih di bawah batas amanmu ${rp(h.ceiling)}. Porsi cicilanmu jadi ${pct(z.dsr, 0)}. Tetap bandingkan total biayanya di PILAH sebelum memilih pemberi pinjaman.`
+    : z.zone === 'stretch' ? `Cicilan ini melewati batas amanmu ${rp(h.ceiling)} (porsi cicilan ${pct(z.dsr, 0)}). Masih bisa dibayar, tapi sisa uangmu tinggal ${rp(z.left)} per bulan. Pertimbangkan alternatif di bawah.`
+    : `Cicilan ini membuat ${z.left < 0 ? `uangmu minus ${rp(-z.left)} per bulan` : `porsi cicilanmu ${pct(z.dsr, 0)}`}. Risiko telat bayar dan berutang lagi tinggi. Lihat alternatif yang lebih aman.`;
   const lateFee = c.lateOn && c.lateRate > 0 && c.lateDays > 0 ? Math.min(L.inst * c.lateRate * c.lateDays, N.amount) : null;
   const opts = blank ? [] : saferOptions(p, c, N), safeAmt = opts.find(o => o.set && o.set.amount)?.set.amount;
   const urgentOnly = R && R.level === 1 ? ' Kesiapanmu: hanya untuk darurat, jadi pinjam hanya untuk keperluan mendesak.' : '';
@@ -2831,11 +2962,11 @@ function vPinjol() {
       <div class="row" style="margin-top:8px">${d.iso27001 ? '<span class="tag">ISO 27001</span>' : ''}${d.iso27701 ? '<span class="tag">ISO 27701</span>' : ''}${!d.iso27001 && !d.iso27701 ? '<span class="small muted">Belum ada sertifikasi ISO keamanan informasi yang tercatat.</span>' : ''}</div>
       ${d.perms ? `<p class="small" style="margin-top:10px">Aplikasi Android-nya mencantumkan <b>${d.perms.total} izin</b>, <b>${d.perms.high}</b> berisiko tinggi:</p><div class="row" style="margin-top:6px">${d.perms.groups.map(g => `<span class="pill ${CAMILAN.includes(g) ? 'z-safe' : 'z-danger'}">${esc(g)}${CAMILAN.includes(g) ? '' : '<span class="sr"> (di luar izin yang dibolehkan OJK)</span>'}</span>`).join('')}</div><p class="tiny muted" style="margin-top:6px">Aturan ${term('CAMILAN')}: hijau dibolehkan, merah di luar itu. Izin tercantum belum tentu aktif dipakai.</p>` : '<p class="small muted" style="margin-top:8px">Izin akses aplikasi untuk platform ini belum dipetakan.</p>'}</div>
      <div class="card"><div class="row between"><h3>Ulasan komunitas FinWise</h3><span class="tiny muted">${reviews.length} ulasan</span></div>
-      ${reviews.length ? reviews.map(r => `<div class="note small" style="margin-top:8px"><div class="row between"><b class="num">${r.amount ? rp(r.amount) : ''}${r.months ? ' · ' + r.months + ' bln' : ''}${r.paid ? ' · total bayar ' + rp(r.paid) : ''}</b><span class="tiny muted">Penagihan ${r.collection}/5 · transparansi ${r.fees}/5</span></div>${r.text ? `<div style="margin-top:4px">${esc(r.text)}</div>` : ''}</div>`).join('') : '<p class="small muted" style="margin-top:6px">Belum ada ulasan komunitas untuk platform ini.</p>'}
+      ${reviews.length ? reviews.map(r => `<div class="note small" style="margin-top:8px"><div class="row between"><b class="num">${r.amount ? rp(r.amount) : ''}${r.months ? ' · ' + r.months + ' bln' : ''}${r.paid ? ' · total dikembalikan ' + rp(r.paid) : ''}</b><span class="tiny muted">Penagihan ${r.collection}/5 · transparansi ${r.fees}/5</span></div>${r.text ? `<div style="margin-top:4px">${esc(r.text)}</div>` : ''}</div>`).join('') : '<p class="small muted" style="margin-top:6px">Belum ada ulasan komunitas untuk platform ini.</p>'}
 ${S.cap.db ? `      <details style="margin-top:12px" ${S.os.reviewPreview || S.os.rvErr ? 'open' : ''}><summary class="btn ghost sm" style="display:inline-flex">Tulis ulasan</summary>
        <form class="stack" style="margin-top:10px" data-form="review" novalidate>
         <div class="grid g2"><label class="f">Pinjam (opsional)${rpInput('rv-amount', f.amount ? digits(f.amount) : null, 'data-rv="amount" placeholder="mis. 2.000.000"')}</label><label class="f">Tenor, bulan (opsional)<input class="in" id="rv-months" type="number" min="1" max="36" value="${esc(f.months || '')}" data-rv="months"></label></div>
-        <label class="f">Total dibayar (opsional)${rpInput('rv-paid', f.paid ? digits(f.paid) : null, 'data-rv="paid"')}</label>
+        <label class="f">Total dikembalikan (opsional)${rpInput('rv-paid', f.paid ? digits(f.paid) : null, 'data-rv="paid"')}</label>
         ${radio5('collection', 'Cara penagihan (1 kasar – 5 sopan)')}${radio5('fees', 'Keterbukaan biaya (1 – 5)')}
         <label class="f">Cerita singkat<textarea class="in" id="rv-text" rows="3" maxlength="400" placeholder="Apa yang perlu diketahui peminjam berikutnya?" data-rv="text">${esc(f.text || '')}</textarea></label>
         ${S.os.rvErr ? `<div class="note danger small" role="alert">${esc(S.os.rvErr)}</div>` : ''}
@@ -3358,7 +3489,7 @@ function pickSheet() {
   return `<div class="overlay" data-act="close-bg" style="align-items:center;justify-content:center;padding:16px"><div class="sheet center" role="dialog" aria-modal="true" aria-label="Konfirmasi pilihan" data-stop style="max-width:480px">
    <h2>${esc(r.name)}</h2><div style="margin-top:6px">${zpill(r.zone)}</div>
    <div class="stack small" style="margin-top:12px;gap:6px"><div class="row between"><span>Cicilan</span><b class="num">${rp(r.inst)} × ${r.months} bulan</b></div><div class="row between"><span>Total dikembalikan</span><b class="num">${rp(r.repay)}</b></div><div class="row between"><span>Biaya pinjaman (bunga + admin)</span><b class="num">${rp(r.total)}</b></div><div class="row between"><span>Porsi cicilan setelahnya</span><b class="num">${pct(r.dsr)}</b></div><div class="row between"><span>Sisa uang per bulan</span><b class="num" style="color:${r.left < 0 ? 'var(--danger)' : 'inherit'}">${rp(r.left, { plus: true })}</b></div></div>
-   ${r.zone === 'danger' ? `<div class="note danger" style="margin-top:12px">Pilihan ini membuat ${r.left < 0 ? 'uangmu minus setiap bulan' : 'rasio cicilanmu di atas 40%'}. Risiko telat bayar dan berutang lagi tinggi.</div><label class="chk" style="margin-top:10px"><input type="checkbox" id="ack" data-act-change="ack" ${o.ack ? 'checked' : ''}><span>Saya paham risikonya dan tetap ingin memilih ini</span></label>` : ''}
+   ${r.zone === 'danger' ? `<div class="note danger" style="margin-top:12px">Pilihan ini membuat ${r.left < 0 ? 'uangmu minus setiap bulan' : 'porsi cicilanmu di atas 40%'}. Risiko telat bayar dan berutang lagi tinggi.</div><label class="chk" style="margin-top:10px"><input type="checkbox" id="ack" data-act-change="ack" ${o.ack ? 'checked' : ''}><span>Saya paham risikonya dan tetap ingin memilih ini</span></label>` : ''}
    <div class="row" style="margin-top:14px"><button class="btn ${r.zone === 'danger' ? 'danger' : ''}" data-act="pick-confirm" ${r.zone === 'danger' && !o.ack ? 'disabled' : ''}>Konfirmasi pilihan</button><button class="btn ghost" data-act="close">Batal</button></div>
   </div></div>`;
 }
@@ -3497,8 +3628,8 @@ document.addEventListener('mousedown', e => { if (e.target.closest?.('.sugg')) e
 document.addEventListener('focusout', e => { const inp = e.target; if (inp.matches?.('[data-sug-input]')) setTimeout(() => { if (document.activeElement !== inp) closeSug(inp); }, 120); });
 
 function finishWizard() {
-  const p = S.profiles.saya; wizFinalize(p); S.personaId = 'saya'; resetStageState(); S.ai = {}; S.chat = []; S.wiz.errors = {};
-  persist(); location.hash = '#cek';
+  const p = S.profiles.saya; wizFinalize(p); p.updatedAt = new Date().toISOString(); S.personaId = 'saya'; resetStageState(); S.ai = {}; S.chat = []; S.wiz.errors = {};
+  persist(); recordCheck(p); const to = { dana: '#pilah', utang: '#pulih' }[S.intent] || '#cek'; S.intent = null; location.hash = to;
 }
 const ACT = {
   'go-persona': () => {},
@@ -3542,7 +3673,7 @@ const ACT = {
   'wiz-wipe': el => {
     if (el.dataset.v === '1') S.wiz.confirmWipe = true;
     else if (el.dataset.v === '0') S.wiz.confirmWipe = false;
-    else { S.profiles.saya = blankSaya(); S.wiz = { step: 0, errors: {}, confirmWipe: false }; if (S.personaId === 'saya') resetStageState(); persist(); toast('Data saya sudah dihapus'); return; }
+    else { S.profiles.saya = blankSaya(); store.set('history', []); S.wiz = { step: 0, errors: {}, confirmWipe: false }; if (S.personaId === 'saya') resetStageState(); persist(); toast('Data saya sudah dihapus'); return; }
     render();
   },
   'cek-applied': el => { S.cek.applied = el.dataset.v === '1'; render(); },
@@ -3600,10 +3731,12 @@ const ACT = {
   'il-more': () => { S.os.ilN += 60; render(); },
   calc: el => { const c = calcState(); c[el.dataset.f] = el.dataset.v; if (el.dataset.f === 'type' && el.dataset.v === 'umkm' && c.amount <= 50000000) c.amount = 100000000; if (el.dataset.f === 'type' && el.dataset.v !== 'umkm' && c.amount > 50000000) c.amount = 50000000; render(); },
   'pulih-msg-reset': () => { S.pulih.msg = null; render(); announce('Pesan dikembalikan ke versi awal'); setTimeout(() => document.getElementById('pay-msg')?.focus(), 60); },
+  intent: el => { S.intent = el.dataset.v; },
   'calc-set': el => { Object.assign(calcState(), JSON.parse(el.dataset.v)); render(); window.scrollTo({ top: 0 }); announce('Kalkulator diperbarui'); },
   'calc-to-pilah': () => { const c = calcState(); Object.assign(S.pilah, { need: c.amount, months: c.months, purpose: c.type === 'konsumtif' ? 'konsumtif' : 'produktif', cap: null, picked: null, step: S.pilah.cat ? 2 : 0 }); },
   'calc-lender': el => { const l = licById(el.dataset.id), d = l?.d, ri = d && rateInfo(d); if (!ri || ri.daily == null) return; Object.assign(calcState(), { mode: 'manual', rate: ri.daily, unit: 'day', admin: d.adminPct != null && d.adminUnit !== 'month' ? d.adminPct / 100 : null, lender: l.name, type: d.purpose === 'produktif' ? 'mikro' : 'konsumtif' }); },
   print: () => window.print(),
+  'export-data': () => exportData(),
   glossary: el => { S.drawer = { tab: 'kamus', term: el.dataset.v || null, q: '' }; render(); },
   ai3: el => askAI(el.dataset.key, el.dataset.prompt, { json: true }),
   // test mode
@@ -3622,6 +3755,18 @@ const ACT = {
   'import-code': async () => { const v = document.getElementById('imp-code').value; try { const rec = decodeRecord(v); const ok = await saveTest(rec); S.importMsg = ok ? 'Hasil tersimpan.' : 'Gagal menyimpan. Pastikan kamu pemilik/editor.'; } catch { S.importMsg = 'Kode tidak valid. Pastikan disalin utuh, diawali FW1.'; } render(); },
 };
 const CHG = {
+  'import-json': async el => {
+    const file = el.files && el.files[0]; el.value = '';
+    if (!file) return;
+    if (file.size > 300000) { toast('File terlalu besar untuk data FinWise'); return; }
+    try {
+      const { m, hist } = importProfile(await file.text());
+      S.profiles.saya = m; S.personaId = 'saya'; resetStageState(); S.ai = {}; S.chat = []; S.wiz = { step: 0, errors: {}, confirmWipe: false };
+      persist();
+      const byDay = {}; [...histGet(), ...hist].forEach(x => { byDay[dayKey(x.at)] = x; }); store.set('history', Object.values(byDay).sort((a, b) => a.at < b.at ? -1 : 1).slice(-HIST_MAX));
+      location.hash = '#cek'; toast('Data dimuat dari file');
+    } catch { toast('File ini bukan data FinWise yang bisa dibaca'); }
+  },
   persona: () => {},
   ack: el => { S.overlay.ack = el.checked; render(); },
   quiz: el => { S.test[el.dataset.set][+el.dataset.i] = +el.value; render(); },
