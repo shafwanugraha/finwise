@@ -30,6 +30,7 @@ function render() {
   lastOverlay = S.overlay;
   if (lastRoute !== S.route) { lastRoute = S.route; window.scrollTo(0, 0); }
   const log = document.getElementById('chat-log'); if (log) log.scrollTop = log.scrollHeight;
+  armGameTimers();
 }
 let ptrDown = false, pendingRender = false, renderTimer = null;
 function flushRender() { if (pendingRender) render(); }
@@ -215,6 +216,14 @@ const ACT = {
   't-next': () => { const t = S.test; if (t.stage === 2) t.taskEnd = Date.now(); t.stage++; t.hint = ''; render(); window.scrollTo({ top: 0 }); },
   't-step': el => { const t = S.test; if (el.dataset.mark) t.marks[el.dataset.mark] = true; t.st.step = +el.dataset.v; t.hint = ''; render(); window.scrollTo({ top: 0 }); },
   't-help': () => { const t = S.test; t.help++; const ev = t.g && sbActive(t.g)[t.g.i]; t.hint = ev ? SB_HINTS[ev.id] : 'Jawab dengan tebakanmu sendiri dulu.'; render(); },
+  'kl-pick': el => { const t = S.test; if (!t?.kl) return; klAnswer(t, +el.dataset.v); announce('Tersimpan'); klAfter(t); },
+  'kl-lock': () => { const t = S.test; if (!t?.kl) return; const c = KILAT[t.kl.i]; klAnswer(t, c.ui === 'blocks' ? { ...t.kl.tmp } : +(document.getElementById('kl-range')?.value || 0)); announce('Tersimpan'); klAfter(t); },
+  'kl-toggle': el => { const t = S.test; if (!t?.kl) return; t.kl.tmp[el.dataset.v] = !t.kl.tmp[el.dataset.v]; render(); },
+  'sb-env': el => { const g = S.test?.g; if (!g) return; g.env[el.dataset.v] = !g.env[el.dataset.v]; render(); },
+  'sb-block': el => { const g = S.test?.g; if (!g) return; g.blk[el.dataset.v] = !g.blk[el.dataset.v]; render(); },
+  'sb-flag': el => { const g = S.test?.g; if (!g || g.out) return; const i = +el.dataset.v; g.flg.taps = g.flg.taps.includes(i) ? g.flg.taps.filter(x => x !== i) : [...g.flg.taps, i]; render(); },
+  'sb-flags-done': () => { const t = S.test; if (!t?.g) return; sbPick(t, t.g.flg.taps.join(',')); render(); document.getElementById('sb-out')?.focus({ preventScroll: true }); },
+  'sb-lock-slider': () => { const t = S.test; if (!t?.g) return; sbPick(t, document.getElementById('sb-range')?.value || '0'); render(); document.getElementById('sb-out')?.focus({ preventScroll: true }); },
   'sb-pick': el => { const t = S.test; if (!t?.g) return; sbPick(t, el.dataset.v); t.hint = ''; render(); document.getElementById('sb-out')?.focus({ preventScroll: true }); document.querySelector('.sb-out')?.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); },
   'sb-next': () => { const t = S.test; if (!t?.g) return; sbNext(t.g); t.hint = ''; render(); document.querySelector('.sb-days')?.scrollIntoView({ block: 'start' }); window.scrollBy(0, -90); document.getElementById('sb-h')?.focus({ preventScroll: true }); },
   'qg-start': () => { S.test = null; S.quick = qgNew(); if (location.hash !== '#main') location.hash = '#main'; render(); window.scrollTo(0, 0); document.getElementById('qg-h')?.focus(); announce(`60 detik dimulai. Nama pertama: ${S.quick.items[0].name}`); clearInterval(qgTimer); qgTimer = setInterval(qgTick, 200); },
@@ -240,7 +249,7 @@ const CHG = {
   persona: () => {},
   ack: el => { S.overlay.ack = el.checked; render(); },
   quiz: el => { S.test[el.dataset.set][+el.dataset.i] = +el.value; render(); },
-  't-field': el => { const t = S.test; const f = el.dataset.f; if (f === 'consent') t.consent = el.checked; else if (f === 'comment') t.feedback.comment = el.value; else t[f] = el.value; render(); },
+  't-field': el => { const t = S.test; const f = el.dataset.f; if (f === 'consent') t.consent = el.checked; else if (f === 'timerOn') t.timerOn = el.checked; else if (f === 'comment') t.feedback.comment = el.value; else t[f] = el.value; render(); },
   'todo-done': el => { const p = S.profiles.saya, id = el.dataset.id; p.done = p.done || {}; p.done[id] = el.checked;
     if (id === 'bpjs' && el.checked) { p.insurance = true; toast('BPJS dicatat. Skor kondisi keuangan diperbarui.'); }
     persist(); render(); if (id === 'slik' && el.checked) announce('Pilih hasil cek SLIK-mu'); },
@@ -310,6 +319,7 @@ document.addEventListener('input', e => {
   const el = e.target;
   if (el.dataset?.rv && el.type !== 'radio') S.os.rv[el.dataset.rv] = el.value;
   // sliders: update the number next to them while dragging, full recalculation on release
+  if (el.id === 'kl-range' || el.id === 'sb-range') { const o = document.getElementById(el.id === 'kl-range' ? 'kl-val' : 'sb-val'); if (o) o.textContent = rp(+el.value); el.setAttribute('aria-valuetext', rp(+el.value)); }
   if (el.type === 'range' && el.dataset.k) { const v = parseVal(el); setPath(S, el.dataset.k, v); const b = el.parentElement?.querySelector('.row b.num'); if (b) b.textContent = el.dataset.k === 'calc.months' ? v + ' bulan' : rp(v); }
   // live search boxes
   if (el.dataset?.live === 'kamus') { S.drawer.q = el.value; clearTimeout(liveTimer); liveTimer = setTimeout(queueRender, 150); }

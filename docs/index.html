@@ -827,6 +827,79 @@ details.more[open] > summary{margin-bottom:6px}
 .feat-n{font-family:var(--display);font-size:1.9rem;font-weight:800;letter-spacing:-.02em;color:var(--ft);line-height:1.1;font-variant-numeric:tabular-nums}
 .feat-d{font-size:.84rem;color:var(--muted)}
 .feat-cta{margin-top:auto;padding-top:8px;font-weight:700;font-size:.875rem;color:var(--ft)}
+/* R5: game v2 — kilat cards */
+.kl-intro{margin-bottom:12px;font-size:.9375rem}
+.kl-card{max-width:620px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:22px 22px 24px;box-shadow:var(--shadow)}
+.kl-top{display:flex;justify-content:space-between;align-items:center}
+.kl-dots{display:flex;gap:6px}.kl-dots i{width:26px;height:6px;border-radius:4px;background:var(--soft)}.kl-dots i.done{background:var(--green)}.kl-dots i.on{background:var(--amber-strong)}
+.kl-time{height:6px;border-radius:4px;background:var(--soft);overflow:hidden;margin:10px 0 4px}
+.kl-time i{display:block;height:100%;background:var(--amber-strong);width:100%;animation-name:klbar;animation-timing-function:linear;animation-fill-mode:forwards}
+@keyframes klbar{from{width:100%}to{width:0}}
+.kl-q{font-size:clamp(1.3rem,3.6vw,1.75rem);line-height:1.2;margin:16px 0 18px;letter-spacing:-.01em}
+.kl-q:focus{outline:none}
+.kl-opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.kl-opts.two{grid-template-columns:1fr 1fr}
+.kl-opts:has(.lock){grid-template-columns:1fr}
+.kl-bub{min-height:68px;border-radius:18px;border:2px solid var(--line);background:var(--paper);font:inherit;font-weight:800;font-size:1.15rem;color:var(--ink);cursor:pointer}
+.kl-bub:hover{border-color:var(--green);background:var(--green-tint)}
+.kl-bub.lock{min-height:54px;background:var(--green);border-color:var(--green);color:var(--card)}
+.kl-ads{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.kl-ad{display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;padding:14px;border-radius:16px;border:2px dashed var(--line);background:var(--paper);font:inherit;color:var(--ink);cursor:pointer}
+.kl-ad b{font-size:1rem}.kl-ad:hover{border-color:var(--green);border-style:solid}
+@media (max-width:560px){.kl-opts,.kl-ads{grid-template-columns:minmax(0,1fr)}.kl-opts.two{grid-template-columns:1fr 1fr}}
+.kl-recap{border-top:1px solid var(--line);padding-top:12px}
+.kl-recap ul{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.kl-recap li{display:grid;grid-template-columns:64px minmax(0,1fr);gap:10px;align-items:start}
+.kl-mk{display:flex;gap:4px;align-items:center;font-weight:800;color:var(--muted)}.kl-mk b{color:var(--green)}
+/* R5: Sebulan Bertahan as phone notifications */
+.sb-stage{display:grid;grid-template-columns:240px minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:820px){.sb-stage{grid-template-columns:minmax(0,1fr)}}
+.sb-hud{display:flex;flex-direction:column;gap:8px;position:sticky;top:140px}
+@media (max-width:820px){.sb-hud{position:static;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.sb-who{grid-column:1/-1}}
+.sb-who{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 12px}
+.sb-who .face{width:48px;height:48px;flex:none}.sb-who .tiny{display:block}
+.sb-phone{max-width:560px;background:var(--card);border:1px solid var(--line);border-radius:26px;padding:18px;box-shadow:var(--shadow)}
+.notif{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:18px;background:var(--soft)}
+@keyframes nfin{from{transform:translateY(10px) scale(.98)}to{transform:none}}
+@media (prefers-reduced-motion:no-preference){.notif.nf-in{animation:nfin .3s ease both}}
+.nf-app{flex:none;width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-weight:800;color:var(--card);background:var(--green)}
+.nf-amber{background:var(--amber)} .nf-pulih{background:var(--pulih)} .nf-deep{background:var(--deep)} .nf-danger{background:var(--danger)} .nf-green{background:var(--green)}
+.nf-meta{font-size:.75rem;font-weight:700;color:var(--ink)}
+.nf-text{font-size:1.15rem;line-height:1.3;margin-top:2px}.nf-text:focus{outline:none}
+.sb-ask{margin:14px 2px 0;font-weight:600}
+.sb-choices.two{grid-template-columns:1fr 1fr}
+.sb-choice{align-items:center;text-align:center;min-height:56px;justify-content:center}
+.sb-choice.ghost{background:transparent}
+.sb-choice:disabled{opacity:.5;cursor:not-allowed}
+.sb-out{margin-top:14px;padding:14px;border-radius:16px;background:var(--soft)}
+.sb-out.safe{background:var(--safe-tint)} .sb-out.amber{background:var(--stretch-tint)} .sb-out.danger{background:var(--danger-tint)}
+.sb-head{font-weight:800;font-size:1.1rem}.sb-head:focus{outline:none}
+details.why{margin:4px 0 12px}details.why > summary{cursor:pointer;font-weight:700;color:var(--green);font-size:.875rem}
+details.why p{margin-top:6px}
+.sb-wallet{margin-top:10px;font-size:.9375rem}
+.env-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+.env{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:22px 8px 12px;border-radius:12px;border:2px solid var(--line);background:var(--paper);font:inherit;color:var(--ink);cursor:pointer;overflow:hidden}
+.env b{font-size:.875rem}.env .num{font-size:.8125rem;color:var(--muted)}
+.env-flap{position:absolute;top:0;left:0;right:0;height:16px;background:linear-gradient(160deg,transparent 49%,var(--line) 50%),linear-gradient(200deg,transparent 49%,var(--line) 50%);background-size:50% 100%;background-repeat:no-repeat;background-position:left,right}
+.env.on{border-color:var(--green);background:var(--green-tint)}.env.on .num{color:var(--green);font-weight:700}
+.env.on::after{content:"✓";position:absolute;top:18px;right:8px;font-weight:800;color:var(--green)}
+.blk-bar{display:flex;height:30px;border-radius:10px;overflow:hidden;margin-top:14px;font-size:.75rem;font-weight:700;color:var(--card)}
+.blk-bar i{display:flex;align-items:center;justify-content:center;font-style:normal;white-space:nowrap;overflow:hidden}
+.b-tab{background:var(--green)}.b-kak{background:var(--pulih)}.b-loan{background:var(--danger)}
+@media (prefers-reduced-motion:no-preference){.blk-bar i{transition:width .3s ease}}
+.blk-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.blk{display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px 8px;border-radius:14px;border:2px solid var(--line);background:var(--paper);font:inherit;color:var(--ink);cursor:pointer}
+.blk.on{border-color:var(--green);background:var(--green-tint)}
+.sb-slide{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:14px}
+.sb-slide output{font-family:var(--display);font-weight:800;font-size:1.75rem}
+.sb-slide .range{width:100%}
+.ad-card{margin-top:14px;border-radius:16px;border:2px solid var(--danger);background:linear-gradient(160deg,var(--danger-tint),var(--card) 60%);padding:14px}
+.ad-brand{font-weight:800;font-size:1.05rem;color:var(--danger)}
+.ad-lines{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.ad-line{text-align:left;padding:10px 12px;border-radius:12px;border:1.5px dashed var(--line);background:var(--card);font:inherit;color:var(--ink);cursor:pointer}
+.ad-line.on{border:2px solid var(--danger);background:var(--danger-tint);font-weight:700}
+.ad-line.on::before{content:"⚑ ";color:var(--danger)}
+@media (max-width:820px){.sb-stage{display:flex;flex-direction:column}.sb-phone{order:-1;width:100%}.sb-hud{width:100%}.sb-hud{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.sb-hud .sbm{padding:8px}.sb-hud .sbm .k{font-size:.6875rem}.sb-hud .sbm .v{font-size:.8125rem}.sb-who{grid-column:1/-1}}
+@media (max-width:480px){.sb-hud{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -1803,7 +1876,7 @@ function vHome() {
 
   <a class="challenge" href="#main">
     <span class="ch-ico">${ico('game')}</span>
-    <span class="ch-text"><small>Game literasi keuangan · ±10 menit, atau main cepat 60 detik</small><b>Lolos Jebakan Pinjol</b><span>Jalani sebulan sebagai Dimas: flash sale, tagihan, dan biaya rumah sakit. Setiap pilihan mengubah sisa uang, utang, dan stresnya.</span></span>
+    <span class="ch-text"><small>Game literasi keuangan · ±5 menit, atau main cepat 60 detik</small><b>Lolos Jebakan Pinjol</b><span>Kartu kilat, lalu sebulan jadi Dimas lewat notifikasi HP: bagi gaji ke amplop, tolak flash sale, temukan tanda bahaya di iklan pinjol.</span></span>
     <span class="btn amber">Main sekarang</span>
   </a>`;
 }
@@ -3115,15 +3188,88 @@ function vStatistik() {
     </tbody></table></div><p class="tiny muted" style="margin-top:8px">Sumber: Statistik LPBBTI OJK, ${st.period}.</p></div>`;
 }
 const starBar = (n, max) => `<div class="bar" style="flex:1" aria-hidden="true"><i style="width:${max ? (n / max * 100).toFixed(1) : 0}%;background:var(--amber-strong)"></i></div>`;
+/* ================= GAME · Ronde Insting & Ronde Final =================
+   Six quick cards instead of a multiple-choice quiz: one line each, answered with a tap, a slider or two blocks,
+   about 10 seconds per card. The same cards are played before and after "Sebulan Bertahan", so the gain is
+   measurable for Gate 1. No answer is revealed during the first round. Correct values come from the engine. */
+const KL_MS = 10000;
+const KL_DIMAS = () => DATA.personas.dimas;
+// score: 1 = right, 0.5 = close, 0 = wrong or out of time
+const nearScore = (v, target, ok, half) => { const off = Math.abs(v - target) / Math.max(1, target); return off <= ok ? 1 : off <= half ? 0.5 : 0; };
+const KILAT = [
+  { id: 'sisa', ui: 'pick', q: () => `Gaji ${rps(FW.income(KL_DIMAS()))}. Keluar ${rps(FW.spendTotal(KL_DIMAS()) + KL_DIMAS().family + FW.instalments(KL_DIMAS()))}. Sisa?`,
+    opts: () => [0, FW.surplus(KL_DIMAS()), 4000000].map(v => rps(v)), right: 1, answer: () => `Sisa uang Dimas ${rp(FW.surplus(KL_DIMAS()))} per bulan.` },
+  { id: 'batas', ui: 'slider', q: () => 'Geser: cicilan baru maksimal yang masih aman untuk Dimas', min: 0, max: 2000000, step: 25000,
+    target: () => FW.headroom(KL_DIMAS()).ceiling, score: v => nearScore(v, FW.headroom(KL_DIMAS()).ceiling, 0.1, 0.3), answer: () => `Batas cicilan amannya ${rp(FW.headroom(KL_DIMAS()).ceiling)} per bulan.` },
+  { id: 'tangga', ui: 'blocks', q: () => `Butuh ${rps(KL_DIMAS().need.amount)}. Tutup dulu dari mana?`,
+    score: b => b.tab && b.kak ? 1 : b.tab || b.kak ? 0.5 : 0, answer: () => `Tabungan ${rps(KL_DIMAS().emergencyFund)} + bantuan kakak ${rps(KL_DIMAS().need.family)} dulu, jadi pinjamnya ${rps(KL_DIMAS().need.amount - KL_DIMAS().emergencyFund - KL_DIMAS().need.family)}.` },
+  { id: 'murah', ui: 'ads', q: () => 'Pinjam Rp7 jt. Mana yang total biayanya paling murah?',
+    opts: () => [['Pindar', '0,25%/hari · 6 bln', 0.0025, 'day', 6], ['Pindar', '0,15%/hari · 12 bln', 0.0015, 'day', 12], ['Koperasi', '1%/bulan · 12 bln', 0.01, 'month', 12]],
+    right: 2, answer: () => { const o = KILAT[3].opts().map(([, , r, u, m]) => FW.loan({ principal: 7e6, rate: r, unit: u, months: m }).total); return `Koperasi: biaya ${rps(o[2])}, dibanding ${rps(o[0])} dan ${rps(o[1])} di pindar.`; } },
+  { id: 'legal', ui: 'pick', q: () => '“Cair Kilat 24 Jam”: cair 5 menit, cukup KTP. Legal?', opts: () => ['Legal', 'Ilegal'], right: 1,
+    answer: () => 'Ilegal: tidak ada di daftar OJK. Cair instan tanpa cek adalah tanda bahaya.' },
+  { id: 'maks', ui: 'slider', q: () => 'Geser: pinjaman maksimal yang aman untuk Dimas, tenor 12 bulan', min: 0, max: 20000000, step: 250000,
+    target: () => FW.maxSafeLoan(KL_DIMAS(), 12), score: v => nearScore(v, FW.maxSafeLoan(KL_DIMAS(), 12), 0.15, 0.35), answer: () => `Sekitar ${rp(FW.maxSafeLoan(KL_DIMAS(), 12))} untuk 12 bulan.` },
+];
+const klScore = arr => Math.round(arr.reduce((s, x) => s + (+x || 0), 0) / arr.length * 100);
+function klStart(t, round) { t.kl = { round, i: 0, start: Date.now(), tmp: {} }; }
+function klAnswer(t, raw) {
+  const k = t.kl, card = KILAT[k.i]; if (!card) return;
+  const sc = raw == null ? 0 : card.ui === 'pick' || card.ui === 'ads' ? (+raw === card.right ? 1 : 0) : card.ui === 'blocks' ? card.score(raw) : card.score(+raw);
+  t[k.round][k.i] = sc; k.i++; k.start = Date.now(); k.tmp = {};
+}
+function klView(t) {
+  const k = t.kl, card = KILAT[k.i], n = KILAT.length, timer = t.timerOn !== false;
+  if (!card) return '';
+  const el = Date.now() - k.start, left = Math.max(0, Math.ceil((KL_MS - el) / 1000));
+  let body = '';
+  if (card.ui === 'pick') body = `<div class="kl-opts ${card.opts().length === 2 ? 'two' : ''}">${card.opts().map((o, i) => `<button class="kl-bub" data-act="kl-pick" data-v="${i}">${esc(o)}</button>`).join('')}</div>`;
+  if (card.ui === 'ads') body = `<div class="kl-ads">${card.opts().map(([who, l], i) => `<button class="kl-ad" data-act="kl-pick" data-v="${i}"><span class="tiny">${who}</span><b>${l}</b></button>`).join('')}</div>`;
+  if (card.ui === 'slider') body = `<div class="sb-slide"><output id="kl-val" for="kl-range" class="num">${rp(card.min)}</output><input type="range" id="kl-range" class="range" min="${card.min}" max="${card.max}" step="${card.step}" value="${card.min}" aria-label="${esc(card.q())}" aria-valuetext="${rp(card.min)}"></div>
+    <div class="row between tiny muted"><span>${rps(card.min)}</span><span>${rps(card.max)}</span></div><div class="kl-opts"><button class="kl-bub lock" data-act="kl-lock">Kunci</button></div>`;
+  if (card.ui === 'blocks') { const d = KL_DIMAS(), b = k.tmp, loan = d.need.amount - (b.tab ? d.emergencyFund : 0) - (b.kak ? d.need.family : 0);
+    body = `<div class="blk-row"><button class="blk ${b.tab ? 'on' : ''}" data-act="kl-toggle" data-v="tab" aria-pressed="${!!b.tab}"><b>Tabungan</b><span class="num">${rps(d.emergencyFund)}</span></button><button class="blk ${b.kak ? 'on' : ''}" data-act="kl-toggle" data-v="kak" aria-pressed="${!!b.kak}"><b>Bantuan kakak</b><span class="num">${rps(d.need.family)}</span></button></div>
+    <p class="sb-wallet">Pinjam: <b class="num">${rp(loan)}</b></p><div class="kl-opts"><button class="kl-bub lock" data-act="kl-lock">Kunci</button></div>`; }
+  return `<div class="kl-card" aria-live="polite">
+    <div class="kl-top"><span class="kl-dots" role="img" aria-label="Kartu ${k.i + 1} dari ${n}">${KILAT.map((_, i) => `<i class="${i < k.i ? 'done' : i === k.i ? 'on' : ''}"></i>`).join('')}</span>${timer ? `<span class="tiny muted" role="timer">${left} dtk</span>` : ''}</div>
+    ${timer ? `<div class="kl-time" aria-hidden="true"><i style="animation-duration:${KL_MS}ms;animation-delay:-${el}ms"></i></div>` : ''}
+    <h2 id="kl-q" tabindex="-1" class="kl-q">${esc(card.q())}</h2>${body}</div>`;
+}
+// end-of-game recap: each card, its answer, and how the player did before and after
+function klRecap(t) {
+  const mark = x => x == null ? '–' : x >= 1 ? '✓' : x > 0 ? '½' : '✗';
+  return `<div class="kl-recap"><h3>Jawaban kartu kilat</h3><ul>${KILAT.map((c, i) => `<li><span class="kl-mk" aria-label="Ronde Insting ${mark(t.pre[i])}, Ronde Final ${mark(t.post[i])}"><span>${mark(t.pre[i])}</span>→<b>${mark(t.post[i])}</b></span><div><b>${esc(c.q())}</b><div class="small">${esc(c.answer())}</div></div></li>`).join('')}</ul></div>`;
+}
+// timers: one per kilat card, and one for the red-flag mini-game; re-armed after every render
+let klTimer = null, sbFlagTimer = null;
+function armGameTimers() {
+  clearTimeout(klTimer); clearTimeout(sbFlagTimer);
+  const t = S.test; if (!t || S.route !== 'main' || t.timerOn === false) return;
+  if ((t.stage === 1 || t.stage === 3) && t.kl && KILAT[t.kl.i]) {
+    const left = KL_MS - (Date.now() - t.kl.start);
+    klTimer = setTimeout(() => { if (S.test !== t || !t.kl) return; klAnswer(t, null); announce('Waktu habis'); klAfter(t); }, Math.max(0, left));
+  }
+  if (t.stage === 2 && t.g && !t.g.out && !t.g.done) {
+    const ev = sbActive(t.g)[t.g.i];
+    if (ev?.ui === 'flags') sbFlagTimer = setTimeout(() => { if (S.test !== t || t.g.out) return; sbPick(t, t.g.flg.taps.join(',')); render(); document.getElementById('sb-out')?.focus({ preventScroll: true }); }, Math.max(0, SB_FLAG_MS - (Date.now() - t.g.flg.start)));
+  }
+}
+// after each kilat answer: next card, or the next stage once the round is complete
+function klAfter(t) {
+  if (t.kl.i >= KILAT.length) { t.kl = null; if (t.stage === 1) t.stage = 2; else if (t.stage === 3) t.stage = 4; window.scrollTo(0, 0); }
+  render();
+  (document.getElementById('kl-q') || document.getElementById('sb-h') || document.querySelector('main h2'))?.focus({ preventScroll: true });
+}
 /* ================= GAME · Babak 2 "Sebulan Bertahan" =================
-   One month as Dimas, from payday to payday. The game decides which events happen and what each choice
-   changes in a copy of his profile; every rupiah figure shown comes from the engine (FW) on that copy. */
+   One month as Dimas, payday to payday, told as phone notifications. Each event is a short line and a few big
+   buttons or a small mini-game (envelopes, fund blocks, a slider, red flags in an ad). The longer explanation sits
+   behind "Kenapa?". Every rupiah figure comes from the engine (FW) on a copy of his profile. */
 const sbDebt = p => FW.sum(p.loans, l => l.outstanding);
 const r10k = x => Math.round(x / 10000) * 10000;
-const SB_SHOES = 750000, SB_LEAK = 700000, SB_CUT = 0.3;
+const SB_SHOES = 750000, SB_LEAK = 700000, SB_CUT = 0.3, SB_FLAG_MS = 12000;
 function sbNew() {
   const p = clone(DATA.personas.dimas);
-  return { i: 0, p, saldo: FW.surplus(p), stres: 30, need: null, flags: {}, picks: {}, out: null, done: false,
+  return { i: 0, p, saldo: FW.surplus(p), stres: 30, need: null, flags: {}, picks: {}, out: null, done: false, env: {}, blk: {}, flg: {},
     start: { utang: sbDebt(p), sur: FW.surplus(p), ceiling: FW.headroom(p).ceiling, ef: p.emergencyFund } };
 }
 const sbProd = id => DATA.products.find(x => x.id === id);
@@ -3137,57 +3283,67 @@ function sbOffers(g) {
 }
 function sbAddLoan(p, o) { p.loans.push({ id: 'g' + p.loans.length, dueDay: 10, rateMonthly: 0, ...o }); }
 const sbStress = s => s < 35 ? 'tenang' : s < 65 ? 'waswas' : 'tertekan';
+const clamp100 = x => Math.max(0, Math.min(100, x));
+// the ad in the red-flag mini-game: three warning signs and two ordinary lines (the brand is fictional)
+const SB_AD = [['Cair 5 menit, tanpa cek apa pun', true], ['Bisa dicicil 3–12 bulan', false], ['Izinkan akses kontak & galeri', true], ['Ada nomor layanan pelanggan', false], ['Tanpa nama PT dan nomor izin OJK', true]];
 const SB_HINTS = {
-  gajian: 'Uang yang pasti keluar (kebutuhan pokok, kiriman keluarga, cicilan) paling aman dipisah di hari gajian, sebelum terpakai.',
-  flash: 'Cicilan “0%” tetap cicilan: porsi cicilan naik dan batas cicilan aman untuk kejadian mendadak turun.',
-  rs: 'Tangga dana: pakai uang tanpa bunga dulu (dana darurat, bantuan keluarga), baru pinjam sisanya.',
-  batas: 'Batas aman FinWise adalah yang lebih kecil dari dua angka: 30% gaji dikurangi cicilan lama, dan 70% sisa uang.',
-  pilih: 'Bandingkan total biaya dan cocokkan dengan batas aman. Cair paling cepat bukan berarti paling aman, dan cek dulu izinnya.',
-  tagih: 'Kalau uang kurang, hubungi pemberi pinjaman sebelum jatuh tempo. Telat bayar tercatat di SLIK.',
+  gajian: 'Uang yang pasti keluar paling aman dipisah di hari gajian, sebelum terpakai.',
+  flash: 'Cicilan “0%” tetap cicilan: batas cicilan amanmu ikut turun.',
+  rs: 'Pakai uang tanpa bunga dulu (tabungan, bantuan keluarga), baru pinjam sisanya.',
+  batas: 'Ambil yang lebih kecil: 30% gaji dikurangi cicilan lama, atau 70% sisa uang.',
+  iklan: 'Cair instan tanpa cek, minta akses kontak, dan tanpa nama perusahaan adalah tanda pinjol ilegal.',
+  pilih: 'Bandingkan total biaya dan cek izinnya. Cair paling cepat bukan berarti paling aman.',
+  tagih: 'Kalau uang kurang, hubungi pemberi pinjaman sebelum jatuh tempo.',
   teror: 'Penagih dilarang menghubungi orang selain peminjam. Simpan bukti dan laporkan.',
   akhir: 'Sisa uang di akhir bulan paling berguna untuk membangun lagi dana darurat.',
 };
+const APPS = { bank: ['Bank', 'green'], toko: ['Toko', 'amber'], kakak: ['Kakak', 'pulih'], dimas: ['Catatan', 'deep'], iklan: ['Iklan', 'danger'], pinjam: ['Pinjaman', 'deep'], paylater: ['Paylater', 'amber'], grup: ['Grup kantor', 'danger'], kalender: ['Kalender', 'green'] };
 // events in order; `when` decides whether an event happens, `auto` resolves an event that has no real choice
 const SB_EVENTS = [
-  { id: 'gajian', day: 25, title: g => `Gajian masuk ${rp(FW.income(g.p))}`,
-    text: g => `Bulan ini yang pasti keluar: kebutuhan pokok ${rp(FW.needs(g.p))}, kiriman keluarga ${rp(g.p.family)}, dan cicilan ${rp(FW.instalments(g.p))}. Sisa uang Dimas ${rp(FW.surplus(g.p))}.`,
-    choices: () => [['kunci', 'Pisahkan dulu yang pasti keluar', 'Pindah ke rekening terpisah hari ini'], ['santai', 'Biarkan di satu rekening', 'Nanti juga cukup']],
+  { id: 'gajian', day: 25, app: 'bank', ui: 'envelopes',
+    notif: g => `Gaji masuk ${rp(FW.income(g.p))}`, ask: () => 'Bagi dulu ke amplop sebelum terpakai.',
     pick: (g, v) => v === 'kunci'
-      ? (g.flags.locked = true, g.stres -= 5, { tone: 'safe', head: 'Uang yang pasti keluar sudah aman.', body: `Yang terlihat di rekening tinggal ${rp(g.saldo)}. Karena terlihat sedikit, belanja kecil ikut tertahan.` })
-      : (g.flags.locked = false, { tone: 'amber', head: `${rp(FW.income(g.p))} terlihat di rekening.`, body: 'Terasa banyak. Kita lihat nanti apakah semuanya masih ada saat tagihan datang.' }) },
-  { id: 'flash', day: 27, title: () => `Flash sale sepatu ${rps(SB_SHOES)}`,
-    text: () => `Teman-teman kantor membeli sepatu lari yang sama. Ada pilihan paylater 3× ${rp(SB_SHOES / 3)}, katanya bunga 0%.`,
-    choices: () => [['paylater', 'Ambil paylater 3×', `${rps(SB_SHOES / 3)} per bulan, 3 bulan`], ['tunai', 'Bayar tunai dari sisa uang', `${rps(SB_SHOES)} sekarang`], ['tunda', 'Masukkan wishlist dulu', 'Cek lagi 30 hari lagi']],
+      ? (g.flags.locked = true, g.stres -= 5, { tone: 'safe', head: 'Uang yang pasti keluar sudah aman.', body: `Yang tersisa untuk dipakai bebas: ${rp(g.saldo)}. Karena terlihat sedikit, belanja kecil ikut tertahan.` })
+      : (g.flags.locked = false, { tone: 'amber', head: 'Semua uang dibiarkan di satu rekening.', body: `${rp(FW.income(g.p))} terlihat banyak. Kita lihat nanti apakah semuanya masih ada saat tagihan datang.` }) },
+  { id: 'flash', day: 27, app: 'toko',
+    notif: () => `Flash sale! Sepatu ${rps(SB_SHOES)}, cicil 3× 0%`,
+    choices: () => [['paylater', 'Cicil 3×'], ['tunai', 'Bayar tunai'], ['tunda', 'Simpan di wishlist']],
     pick: (g, v) => {
       if (v === 'paylater') {
         const c0 = FW.headroom(g.p).ceiling; sbAddLoan(g.p, { name: 'Paylater sepatu', type: 'paylater', instalment: SB_SHOES / 3, outstanding: SB_SHOES, months: 3, dueDay: 5 });
         const h = FW.headroom(g.p); g.flags.shoes = [c0, h.ceiling]; g.stres -= 5;
-        return { tone: 'amber', head: 'Sepatu dibawa pulang. Cicilannya ikut.', body: `Cicilan Dimas naik jadi ${rp(h.ex)} per bulan (${pct(h.dsrNow, 0)} dari gaji). Batas cicilan amannya turun dari ${rp(c0)} jadi ${rp(h.ceiling)}. Bunga 0% tetap cicilan.` };
+        return { tone: 'amber', head: `Batas cicilan amanmu turun ke ${rps(h.ceiling)}.`, body: `Cicilan Dimas naik jadi ${rp(h.ex)} per bulan (${pct(h.dsrNow, 0)} dari gaji). Batas cicilan amannya turun dari ${rp(c0)} jadi ${rp(h.ceiling)}. Bunga 0% tetap cicilan.` };
       }
-      if (v === 'tunai') { g.saldo -= SB_SHOES; g.stres -= 5; return { tone: 'amber', head: 'Lunas di tempat.', body: `Tidak ada utang baru, tapi sisa uang bulan ini tinggal ${rp(g.saldo)} untuk kejadian mendadak.` }; }
-      g.stres += 5; return { tone: 'safe', head: 'Belum beli.', body: `Kalau 30 hari lagi masih ingin dan uangnya ada, beli tanpa cicilan. Sisa uang tetap ${rp(g.saldo)}.` };
+      if (v === 'tunai') { g.saldo -= SB_SHOES; g.stres -= 5; return { tone: 'amber', head: `Lunas. Sisa uang tinggal ${rps(g.saldo)}.`, body: 'Tidak ada utang baru, tapi bantalan untuk kejadian mendadak bulan ini menipis.' }; }
+      g.stres += 5; return { tone: 'safe', head: 'Belum beli. Sisa uang utuh.', body: 'Kalau 30 hari lagi masih ingin dan uangnya ada, beli tanpa cicilan.' };
     } },
-  { id: 'rs', day: 1, title: () => 'Ayah masuk rumah sakit',
-    text: g => `Biaya yang harus disiapkan ${rp(g.p.need.amount)} dalam 3 hari. Dimas punya dana darurat ${rp(g.p.emergencyFund)}, dan ${g.p.need.familyFrom} bisa membantu ${rp(g.p.need.family)}. Dari mana dulu?`,
-    choices: g => { const n = g.p.need, ef = g.p.emergencyFund; return [['tangga', 'Dana darurat dan bantuan kakak dulu, sisanya pinjam', `Pinjam ${rps(n.amount - ef - n.family)}`], ['darurat', 'Dana darurat saja, sisanya pinjam', `Pinjam ${rps(n.amount - ef)}`], ['pinjam', 'Pinjam semuanya, dana darurat jangan disentuh', `Pinjam ${rps(n.amount)}`]]; },
+  { id: 'rs', day: 1, app: 'kakak', ui: 'blocks',
+    notif: g => `Ayah masuk RS. Butuh ${rps(g.p.need.amount)} dalam 3 hari.`, ask: () => 'Tutup dulu dari mana? Sisanya dipinjam.',
     pick: (g, v) => {
       const n = g.p.need, ef = g.p.emergencyFund; g.stres += 15; g.flags.ladder = v;
-      if (v === 'pinjam') { g.need = n.amount; return { tone: 'danger', head: `Pinjam ${rp(g.need)}.`, body: `Dana darurat memang disiapkan untuk kejadian seperti ini. Tidak memakainya membuat pinjaman ${rp(ef + n.family)} lebih besar dari yang perlu, dan bunganya tetap jalan.` }; }
-      g.p.emergencyFund = 0;
-      if (v === 'darurat') { g.need = n.amount - ef; return { tone: 'amber', head: `Pinjam ${rp(g.need)}.`, body: `Bantuan ${n.familyFrom} ${rp(n.family)} tanpa bunga tidak dipakai, jadi pinjamannya ${rp(n.family)} lebih besar dari yang perlu.` }; }
-      g.need = n.amount - ef - n.family; return { tone: 'safe', head: `Pinjamannya tinggal ${rp(g.need)}.`, body: 'Uang tanpa bunga dipakai dulu. Ini namanya tangga dana: makin kecil pinjamannya, makin kecil cicilan dan bunganya.' };
+      const useEf = v === 'tangga' || v === 'darurat', useFam = v === 'tangga' || v === 'kakak';
+      g.need = n.amount - (useEf ? ef : 0) - (useFam ? n.family : 0); if (useEf) g.p.emergencyFund = 0;
+      const extra = g.need - (n.amount - ef - n.family);
+      return { tone: extra ? (v === 'pinjam' ? 'danger' : 'amber') : 'safe', head: `Yang dipinjam: ${rp(g.need)}.`,
+        body: extra ? `Uang tanpa bunga yang tidak dipakai membuat pinjamannya ${rp(extra)} lebih besar dari yang perlu, dan bunganya tetap jalan.` : 'Tangga dana: uang tanpa bunga dipakai dulu. Makin kecil pinjamannya, makin kecil cicilan dan bunganya.' };
     } },
-  { id: 'batas', day: 1, title: () => 'Berapa cicilan yang masih aman?',
-    text: g => `Sebelum memilih pinjaman, cek batasnya dulu. Sisa uang Dimas sekarang ${rp(FW.surplus(g.p))} per bulan. Cicilan baru maksimal berapa supaya tetap aman?`,
-    choices: g => { const c = FW.headroom(g.p).ceiling; return [['lo', rp(r10k(c * 0.43)), ''], ['ok', rp(c), ''], ['hi', rp(r10k(c * 2.15)), '']]; },
+  { id: 'batas', day: 1, app: 'dimas', ui: 'slider',
+    notif: g => `Sisa uangku ${rps(FW.surplus(g.p))}/bulan. Cicilan baru maksimal berapa?`, ask: () => 'Geser ke cicilan yang menurutmu masih aman, lalu kunci.',
     pick: (g, v) => {
-      const h = FW.headroom(g.p), ok = v === 'ok'; g.flags.headroomOk = ok;
-      return { tone: ok ? 'safe' : 'amber', head: ok ? `Tepat: ${rp(h.ceiling)}.` : `Belum tepat. Batas amannya ${rp(h.ceiling)}.`,
+      const h = FW.headroom(g.p), val = +v || 0, off = Math.abs(val - h.ceiling) / Math.max(1, h.ceiling), ok = off <= 0.1; g.flags.headroomOk = ok;
+      return { tone: ok ? 'safe' : off <= 0.3 ? 'amber' : 'danger', head: ok ? `Tepat. Batas amannya ${rp(h.ceiling)}.` : `Batas amannya ${rp(h.ceiling)}, kamu pilih ${rp(val)}.`,
         body: `FinWise mengambil yang lebih kecil dari dua angka: 30% gaji dikurangi cicilan lama (${rp(h.lens1)}) dan 70% sisa uang (${rp(h.lens2)}). Dengan tenor 12 bulan, pinjaman maksimal yang aman sekitar ${rp(FW.maxSafeLoan(g.p, 12))}.${g.flags.shoes ? ` Tanpa paylater sepatu, batasnya ${rp(g.start.ceiling)}.` : ''}` };
     } },
-  { id: 'pilih', day: 2, title: g => `Pilih pinjaman ${rps(g.need)}`,
-    text: () => 'Uangnya harus ada dalam 3 hari. Tiga tawaran masuk. Bandingkan, lalu pilih satu.',
-    offers: true,
+  { id: 'iklan', day: 2, app: 'iklan', ui: 'flags',
+    notif: () => 'Cair Kilat 24 Jam: dana cair 5 menit!', ask: () => 'Ketuk semua tanda bahaya di iklan ini, lalu selesai.',
+    pick: (g, v) => {
+      const taps = String(v || '').split(',').filter(Boolean).map(Number), hit = taps.filter(i => SB_AD[i]?.[1]).length, wrong = taps.filter(i => SB_AD[i] && !SB_AD[i][1]).length, all = SB_AD.filter(x => x[1]).length;
+      g.flags.redFlags = hit; if (hit === all && !wrong) g.stres -= 5;
+      return { tone: hit === all && !wrong ? 'safe' : hit ? 'amber' : 'danger', head: `${hit} dari ${all} tanda bahaya ketemu${wrong ? `, ${wrong} salah ketuk` : ''}.`,
+        body: `Tanda bahayanya: ${SB_AD.filter(x => x[1]).map(x => x[0].toLowerCase()).join('; ')}. Pindar berizin wajib mencantumkan nama perusahaan dan izin OJK, dan hanya boleh mengakses kamera, mikrofon, dan lokasi.` };
+    } },
+  { id: 'pilih', day: 2, app: 'pinjam', ui: 'offers',
+    notif: g => `3 tawaran untuk ${rps(g.need)}. Pilih satu.`,
     pick: (g, v) => {
       const o = sbOffers(g).find(x => x.pr.id === v), others = sbOffers(g).filter(x => x.pr.id !== v && !x.illegal);
       g.chosen = { id: o.pr.id, name: o.pr.name, zone: o.zone };
@@ -3195,45 +3351,47 @@ const SB_EVENTS = [
         const got = r10k(g.need * (1 - SB_CUT)), cut = g.need - got;
         g.saldo -= cut; g.flags.illegal = true; g.stres += 25;
         sbAddLoan(g.p, { name: o.pr.name, type: 'pindar', instalment: g.need, outstanding: g.need, months: 1, dueDay: 25 });
-        return { tone: 'danger', head: 'Cair 5 menit, tapi tidak utuh.', body: `Yang masuk hanya ${rp(got)}; ${rp(cut)} dipotong sebagai “biaya layanan”, pola yang sering dilaporkan korban pinjol ilegal. Kekurangannya ditutup dari sisa uang. Seluruh ${rp(g.need)} harus kembali dalam 30 hari, dan aplikasinya sudah membaca kontak di HP Dimas.` };
+        return { tone: 'danger', head: `Cair 5 menit, tapi cuma ${rps(got)}.`, body: `${rp(cut)} dipotong sebagai “biaya layanan”, pola yang sering dilaporkan korban pinjol ilegal. Kekurangannya ditutup dari sisa uang. Seluruh ${rp(g.need)} harus kembali dalam 30 hari, dan aplikasinya sudah membaca kontak di HP Dimas.` };
       }
       sbAddLoan(g.p, { name: o.pr.name, type: o.pr.kind === 'koperasi' ? 'koperasi' : 'pindar', instalment: o.L.inst, outstanding: o.L.repay + o.L.fee, months: o.pr.months, rateMonthly: o.pr.unit === 'day' ? o.pr.rate * 30 : o.pr.rate });
       g.stres += { safe: 0, stretch: 10, danger: 20 }[o.zone];
       const cheaper = others.filter(x => x.L.total < o.L.total).sort((a, b) => a.L.total - b.L.total)[0], pricier = others.filter(x => x.L.total > o.L.total)[0];
-      return { tone: { safe: 'safe', stretch: 'amber', danger: 'danger' }[o.zone], head: `${o.pr.name}: cicilan ${rp(o.L.inst)} per bulan.`,
-        body: `Mulai bulan depan sisa uang Dimas jadi ${rp(FW.surplus(g.p), { plus: true })} per bulan. Total biaya pinjamannya ${rp(o.L.total)}${cheaper ? `, padahal ${cheaper.pr.name} hanya ${rp(cheaper.L.total)}` : pricier ? `; ${pricier.pr.name} akan memakan ${rp(pricier.L.total)}` : ''}.` };
+      return { tone: { safe: 'safe', stretch: 'amber', danger: 'danger' }[o.zone], head: `Cicilan ${rps(o.L.inst)}/bulan, sisa uang jadi ${rps(FW.surplus(g.p))}.`,
+        body: `Mulai bulan depan sisa uang Dimas jadi ${rp(FW.surplus(g.p), { plus: true })} per bulan. Total biaya ${o.pr.name}: ${rp(o.L.total)}${cheaper ? `, padahal ${cheaper.pr.name} hanya ${rp(cheaper.L.total)}` : pricier ? `; ${pricier.pr.name} akan memakan ${rp(pricier.L.total)}` : ''}.` };
     } },
-  { id: 'tagih', day: 5, title: g => `Tagihan paylater jatuh tempo`,
-    // what is due on the 5th beyond the planned budget: the new shoes instalment, plus small spending that leaked if nothing was set aside
-    pre: g => { const extra = (g.flags.shoes ? SB_SHOES / 3 : 0) + (g.flags.locked ? 0 : SB_LEAK); g.saldo -= extra; return extra; },
-    text: g => `Paylater lama ${rp(DATA.personas.dimas.loans.find(l => l.type === 'paylater').instalment)}${g.flags.shoes ? ` dan paylater sepatu ${rp(SB_SHOES / 3)}` : ''} jatuh tempo hari ini.${g.flags.locked ? '' : ` Ternyata ${rp(SB_LEAK)} sudah terpakai untuk jajan dan belanja kecil sejak gajian.`} ${g.saldo < 0 ? ` Uang Dimas kurang ${rp(-g.saldo)}.` : ''}`,
-    choices: g => g.saldo >= 0 ? null : [['nego', 'Hubungi pemberi pinjaman sebelum jatuh tempo', 'Minta jadwal baru'], ['telat', 'Telat saja, bayar minggu depan', 'Kena denda'], ['gali', 'Pinjam di aplikasi lain untuk menutup', 'Cair 1 jam']],
-    auto: g => ({ tone: 'safe', head: 'Semua tagihan tanggal 5 terbayar tepat waktu.', body: `${g.flags.locked ? 'Uangnya sudah dipisah sejak gajian, jadi tinggal dibayar. ' : ''}Sisa uang bulan ini ${rp(g.saldo)}. Riwayat kredit Dimas tetap lancar.` }),
+  { id: 'tagih', day: 5, app: 'paylater',
+    // what is due on the 5th beyond the planned budget: the shoes instalment, plus small spending that leaked if nothing was set aside
+    pre: g => { g.saldo -= (g.flags.shoes ? SB_SHOES / 3 : 0) + (g.flags.locked ? 0 : SB_LEAK); },
+    notif: g => `Tagihan ${rps(DATA.personas.dimas.loans.find(l => l.type === 'paylater').instalment + (g.flags.shoes ? SB_SHOES / 3 : 0))} jatuh tempo hari ini`,
+    ask: g => g.saldo < 0 ? `${g.flags.locked ? '' : `Ternyata ${rps(SB_LEAK)} habis untuk jajan sejak gajian. `}Uangmu kurang ${rps(-g.saldo)}.` : '',
+    choices: g => g.saldo >= 0 ? null : [['nego', 'Telepon pemberi pinjaman'], ['telat', 'Telat saja'], ['gali', 'Pinjam di aplikasi lain']],
+    auto: g => ({ tone: 'safe', head: 'Terbayar tepat waktu.', body: `${g.flags.locked ? 'Uangnya sudah dipisah sejak gajian, jadi tinggal dibayar. ' : ''}Sisa uang bulan ini ${rp(g.saldo)}. Riwayat kredit Dimas tetap lancar.` }),
     pick: (g, v) => {
-      if (v === 'nego') { g.stres += 5; g.carry = -g.saldo; g.saldo = 0; return { tone: 'safe', head: 'Pemberi pinjaman setuju menggeser sebagian tagihan.', body: `Tidak semua mau, tapi peluangnya jauh lebih besar sebelum telat. Kekurangan ${rp(g.carry)} dibayar bulan depan dan riwayat kredit tetap lancar. Contoh pesannya ada di PULIH.` }; }
-      if (v === 'telat') { g.stres += 15; g.p.slik = 'dpk'; g.p.onTime = false; g.flags.late = true; return { tone: 'danger', head: 'Telat 7 hari.', body: 'Denda keterlambatan bertambah, dan telat 1–90 hari tercatat di SLIK sebagai Kol 2 (dalam perhatian khusus). Catatan ini bisa menutup akses ke pinjaman murah seperti koperasi dan KUR.' }; }
+      if (v === 'nego') { g.stres += 5; g.carry = -g.saldo; g.saldo = 0; return { tone: 'safe', head: 'Tagihan digeser, riwayat tetap lancar.', body: `Tidak semua pemberi pinjaman mau, tapi peluangnya jauh lebih besar sebelum telat. Kekurangan ${rp(g.carry)} dibayar bulan depan. Contoh pesannya ada di PULIH.` }; }
+      if (v === 'telat') { g.stres += 15; g.p.slik = 'dpk'; g.p.onTime = false; g.flags.late = true; return { tone: 'danger', head: 'Telat 7 hari, kena denda dan tercatat.', body: 'Telat 1–90 hari tercatat di SLIK sebagai Kol 2 (dalam perhatian khusus). Catatan ini bisa menutup akses ke pinjaman murah seperti koperasi dan KUR.' }; }
       const pr = sbProd('pantas'), amt = Math.ceil(-g.saldo / 100000) * 100000, L = FW.loan({ principal: amt, rate: pr.rate, unit: pr.unit, months: pr.months });
       sbAddLoan(g.p, { name: pr.name, type: 'pindar', instalment: L.inst, outstanding: L.repay, months: pr.months, rateMonthly: pr.rate * 30 });
       g.saldo += amt; g.stres += 10; g.flags.dig = true;
-      return { tone: 'danger', head: 'Lubang ditutup lubang baru.', body: `Pinjaman ${rp(amt)} menambah cicilan ${rp(L.inst)} per bulan selama ${pr.months} bulan, dengan biaya ${rp(L.total)}. Sisa uang Dimas bulan depan jadi ${rp(FW.surplus(g.p), { plus: true })}.` };
+      return { tone: 'danger', head: `Lubang ditutup lubang baru: +${rps(L.inst)}/bulan.`, body: `Pinjaman ${rp(amt)} menambah cicilan ${rp(L.inst)} per bulan selama ${pr.months} bulan, dengan biaya ${rp(L.total)}. Sisa uang Dimas bulan depan jadi ${rp(FW.surplus(g.p), { plus: true })}.` };
     } },
-  { id: 'teror', day: 6, when: g => g.flags.illegal, title: () => 'Pesan masuk ke grup kantor',
-    text: () => 'Penagih Cair Kilat mengirim pesan ke atasan dan teman-teman Dimas, padahal belum jatuh tempo. Isinya menyebut Dimas penipu.',
-    choices: () => [['lapor', 'Simpan bukti dan lapor ke Kontak OJK 157', 'Telepon 157 atau WhatsApp 081-157-157-157'], ['bayar', 'Bayar seadanya supaya berhenti', 'Rp500 rb dari sisa uang'], ['diam', 'Diam saja, semoga berhenti', '']],
+  { id: 'teror', day: 6, when: g => g.flags.illegal, app: 'grup',
+    notif: () => '“Dimas penipu, bayar utangnya!”',
+    ask: () => 'Penagih Cair Kilat menyebar pesan ke grup kantor.',
+    choices: () => [['lapor', 'Simpan bukti, lapor OJK 157'], ['bayar', 'Bayar seadanya'], ['diam', 'Diam saja']],
     pick: (g, v) => {
-      if (v === 'lapor') { g.stres -= 5; return { tone: 'safe', head: 'Laporan masuk.', body: 'Menghubungi orang selain peminjam dan mempermalukannya dilarang (POJK 22/2023 Pasal 62). Bukti tangkapan layar membantu OJK dan Satgas PASTI menindak aplikasinya.' }; }
-      if (v === 'bayar') { g.saldo -= 500000; g.stres += 10; return { tone: 'danger', head: 'Penagihan tidak berhenti.', body: 'Pinjol ilegal biasanya meminta lebih, karena tidak ada aturan yang mengikat mereka. Sisa uang Dimas makin tipis.' }; }
+      if (v === 'lapor') { g.stres -= 5; return { tone: 'safe', head: 'Laporan masuk ke OJK 157.', body: 'Menghubungi orang selain peminjam dan mempermalukannya dilarang (POJK 22/2023 Pasal 62). Bukti tangkapan layar membantu OJK dan Satgas PASTI menindak aplikasinya.' }; }
+      if (v === 'bayar') { g.saldo -= 500000; g.stres += 10; return { tone: 'danger', head: 'Penagihan tidak berhenti.', body: 'Pinjol ilegal biasanya meminta lebih, karena tidak ada aturan yang mengikat mereka.' }; }
       g.stres += 20; return { tone: 'danger', head: 'Pesannya makin banyak.', body: 'Diam membuat penagih merasa aman. Simpan bukti dan laporkan; itu hakmu sebagai konsumen.' };
     } },
-  { id: 'akhir', day: 24, title: () => 'Besok gajian lagi',
-    text: g => g.saldo > 0 ? `Sisa uang bulan ini ${rp(g.saldo)}. Mau dipakai untuk apa?` : `Bulan ini Dimas tekor ${rp(-g.saldo)}. Apa langkahnya?`,
-    choices: g => g.saldo > 0 ? [['darurat', 'Isi lagi dana darurat', `+${rps(g.saldo)}`], ['hadiah', 'Hadiah kecil untuk diri sendiri', 'Sudah sebulan berat']] : [['rencana', 'Susun rencana hemat bulan depan', 'Potong keinginan dulu'], ['pinjam', 'Tutup dengan pinjaman lagi', 'Biar cepat selesai']],
+  { id: 'akhir', day: 24, app: 'kalender',
+    notif: g => g.saldo > 0 ? `Besok gajian. Sisa uang ${rps(g.saldo)}.` : `Besok gajian. Bulan ini tekor ${rps(-g.saldo)}.`,
+    choices: g => g.saldo > 0 ? [['darurat', 'Isi dana darurat'], ['hadiah', 'Hadiah untuk diri sendiri']] : [['rencana', 'Susun rencana hemat'], ['pinjam', 'Tutup dengan pinjaman']],
     pick: (g, v) => {
       if (v === 'darurat') { g.p.emergencyFund += g.saldo; g.saldo = 0; g.stres -= 5; const out = FW.spendTotal(g.p) + (g.p.family || 0) + FW.instalments(g.p);
-        return { tone: 'safe', head: `Dana darurat jadi ${rp(g.p.emergencyFund)}.`, body: `Itu ${nf(g.p.emergencyFund / out, 1)} bulan pengeluaran. Targetnya 3 bulan: langkah kecil, tapi arahnya benar.` }; }
+        return { tone: 'safe', head: `Dana darurat jadi ${rps(g.p.emergencyFund)}.`, body: `Itu ${nf(g.p.emergencyFund / out, 1)} bulan pengeluaran. Targetnya 3 bulan: langkah kecil, tapi arahnya benar.` }; }
       if (v === 'hadiah') { g.saldo = 0; g.stres -= 10; return { tone: 'amber', head: 'Dimas lebih lega.', body: 'Tidak salah, asal dari sisa uang dan bukan dari utang. Dana daruratnya masih kosong, jadi kejadian mendadak berikutnya akan dibiayai pinjaman lagi.' }; }
-      if (v === 'rencana') { g.stres -= 5; return { tone: 'safe', head: 'Rencana dibuat.', body: 'Persis yang ada di CEK: mulai dari pos keinginan, pisahkan uang yang pasti keluar saat gajian, lalu tanyakan jadwal ulang ke pemberi pinjaman sebelum jatuh tempo.' }; }
-      g.stres += 10; g.flags.dig = true; return { tone: 'danger', head: 'Kekurangannya pindah ke bulan depan.', body: 'Pinjaman menutup tekor bulan ini, tapi cicilannya membuat bulan depan tekor lagi. Ini awal gali lubang tutup lubang.' };
+      if (v === 'rencana') { g.stres -= 5; return { tone: 'safe', head: 'Rencana dibuat.', body: 'Mulai dari pos keinginan, pisahkan uang yang pasti keluar saat gajian, lalu tanyakan jadwal ulang ke pemberi pinjaman sebelum jatuh tempo.' }; }
+      g.stres += 10; g.flags.dig = true; return { tone: 'danger', head: 'Tekornya pindah ke bulan depan.', body: 'Pinjaman menutup tekor bulan ini, tapi cicilannya membuat bulan depan tekor lagi. Ini awal gali lubang tutup lubang.' };
     } },
 ];
 const sbActive = g => SB_EVENTS.filter(e => !e.when || e.when(g));
@@ -3243,6 +3401,7 @@ function sbEnter(g) {
   if (!ev) { g.done = true; return; }
   if (ev.pre && !g.preDone?.[ev.id]) { g.preDone = { ...g.preDone, [ev.id]: true }; ev.pre(g); }
   if (ev.choices && !ev.choices(g) && ev.auto) { g.picks[ev.id] = 'auto'; g.out = { ...ev.auto(g), d: {} }; }
+  if (ev.ui === 'flags') g.flg = { taps: [], start: Date.now() };
 }
 function sbPick(t, v) {
   const g = t.g, ev = sbActive(g)[g.i]; if (!ev || g.out) return;
@@ -3250,16 +3409,17 @@ function sbPick(t, v) {
   const res = ev.pick(g, v); g.picks[ev.id] = v; g.stres = clamp100(g.stres);
   g.out = { ...res, d: { saldo: g.saldo - before.saldo, ef: g.p.emergencyFund - before.ef, utang: sbDebt(g.p) - before.utang, stres: g.stres - before.stres } };
   if (ev.id === 'rs') { t.marks.ladder = true; t.marks.ladderOk = v === 'tangga'; }
-  if (ev.id === 'batas') { t.marks.headroom = true; t.marks.headroomOk = v === 'ok'; }
+  if (ev.id === 'batas') { t.marks.headroom = true; t.marks.headroomOk = !!g.flags.headroomOk; }
   if (ev.id === 'pilih') t.chosen = g.chosen;
 }
-const clamp100 = x => Math.max(0, Math.min(100, x));
 function sbNext(g) { g.out = null; g.i++; sbEnter(g); }
+// mini-game input → the value its pick() expects
+const sbBlocksValue = b => b.tab && b.kak ? 'tangga' : b.tab ? 'darurat' : b.kak ? 'kakak' : 'pinjam';
 // the safest path through the same month, played by the same rules, for the comparison at the end
 function sbBest() {
   const g = sbNew(), t = { g, marks: {} }; sbEnter(g);
-  const plan = { gajian: 'kunci', flash: 'tunda', rs: 'tangga', batas: 'ok', pilih: 'koperasi', akhir: 'darurat' };
-  for (let k = 0; k < 12 && !g.done; k++) { const ev = sbActive(g)[g.i]; if (!g.out) sbPick(t, plan[ev.id]); sbNext(g); }
+  const plan = { gajian: 'kunci', flash: 'tunda', rs: 'tangga', batas: () => String(FW.headroom(g.p).ceiling), iklan: SB_AD.map((x, i) => x[1] ? i : null).filter(x => x != null).join(','), pilih: 'koperasi', akhir: 'darurat' };
+  for (let k = 0; k < 14 && !g.done; k++) { const ev = sbActive(g)[g.i]; if (!g.out) { const v = plan[ev.id]; sbPick(t, typeof v === 'function' ? v() : v); } sbNext(g); }
   return g;
 }
 function sbLessons(g) {
@@ -3274,36 +3434,71 @@ function sbLessons(g) {
   if (g.flags.dig) L.push('Meminjam untuk menutup cicilan memperbesar tekor bulan berikutnya.');
   return L.slice(0, 4);
 }
-function sbMeters(g) {
-  const s = g.stres, debt = sbDebt(g.p);
+// Dimas' face follows his stress
+function dimasFace(s) {
+  const mood = s < 35 ? 'happy' : s < 65 ? 'meh' : 'sad';
+  const mouth = { happy: 'M17 29q7 6 14 0', meh: 'M17 30.5h14', sad: 'M17 33q7-6 14 0' }[mood];
+  return `<svg viewBox="0 0 48 48" class="face" role="img" aria-label="Dimas ${sbStress(s)}"><circle cx="24" cy="25" r="19" fill="#F2C9A0" stroke="#13231B" stroke-width="2"/><path d="M6.5 21C7 11 14 5.5 24 5.5S41 11 41.5 21c-4-5-10-7.5-17.5-7.5S10.5 16 6.5 21z" fill="#13231B"/><circle cx="17.5" cy="24" r="2.2" fill="#13231B"/><circle cx="30.5" cy="24" r="2.2" fill="#13231B"/><path d="${mouth}" fill="none" stroke="#13231B" stroke-width="2.4" stroke-linecap="round"/>${mood === 'sad' ? '<path d="M39 13q3.5 5.5 0 8q-3.5-2.5 0-8z" fill="#2B7FA3"/>' : ''}</svg>`;
+}
+function sbHud(g) {
+  const debt = sbDebt(g.p), s = g.stres;
   const m = [['Sisa uang bulan ini', rp(g.saldo, { plus: g.saldo < 0 }), g.saldo < 0 ? 'danger' : g.saldo < 300000 ? 'stretch' : 'safe', Math.max(0, Math.min(100, g.saldo / g.start.sur * 100))],
     ['Dana darurat', rp(g.p.emergencyFund), g.p.emergencyFund > 0 ? 'safe' : 'stretch', Math.min(100, g.p.emergencyFund / g.start.ef * 100)],
     ['Total utang', rp(debt), debt > g.start.utang * 1.4 ? 'danger' : debt > g.start.utang ? 'stretch' : 'safe', Math.min(100, debt / (g.start.utang * 2) * 100)],
     ['Stres', `${s}/100 · ${sbStress(s)}`, s >= 65 ? 'danger' : s >= 35 ? 'stretch' : 'safe', s]];
-  return `<div class="sb-meters" role="group" aria-label="Kondisi Dimas">${m.map(([k, v, z, w]) => `<div class="sbm"><div class="k">${k}</div><div class="v num">${v}</div><div class="bar" aria-hidden="true"><i style="width:${w.toFixed(0)}%;background:var(--${z})"></i></div></div>`).join('')}</div>`;
+  return `<div class="sb-hud" role="group" aria-label="Kondisi Dimas"><div class="sb-who">${dimasFace(s)}<b>Dimas</b><span class="tiny muted">25 th, karyawan</span></div>
+    ${m.map(([k, v, z, w]) => `<div class="sbm"><div class="k">${k}</div><div class="v num">${v}</div><div class="bar" aria-hidden="true"><i style="width:${w.toFixed(0)}%;background:var(--${z})"></i></div></div>`).join('')}</div>`;
 }
 const SB_DELTA = { saldo: 'Sisa uang', ef: 'Dana darurat', utang: 'Utang', stres: 'Stres' };
+// the interactive part of an event: buttons, or one of the mini-games
+function sbBody(g, ev) {
+  if (ev.ui === 'envelopes') {
+    const h = FW.headroom(g.p), envs = [['pokok', 'Kebutuhan pokok', FW.needs(g.p)], ['keluarga', 'Kirim keluarga', g.p.family], ['cicilan', 'Cicilan', h.ex]];
+    const left = FW.income(g.p) - FW.sum(envs.filter(e => g.env[e[0]]), e => e[2]), all = envs.every(e => g.env[e[0]]);
+    return `<div class="env-row">${envs.map(([k, l, a]) => `<button class="env ${g.env[k] ? 'on' : ''}" data-act="sb-env" data-v="${k}" aria-pressed="${!!g.env[k]}"><span class="env-flap" aria-hidden="true"></span><b>${l}</b><span class="num">${rps(a)}</span></button>`).join('')}</div>
+      <p class="sb-wallet">Di rekening: <b class="num">${rp(left)}</b></p>
+      <div class="sb-choices two"><button class="sb-choice" data-act="sb-pick" data-v="kunci" ${all ? '' : 'disabled'}><b>Selesai membagi</b></button><button class="sb-choice ghost" data-act="sb-pick" data-v="santai"><b>Biarkan di satu rekening</b></button></div>`;
+  }
+  if (ev.ui === 'blocks') {
+    const n = g.p.need, used = (g.blk.tab ? g.p.emergencyFund : 0) + (g.blk.kak ? n.family : 0), loan = n.amount - used;
+    return `<div class="blk-bar" aria-hidden="true">${g.blk.tab ? `<i class="b-tab" style="width:${(g.p.emergencyFund / n.amount * 100).toFixed(1)}%">Tabungan</i>` : ''}${g.blk.kak ? `<i class="b-kak" style="width:${(n.family / n.amount * 100).toFixed(1)}%">Kakak</i>` : ''}<i class="b-loan" style="width:${(loan / n.amount * 100).toFixed(1)}%">Pinjam</i></div>
+      <div class="blk-row"><button class="blk ${g.blk.tab ? 'on' : ''}" data-act="sb-block" data-v="tab" aria-pressed="${!!g.blk.tab}"><b>Tabungan</b><span class="num">${rps(g.p.emergencyFund)}</span></button><button class="blk ${g.blk.kak ? 'on' : ''}" data-act="sb-block" data-v="kak" aria-pressed="${!!g.blk.kak}"><b>Bantuan kakak</b><span class="num">${rps(n.family)}</span></button></div>
+      <p class="sb-wallet">Yang dipinjam: <b class="num">${rp(loan)}</b></p>
+      <div class="sb-choices"><button class="sb-choice" data-act="sb-pick" data-v="${sbBlocksValue(g.blk)}"><b>Kunci: pinjam ${rps(loan)}</b></button></div>`;
+  }
+  if (ev.ui === 'slider') return `<div class="sb-slide"><output id="sb-val" for="sb-range" class="num">Rp0</output><input type="range" id="sb-range" class="range" min="0" max="2000000" step="25000" value="0" aria-label="Cicilan baru per bulan" aria-valuetext="Rp0"></div>
+      <div class="row between tiny muted"><span>Rp0</span><span>Rp2 jt</span></div>
+      <div class="sb-choices"><button class="sb-choice" data-act="sb-lock-slider"><b>Kunci jawaban</b></button></div>`;
+  if (ev.ui === 'flags') {
+    const left = Math.max(0, Math.ceil((SB_FLAG_MS - (Date.now() - (g.flg.start || Date.now()))) / 1000));
+    return `<div class="ad-card"><div class="ad-brand">Cair Kilat 24 Jam <span class="tiny">· iklan</span></div><div class="ad-lines">${SB_AD.map(([l], i) => `<button class="ad-line ${g.flg.taps.includes(i) ? 'on' : ''}" data-act="sb-flag" data-v="${i}" aria-pressed="${g.flg.taps.includes(i)}">${esc(l)}</button>`).join('')}</div></div>
+      ${S.test?.timerOn !== false ? `<div class="kl-time" aria-hidden="true"><i style="animation-duration:${SB_FLAG_MS}ms;animation-delay:-${Date.now() - g.flg.start}ms"></i></div><p class="tiny muted"><span role="timer">${left} detik</span></p>` : ''}
+      <div class="sb-choices"><button class="sb-choice" data-act="sb-flags-done"><b>Selesai</b></button></div>`;
+  }
+  if (ev.ui === 'offers') return `<div class="grid g3 sb-offers">${sbOffers(g).map(o => `<div class="opt sb-offer"><div class="row between"><b>${esc(o.pr.name)}</b>${o.illegal ? '<span class="pill z-danger">Tidak berizin</span>' : zpill(o.zone)}</div>
+      <p class="tiny muted">${o.illegal ? 'Tidak ada di daftar OJK' : o.pr.kind === 'koperasi' ? 'Koperasi kantor Dimas' : 'Pindar berizin OJK'} · cair ${o.illegal ? '5 menit' : FW.hoursLabel(o.pr.hours)}</p>
+      ${o.illegal ? '<div class="facts f2"><div><div class="k">Bunga</div><div class="v">tidak jelas</div></div><div><div class="k">Syarat</div><div class="v">akses kontak</div></div></div>' : `<div class="facts f2"><div><div class="k">Cicilan</div><div class="v">${rps(o.L.inst)}/bln</div></div><div><div class="k">Total biaya</div><div class="v">${rps(o.L.total)}</div></div></div>`}
+      <button class="btn sm ${o.illegal ? 'ghost' : ''}" data-act="sb-pick" data-v="${o.pr.id}">Pilih</button></div>`).join('')}</div>`;
+  const ch = ev.choices ? ev.choices(g) : null;
+  return ch ? `<div class="sb-choices ${ch.length === 2 ? 'two' : ''}">${ch.map(([v, l]) => `<button class="sb-choice" data-act="sb-pick" data-v="${v}"><b>${esc(l)}</b></button>`).join('')}</div>` : '';
+}
 function sbView(t) {
   const g = t.g, evs = sbActive(g);
   const days = `<ol class="sb-days" aria-label="Hari dalam sebulan">${evs.map((e, i) => `<li class="${i < g.i || g.done ? 'done' : i === g.i ? 'on' : ''}" ${i === g.i && !g.done ? 'aria-current="step"' : ''}><span>tgl</span>${e.day}</li>`).join('')}</ol>`;
-  if (g.done) return days + sbMeters(g) + sbReport(t);
-  const ev = evs[g.i], ch = ev.choices ? ev.choices(g) : null;
-  const body = ev.offers && !g.out ? `<div class="grid g3 sb-offers">${sbOffers(g).map(o => `<div class="opt sb-offer"><div class="row between"><b>${esc(o.pr.name)}</b>${o.illegal ? '<span class="pill z-danger">Tidak berizin</span>' : zpill(o.zone)}</div>
-      <p class="tiny muted">${o.illegal ? 'Tidak ada di daftar OJK · minta akses kontak dan galeri' : o.pr.kind === 'koperasi' ? 'Koperasi tempat Dimas bekerja' : 'Pindar berizin OJK'} · cair ${o.illegal ? '5 menit' : FW.hoursLabel(o.pr.hours)}</p>
-      ${o.illegal ? '<div class="facts f2"><div><div class="k">Bunga</div><div class="v">tidak dijelaskan</div></div><div><div class="k">Syarat</div><div class="v">cukup KTP</div></div></div>' : `<div class="facts f2"><div><div class="k">Cicilan</div><div class="v">${rp(o.L.inst)}/bln</div></div><div><div class="k">Total biaya</div><div class="v">${rp(o.L.total)}</div></div></div><p class="tiny muted">${o.pr.months} bulan · ${o.pr.unit === 'day' ? nf(o.pr.rate * 100, 2) + '%/hari' : nf(o.pr.rate * 100, 1) + '%/bulan'}</p>`}
-      <button class="btn sm ${o.illegal ? 'ghost' : ''}" data-act="sb-pick" data-v="${o.pr.id}">Pilih ${esc(o.pr.name)}</button></div>`).join('')}</div>`
-    : !g.out && ch ? `<div class="sb-choices">${ch.map(([v, l, sub]) => `<button class="sb-choice" data-act="sb-pick" data-v="${v}"><b>${esc(l)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</button>`).join('')}</div>` : '';
+  if (g.done) return days + sbHud(g) + sbReport(t);
+  const ev = evs[g.i], app = APPS[ev.app], ask = ev.ask ? ev.ask(g) : '', fresh = g.shown !== g.i; g.shown = g.i;
   const d = g.out ? Object.entries(g.out.d).filter(([, x]) => Math.round(x)) : [];
-  const out = g.out ? `<div class="sb-out note ${g.out.tone}" aria-live="polite"><h3 id="sb-out" tabindex="-1">${esc(g.out.head)}</h3><p class="small">${esc(g.out.body)}</p>
+  const out = g.out ? `<div class="sb-out ${g.out.tone}" aria-live="polite"><p id="sb-out" tabindex="-1" class="sb-head">${esc(g.out.head)}</p>
       ${d.length ? `<ul class="sb-delta">${d.map(([k, x]) => `<li class="${(k === 'saldo' || k === 'ef') === x > 0 ? 'up' : 'down'}">${SB_DELTA[k]} ${k === 'stres' ? (x > 0 ? '+' : '−') + Math.abs(x) : (x > 0 ? '+' : '−') + rps(Math.abs(x))}</li>`).join('')}</ul>` : ''}
+      <details class="why"><summary>Kenapa?</summary><p class="small">${esc(g.out.body)}</p></details>
       <button class="btn amber" data-act="sb-next">${g.i === evs.length - 1 ? 'Lihat laporan akhir bulan' : 'Lanjut'}</button></div>` : '';
-  return days + sbMeters(g) + `<article class="card sb-card"><p class="sb-date">Tanggal ${ev.day}</p><h2 id="sb-h" tabindex="-1">${esc(ev.title(g))}</h2><p style="margin-top:6px">${esc(ev.text(g))}</p>${body}${out}</article>`;
+  return days + `<div class="sb-stage">${sbHud(g)}<div class="sb-phone"><div class="notif${fresh ? ' nf-in' : ''}"><span class="nf-app nf-${app[1]}" aria-hidden="true">${app[0][0]}</span><div><div class="nf-meta">${app[0]} · tgl ${ev.day}</div><h2 id="sb-h" tabindex="-1" class="nf-text">${esc(ev.notif(g))}</h2></div></div>
+    ${ask && !g.out ? `<p class="sb-ask">${esc(ask)}</p>` : ''}${g.out ? out : sbBody(g, ev)}</div></div>`;
 }
 function sbReport(t) {
   const g = t.g, p = g.p, H = FW.health(p), R = FW.readiness(p), h = FW.headroom(p), best = sbBest(), BR = FW.readiness(best.p);
   const row = (k, a, b) => `<tr><td>${k}</td><td class="num"><b>${a}</b></td><td class="num">${b}</td></tr>`;
   return `<article class="card sb-card"><p class="sb-date">Laporan akhir bulan</p><h2 id="sb-h" tabindex="-1">Dimas ${g.stres >= 65 ? 'bertahan, tapi tertekan' : FW.surplus(p) < 0 ? 'bertahan, tapi bulan depan tekor' : 'lolos bulan ini'}</h2>
-    <p class="small muted" style="margin-top:4px">Angka dihitung mesin FinWise dari keadaan Dimas setelah semua pilihanmu, dibanding jalur paling aman untuk bulan yang sama.</p>
     <div class="tbl-wrap" style="margin-top:12px"><table><thead><tr><th></th><th>Pilihanmu</th><th>Jalur paling aman</th></tr></thead><tbody>
      ${row('Kondisi keuangan', `${H.total}/100 · ${H.status}`, `${FW.health(best.p).total}/100`)}
      ${row(term('Kesiapan berutang'), READY[R.level].name, READY[BR.level].name)}
@@ -3313,8 +3508,8 @@ function sbReport(t) {
      ${row('Stres', `${g.stres}/100`, `${best.stres}/100`)}
     </tbody></table></div>
     <h3 style="margin-top:16px">Yang terjadi bulan ini</h3><ul class="small sb-lessons">${sbLessons(g).map(x => `<li>${esc(x)}</li>`).join('')}</ul>
-    <p class="tiny muted" style="margin-top:8px">Jalur paling aman: pisahkan uang saat gajian, tunda sepatu, pakai tangga dana, pinjam ${rps(best.need)} di koperasi, sisa uang ke dana darurat.</p>
-    <div style="margin-top:14px"><button class="btn amber" data-act="t-next">Lanjut ke Babak 3</button></div></article>`;
+    <p class="tiny muted" style="margin-top:8px">Angka dihitung mesin FinWise. Jalur paling aman: bagi gaji ke amplop, tunda sepatu, pakai tabungan dan bantuan kakak, pinjam ${rps(best.need)} di koperasi, sisa uang ke dana darurat.</p>
+    <div style="margin-top:14px"><button class="btn amber" data-act="t-next">Lanjut ke Ronde Final</button></div></article>`;
 }
 /* ================= GAME · "Legal atau Ilegal?" (60 detik) =================
    Names come only from the two official lists: licensed lenders (OJK) and illegal apps (Satgas PASTI).
@@ -3385,27 +3580,25 @@ function vQuick() {
    </div>`;
 }
 /* ================= TEST MODE ================= */
-const TSTEPS = ['Siap main', 'Babak 1 · Tebak cepat', 'Babak 2 · Sebulan Bertahan', 'Babak 3 · Tebak lagi', 'Nilai game ini'];
+const TSTEPS = ['Siap main', 'Ronde Insting', 'Sebulan Bertahan', 'Ronde Final', 'Nilai game ini'];
 function newTest() {
   const g = sbNew(); sbEnter(g);
-  return { id: 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), stage: 0, startedAt: Date.now(), consent: false, age: '', status: '', pre: Array(DATA.quiz.length).fill(null), post: Array(DATA.quiz.length).fill(null),
+  return { id: 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), stage: 0, startedAt: Date.now(), consent: false, age: '', status: '', pre: Array(KILAT.length).fill(null), post: Array(KILAT.length).fill(null), kl: null, timerOn: true, instr: 2,
     g, marks: {}, help: 0, chosen: null, ack: false, feedback: { help: '', ease: 0, confidence: 0, comment: '' }, saved: null };
 }
-// 0–100 whatever the number of questions (older records have 5, newer 6)
+// instrument 1 (records before Nov 2026): multiple-choice answers scored against DATA.quiz; instrument 2: kilat card scores 0/0.5/1
 const score = arr => Math.round(arr.reduce((s, a, i) => s + (a === DATA.quiz[i].correct ? 1 : 0), 0) / arr.length * 100);
-function quizBlock(name, arr) {
-  return `<div class="quiz">${DATA.quiz.map((q, i) => `<fieldset class="qq" style="margin:0"><legend class="sr">Pertanyaan ${i + 1}</legend><b>${i + 1}. ${esc(q.q)}</b><div class="opts">${[...q.a, 'Tidak tahu'].map((a, j) => `<label><input type="radio" name="${name}-${i}" value="${j === q.a.length ? -1 : j}" ${arr[i] === (j === q.a.length ? -1 : j) ? 'checked' : ''} data-act-change="quiz" data-set="${name}" data-i="${i}">${esc(a)}</label>`).join('')}</div></fieldset>`).join('')}</div>`;
-}
+const scoreOf = (arr, instr) => instr === 2 ? klScore(arr) : score(arr);
 // Gate 1 test, framed as a short game. What is recorded (pre/post quiz, task completion, choice, help) is unchanged.
 function gameStars(r) { return (r.completed ? 1 : 0) + (r.safer ? 1 : 0) + (r.postScore - r.preScore >= 30 || r.postScore === 100 ? 1 : 0); }
 const BADGES = ['Pemula Penasaran', 'Pemula Cerdas', 'Pejuang Hemat', 'Penjaga Dompet'];
 function vUji() {
   const t = S.test;
   if (!t && S.quick) return vQuick();
-  if (!t) return `<section class="gamehero"><div><div class="eyebrow" style="color:#FFD58A;font-weight:800;letter-spacing:.06em">GAME LITERASI KEUANGAN · 3 BABAK · ±10 MENIT</div><h1 tabindex="-1">Lolos Jebakan Pinjol: sebulan jadi Dimas</h1>
+  if (!t) return `<section class="gamehero"><div><div class="eyebrow" style="color:#FFD58A;font-weight:800;letter-spacing:.06em">GAME LITERASI KEUANGAN · ±5 MENIT</div><h1 tabindex="-1">Lolos Jebakan Pinjol: sebulan jadi Dimas</h1>
      <p class="lead">Jalani satu bulan sebagai Dimas, dari gajian ke gajian: flash sale, tagihan, dan kabar ayahnya masuk rumah sakit. Setiap pilihanmu mengubah sisa uang, utang, dan tingkat stresnya.</p>
      <button class="btn amber" data-act="t-start" style="margin-top:12px">Mulai main</button></div>
-     <div class="levels">${[['1', 'Tebak cepat', `${DATA.quiz.length} soal tentang situasi Dimas. Tebak saja, boleh pilih “Tidak tahu”.`], ['2', 'Sebulan Bertahan', 'Dari gajian ke gajian. Pilihanmu dihitung mesin FinWise, lalu dibandingkan dengan jalur paling aman.'], ['3', 'Tebak lagi', 'Soal yang sama. Lihat seberapa jauh kamu naik level.'], ['★', 'Skor & lencana', 'Dapatkan sampai 3 bintang dan lencana Penjaga Dompet.']].map(([n, tt, d]) => `<div class="lvl"><span>${n}</span><div><b>${tt}</b><p class="small">${d}</p></div></div>`).join('')}</div></section>
+     <div class="levels">${[['1', 'Ronde Insting', `${KILAT.length} kartu kilat, ±10 detik per kartu. Ketuk atau geser, ikuti instingmu.`], ['2', 'Sebulan Bertahan', 'Notifikasi demi notifikasi dari gajian ke gajian, dengan mini-game amplop gaji dan iklan pinjol.'], ['3', 'Ronde Final', 'Kartu yang sama. Lihat seberapa jauh kamu naik level.'], ['★', 'Skor & lencana', 'Dapatkan sampai 3 bintang dan lencana Penjaga Dompet.']].map(([n, tt, d]) => `<div class="lvl"><span>${n}</span><div><b>${tt}</b><p class="small">${d}</p></div></div>`).join('')}</div></section>
    <div class="qg-promo card"><div><div class="lab">Main cepat · 60 detik</div><h2 style="font-size:1.15rem;margin-top:2px">Legal atau ilegal?</h2><p class="small muted" style="margin-top:4px">Nama aplikasi muncul satu per satu dari daftar OJK dan Satgas PASTI. Tebak sebanyak mungkin sebelum waktu habis.</p></div><button class="btn" data-act="qg-start">Main 60 detik</button></div>
    <div class="card small" style="margin-top:16px"><b>Aman & anonim.</b> Tidak ada nama atau data pribadi yang diminta. Jawabanmu di game 3 babak membantu tim FinWise melihat apakah aplikasinya benar-benar membuat orang lebih paham utang.</div>`;
   const prog = `<div class="gprog" aria-hidden="true">${[1, 2, 3].map(n => `<i class="${t.stage > n ? 'done' : t.stage === n ? 'on' : ''}"></i>`).join('')}</div>`;
@@ -3414,10 +3607,11 @@ function vUji() {
     <label class="chk"><input type="checkbox" id="t-consent" data-act-change="t-field" data-f="consent" ${t.consent ? 'checked' : ''}><span>Saya setuju jawaban saya (tanpa nama) dipakai tim FinWise untuk menilai aplikasinya.</span></label>
     <div class="grid g2"><label class="f">Usia<select class="in" id="t-age" data-act-change="t-field" data-f="age"><option value="">Pilih</option>${['<18', '18–22', '23–27', '28–35', '>35'].map(a => `<option ${t.age === a ? 'selected' : ''}>${a}</option>`).join('')}</select></label>
      <label class="f">Status<select class="in" id="t-status" data-act-change="t-field" data-f="status"><option value="">Pilih</option>${['Pelajar/mahasiswa', 'Karyawan', 'Wirausaha', 'Lainnya'].map(a => `<option ${t.status === a ? 'selected' : ''}>${a}</option>`).join('')}</select></label></div>
-    <div><button class="btn amber" data-act="t-next" ${t.consent ? '' : 'disabled'}>Ayo mulai Babak 1</button></div></div>`;
-  if (t.stage === 1) return bar + `<div class="card" style="margin-bottom:14px"><h2>Babak 1 · Tebak cepat</h2><p style="margin-top:6px">${esc(DATA.personas.dimas.story)} Jawab dengan tebakanmu sendiri dulu; pilih “Tidak tahu” kalau benar-benar tidak tahu. Skor dihitung di akhir.</p></div>${quizBlock('pre', t.pre)}<div style="margin-top:16px"><button class="btn amber" data-act="t-next" ${t.pre.every(a => a !== null) ? '' : 'disabled'}>Lanjut ke Babak 2</button>${t.pre.every(a => a !== null) ? '' : `<span class="tiny muted" style="margin-left:8px">${t.pre.filter(a => a !== null).length}/${t.pre.length} dijawab</span>`}</div>`;
+    <label class="chk"><input type="checkbox" id="t-timer" data-act-change="t-field" data-f="timerOn" ${t.timerOn !== false ? 'checked' : ''}><span>Pakai batas waktu (10 detik per kartu kilat). Matikan kalau butuh waktu lebih lama.</span></label>
+    <div><button class="btn amber" data-act="t-next" ${t.consent ? '' : 'disabled'}>Mulai Ronde Insting</button></div></div>`;
+  if (t.stage === 1 || t.stage === 3) { if (!t.kl) klStart(t, t.stage === 1 ? 'pre' : 'post');
+    return bar + `<div class="kl-intro"><b>${t.stage === 1 ? 'Ronde Insting' : 'Ronde Final'}</b> · ${t.stage === 1 ? 'tebak dengan instingmu, jawabannya dibuka di akhir.' : 'kartu yang sama. Pakai yang kamu pelajari dari bulan Dimas.'}</div>` + klView(t); }
   if (t.stage === 2) return bar + `${t.hint ? `<div class="note amber small" style="margin-bottom:12px" role="status">Petunjuk: ${esc(t.hint)}</div>` : ''}` + sbView(t);
-  if (t.stage === 3) return bar + `<div class="card" style="margin-bottom:14px"><h2>Babak 3 · Tebak lagi</h2><p class="small muted" style="margin-top:4px">Soal yang sama. Kali ini pakai apa yang kamu lihat di FinWise.</p></div>${quizBlock('post', t.post)}<div style="margin-top:16px"><button class="btn amber" data-act="t-next" ${t.post.every(a => a !== null) ? '' : 'disabled'}>Lihat skorku</button></div>`;
   if (t.stage === 4) { const f = t.feedback; return bar + `<div class="card stack" style="max-width:680px"><h2>Satu langkah lagi: nilai game ini</h2>
     <div><b>Apakah kamu butuh bantuan orang lain untuk menyelesaikan game ini?</b><div class="seg" style="margin-top:8px">${[['tidak', 'Tidak'], ['sedikit', 'Sedikit'], ['ya', 'Ya']].map(([k, l]) => `<button class="${f.help === k ? 'on' : ''}" aria-pressed="${f.help === k}" data-act="t-fb" data-f="help" data-v="${k}">${l}</button>`).join('')}</div></div>
     <div><b>Seberapa mudah dimainkan?</b> <span class="tiny muted">(1 sulit – 5 mudah)</span><div class="seg" style="margin-top:8px">${[1, 2, 3, 4, 5].map(n => `<button class="${f.ease === n ? 'on' : ''}" aria-pressed="${f.ease === n}" aria-label="Mudah ${n} dari 5" data-act="t-fb" data-f="ease" data-v="${n}">${n}</button>`).join('')}</div></div>
@@ -3428,25 +3622,28 @@ function vUji() {
   return `<div class="card stack result-card" style="max-width:720px"><div class="eyebrow e-pilah" style="font-weight:800;font-size:.8125rem">GAME SELESAI</div>
    <div class="stars" role="img" aria-label="${stars} dari 3 bintang">${[1, 2, 3].map(n => `<span class="${n <= stars ? 'on' : ''}">★</span>`).join('')}</div>
    <h2>Lencana: ${BADGES[stars]}</h2>
-   <div class="grid g3"><div class="kpi"><div class="k">Skor Babak 1</div><div class="v">${r.preScore}</div></div><div class="kpi"><div class="k">Skor Babak 3</div><div class="v" style="color:var(--safe)">${r.postScore}</div><div class="s">${r.postScore - r.preScore >= 0 ? 'naik ' : 'turun '}${Math.abs(r.postScore - r.preScore)} poin</div></div><div class="kpi"><div class="k">Kondisi Dimas di akhir bulan</div><div class="v">${r.endScore}/100</div><div class="s">${esc(t.chosen?.name || '-')}${t.chosen ? ' · ' + (t.chosen.id === 'cairkilat' ? 'ilegal' : ZONE[t.chosen.zone][0]) : ''}</div></div></div>
+   <div class="grid g3"><div class="kpi"><div class="k">Ronde Insting</div><div class="v">${r.preScore}</div></div><div class="kpi"><div class="k">Ronde Final</div><div class="v" style="color:var(--safe)">${r.postScore}</div><div class="s">${r.postScore - r.preScore >= 0 ? 'naik ' : 'turun '}${Math.abs(r.postScore - r.preScore)} poin</div></div><div class="kpi"><div class="k">Kondisi Dimas di akhir bulan</div><div class="v">${r.endScore}/100</div><div class="s">${esc(t.chosen?.name || '-')}${t.chosen ? ' · ' + (t.chosen.id === 'cairkilat' ? 'ilegal' : ZONE[t.chosen.zone][0]) : ''}</div></div></div>
    <ul class="small stack" style="list-style:none;padding:0;gap:4px;margin:0">
     <li>${r.completed ? '★' : '☆'} Menyelesaikan sebulan: tangga dana, batas aman, dan memilih pinjaman</li><li>${r.safer ? '★' : '☆'} Memilih pinjaman di zona Aman${r.safer ? '' : ' (koperasi karyawan adalah pilihan teraman untuk Dimas)'}</li><li>${r.postScore - r.preScore >= 30 || r.postScore === 100 ? '★' : '☆'} Skor naik ≥30 poin atau sempurna</li></ul>
+   ${klRecap(t)}
    ${t.saved === 'db' ? '<div class="note safe">Hasil tersimpan untuk tim. Terima kasih sudah bermain!</div>' : t.saved === 'saving' ? '<div class="note">Menyimpan…</div>' : '<div class="note safe">Terima kasih sudah bermain! Bagikan FinWise ke teman yang sedang butuh dana supaya mereka cek dulu sebelum pinjam.</div>'}
    <div class="row"><button class="btn amber" data-act="t-start">Main lagi</button><button class="btn ghost" data-act="qg-start">Main cepat: legal atau ilegal?</button><a class="btn ghost" href="#mulai">Sekarang cek keuanganku sendiri</a></div></div>`;
 }
 function testRecord(t) {
-  return { id: t.id, at: new Date(t.startedAt).toISOString(), age: t.age, status: t.status, pre: t.pre, post: t.post, preScore: score(t.pre), postScore: score(t.post),
+  return { id: t.id, at: new Date(t.startedAt).toISOString(), age: t.age, status: t.status, instr: 2, pre: t.pre.map(x => x ?? 0), post: t.post.map(x => x ?? 0), preScore: klScore(t.pre.map(x => x ?? 0)), postScore: klScore(t.post.map(x => x ?? 0)),
     chosen: t.chosen?.id || null, chosenZone: t.chosen?.zone || null, safer: t.chosen?.zone === 'safe', ack: !!t.ack, marks: t.marks, helpClicks: t.help,
     completed: !!t.chosen && !!t.marks.headroom && !!t.marks.ladder && !!t.g?.done, endScore: t.g ? FW.health(t.g.p).total : null, endLevel: t.g ? FW.readiness(t.g.p).level : null, endStress: t.g ? t.g.stres : null, helpNeeded: t.feedback.help, ease: t.feedback.ease, confidence: t.feedback.confidence,
     comment: (t.feedback.comment || '').slice(0, 500), durationSec: Math.round(((t.endedAt || Date.now()) - t.startedAt) / 1000), device: innerWidth < 700 ? 'ponsel' : 'laptop' };
 }
-function encodeRecord(r) { const c = [r.id, r.at, r.age, r.status, r.pre.join(','), r.post.join(','), r.chosen, r.chosenZone, r.ack ? 1 : 0, r.marks.headroom ? 1 : 0, r.marks.ladder ? 1 : 0, r.helpClicks, r.helpNeeded, r.ease, r.confidence, r.durationSec, r.device, r.comment, r.marks.ladderOk ? 1 : 0, r.marks.headroomOk ? 1 : 0, r.endScore, r.endLevel, r.endStress]; return 'FW1.' + btoa(unescape(encodeURIComponent(JSON.stringify(c)))); }
+function encodeRecord(r) { const c = [r.id, r.at, r.age, r.status, r.pre.join(','), r.post.join(','), r.chosen, r.chosenZone, r.ack ? 1 : 0, r.marks.headroom ? 1 : 0, r.marks.ladder ? 1 : 0, r.helpClicks, r.helpNeeded, r.ease, r.confidence, r.durationSec, r.device, r.comment, r.marks.ladderOk ? 1 : 0, r.marks.headroomOk ? 1 : 0, r.endScore, r.endLevel, r.endStress, r.instr || 1]; return 'FW1.' + btoa(unescape(encodeURIComponent(JSON.stringify(c)))); }
 function decodeRecord(code) {
   const c = JSON.parse(decodeURIComponent(escape(atob(code.trim().replace(/^FW1\./, '')))));
   const arr = s => String(s).split(',').map(Number);
   const pre = arr(c[4]), post = arr(c[5]);
-  if (pre.length < 5 || pre.length > DATA.quiz.length || post.length !== pre.length) throw new Error('bad');
-  return { id: String(c[0]).replace(/[^a-z0-9]/gi, '').slice(0, 40), at: String(c[1]), age: String(c[2]), status: String(c[3]), pre, post, preScore: score(pre), postScore: score(post), chosen: c[6], chosenZone: c[7], safer: c[7] === 'safe', ack: !!c[8], marks: { headroom: !!c[9], ladder: !!c[10], ladderOk: !!c[18], headroomOk: !!c[19] }, endScore: c[20] ?? null, endLevel: c[21] ?? null, endStress: c[22] ?? null, helpClicks: +c[11] || 0, completed: !!c[6] && !!c[9] && !!c[10], helpNeeded: String(c[12]), ease: +c[13], confidence: +c[14], durationSec: +c[15], device: String(c[16]), comment: String(c[17] || '').slice(0, 500), imported: true };
+  const instr = c[23] === 2 ? 2 : 1;
+  if (instr === 1 ? pre.length < 5 || pre.length > DATA.quiz.length : pre.length !== KILAT.length) throw new Error('bad');
+  if (post.length !== pre.length || pre.some(x => !Number.isFinite(x))) throw new Error('bad');
+  return { id: String(c[0]).replace(/[^a-z0-9]/gi, '').slice(0, 40), at: String(c[1]), age: String(c[2]), status: String(c[3]), instr, pre, post, preScore: scoreOf(pre, instr), postScore: scoreOf(post, instr), chosen: c[6], chosenZone: c[7], safer: c[7] === 'safe', ack: !!c[8], marks: { headroom: !!c[9], ladder: !!c[10], ladderOk: !!c[18], headroomOk: !!c[19] }, endScore: c[20] ?? null, endLevel: c[21] ?? null, endStress: c[22] ?? null, helpClicks: +c[11] || 0, completed: !!c[6] && !!c[9] && !!c[10], helpNeeded: String(c[12]), ease: +c[13], confidence: +c[14], durationSec: +c[15], device: String(c[16]), comment: String(c[17] || '').slice(0, 500), imported: true };
 }
 async function saveTest(rec) {
   if (!(S.cap.db && S.cap.canWrite && S.cap.team)) return false;
@@ -3612,6 +3809,7 @@ function render() {
   lastOverlay = S.overlay;
   if (lastRoute !== S.route) { lastRoute = S.route; window.scrollTo(0, 0); }
   const log = document.getElementById('chat-log'); if (log) log.scrollTop = log.scrollHeight;
+  armGameTimers();
 }
 let ptrDown = false, pendingRender = false, renderTimer = null;
 function flushRender() { if (pendingRender) render(); }
@@ -3797,6 +3995,14 @@ const ACT = {
   't-next': () => { const t = S.test; if (t.stage === 2) t.taskEnd = Date.now(); t.stage++; t.hint = ''; render(); window.scrollTo({ top: 0 }); },
   't-step': el => { const t = S.test; if (el.dataset.mark) t.marks[el.dataset.mark] = true; t.st.step = +el.dataset.v; t.hint = ''; render(); window.scrollTo({ top: 0 }); },
   't-help': () => { const t = S.test; t.help++; const ev = t.g && sbActive(t.g)[t.g.i]; t.hint = ev ? SB_HINTS[ev.id] : 'Jawab dengan tebakanmu sendiri dulu.'; render(); },
+  'kl-pick': el => { const t = S.test; if (!t?.kl) return; klAnswer(t, +el.dataset.v); announce('Tersimpan'); klAfter(t); },
+  'kl-lock': () => { const t = S.test; if (!t?.kl) return; const c = KILAT[t.kl.i]; klAnswer(t, c.ui === 'blocks' ? { ...t.kl.tmp } : +(document.getElementById('kl-range')?.value || 0)); announce('Tersimpan'); klAfter(t); },
+  'kl-toggle': el => { const t = S.test; if (!t?.kl) return; t.kl.tmp[el.dataset.v] = !t.kl.tmp[el.dataset.v]; render(); },
+  'sb-env': el => { const g = S.test?.g; if (!g) return; g.env[el.dataset.v] = !g.env[el.dataset.v]; render(); },
+  'sb-block': el => { const g = S.test?.g; if (!g) return; g.blk[el.dataset.v] = !g.blk[el.dataset.v]; render(); },
+  'sb-flag': el => { const g = S.test?.g; if (!g || g.out) return; const i = +el.dataset.v; g.flg.taps = g.flg.taps.includes(i) ? g.flg.taps.filter(x => x !== i) : [...g.flg.taps, i]; render(); },
+  'sb-flags-done': () => { const t = S.test; if (!t?.g) return; sbPick(t, t.g.flg.taps.join(',')); render(); document.getElementById('sb-out')?.focus({ preventScroll: true }); },
+  'sb-lock-slider': () => { const t = S.test; if (!t?.g) return; sbPick(t, document.getElementById('sb-range')?.value || '0'); render(); document.getElementById('sb-out')?.focus({ preventScroll: true }); },
   'sb-pick': el => { const t = S.test; if (!t?.g) return; sbPick(t, el.dataset.v); t.hint = ''; render(); document.getElementById('sb-out')?.focus({ preventScroll: true }); document.querySelector('.sb-out')?.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); },
   'sb-next': () => { const t = S.test; if (!t?.g) return; sbNext(t.g); t.hint = ''; render(); document.querySelector('.sb-days')?.scrollIntoView({ block: 'start' }); window.scrollBy(0, -90); document.getElementById('sb-h')?.focus({ preventScroll: true }); },
   'qg-start': () => { S.test = null; S.quick = qgNew(); if (location.hash !== '#main') location.hash = '#main'; render(); window.scrollTo(0, 0); document.getElementById('qg-h')?.focus(); announce(`60 detik dimulai. Nama pertama: ${S.quick.items[0].name}`); clearInterval(qgTimer); qgTimer = setInterval(qgTick, 200); },
@@ -3822,7 +4028,7 @@ const CHG = {
   persona: () => {},
   ack: el => { S.overlay.ack = el.checked; render(); },
   quiz: el => { S.test[el.dataset.set][+el.dataset.i] = +el.value; render(); },
-  't-field': el => { const t = S.test; const f = el.dataset.f; if (f === 'consent') t.consent = el.checked; else if (f === 'comment') t.feedback.comment = el.value; else t[f] = el.value; render(); },
+  't-field': el => { const t = S.test; const f = el.dataset.f; if (f === 'consent') t.consent = el.checked; else if (f === 'timerOn') t.timerOn = el.checked; else if (f === 'comment') t.feedback.comment = el.value; else t[f] = el.value; render(); },
   'todo-done': el => { const p = S.profiles.saya, id = el.dataset.id; p.done = p.done || {}; p.done[id] = el.checked;
     if (id === 'bpjs' && el.checked) { p.insurance = true; toast('BPJS dicatat. Skor kondisi keuangan diperbarui.'); }
     persist(); render(); if (id === 'slik' && el.checked) announce('Pilih hasil cek SLIK-mu'); },
@@ -3892,6 +4098,7 @@ document.addEventListener('input', e => {
   const el = e.target;
   if (el.dataset?.rv && el.type !== 'radio') S.os.rv[el.dataset.rv] = el.value;
   // sliders: update the number next to them while dragging, full recalculation on release
+  if (el.id === 'kl-range' || el.id === 'sb-range') { const o = document.getElementById(el.id === 'kl-range' ? 'kl-val' : 'sb-val'); if (o) o.textContent = rp(+el.value); el.setAttribute('aria-valuetext', rp(+el.value)); }
   if (el.type === 'range' && el.dataset.k) { const v = parseVal(el); setPath(S, el.dataset.k, v); const b = el.parentElement?.querySelector('.row b.num'); if (b) b.textContent = el.dataset.k === 'calc.months' ? v + ' bulan' : rp(v); }
   // live search boxes
   if (el.dataset?.live === 'kamus') { S.drawer.q = el.value; clearTimeout(liveTimer); liveTimer = setTimeout(queueRender, 150); }

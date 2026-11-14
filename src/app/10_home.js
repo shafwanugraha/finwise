@@ -122,7 +122,7 @@ function vHome() {
 
   <a class="challenge" href="#main">
     <span class="ch-ico">${ico('game')}</span>
-    <span class="ch-text"><small>Game literasi keuangan · ±10 menit, atau main cepat 60 detik</small><b>Lolos Jebakan Pinjol</b><span>Jalani sebulan sebagai Dimas: flash sale, tagihan, dan biaya rumah sakit. Setiap pilihan mengubah sisa uang, utang, dan stresnya.</span></span>
+    <span class="ch-text"><small>Game literasi keuangan · ±5 menit, atau main cepat 60 detik</small><b>Lolos Jebakan Pinjol</b><span>Kartu kilat, lalu sebulan jadi Dimas lewat notifikasi HP: bagi gaji ke amplop, tolak flash sale, temukan tanda bahaya di iklan pinjol.</span></span>
     <span class="btn amber">Main sekarang</span>
   </a>`;
 }

@@ -93,29 +93,52 @@ async def acceptance(pg):
     await go(pg, 'cek'); t = await pg.evaluate("[...document.querySelectorAll('.ratios .r-name, .dchecks b')].map(x => x.textContent).join('|')")
     check('CEK: Cia ratios present', all(k in t for k in ['Total pengeluaran', 'Cicilan selain KPR', 'kredit aktif', 'Tabungan rutin']))
     print('acceptance:', 'ALL PASS' if ok else 'FAILURES')
-# P1d: the game. Plays the safest path through "Sebulan Bertahan" and a few answers of the 60-second game.
+# The game: two rounds of kilat cards around "Sebulan Bertahan", plus the 60-second quick game.
+async def _setrange(pg, sel, v):
+    await pg.evaluate("([s, v]) => { const e = document.querySelector(s); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); }", [sel, v])
+async def _kilat(pg, right):
+    for _ in range(6):
+        q = await pg.inner_text('#kl-q')
+        if await pg.locator('.kl-ads').count(): await pg.click(f'[data-act="kl-pick"][data-v="{2 if right else 0}"]')
+        elif await pg.locator('#kl-range').count(): await _setrange(pg, '#kl-range', ('700000' if 'cicilan' in q else '7000000') if right else '0'); await pg.click('[data-act="kl-lock"]')
+        elif await pg.locator('.blk-row').count():
+            if right: await pg.click('[data-act="kl-toggle"][data-v="tab"]'); await pg.click('[data-act="kl-toggle"][data-v="kak"]')
+            await pg.click('[data-act="kl-lock"]')
+        else: await pg.click(f'[data-act="kl-pick"][data-v="{1 if right else 0}"]')
+        await pg.wait_for_timeout(30)
 async def game_checks(pg, mobile=False):
     ok = True
     def check(name, cond):
         nonlocal ok; ok = ok and cond; print(('PASS ' if cond else 'FAIL ') + name)
     await pg.goto(URL + '#home'); await pg.reload(); await go(pg, 'main')
-    await pg.click('[data-act="t-start"]'); await pg.check('#t-consent'); await pg.click('[data-act="t-next"]')
-    n = await pg.locator('.qq').count(); check(f'game: {n} quiz questions incl. max safe loan', n == 6 and 'pinjaman maksimal' in (await pg.inner_text('.quiz')))
-    for i in range(n): await pg.check(f'input[name="pre-{i}"][value="-1"]')
-    await pg.click('[data-act="t-next"]')
+    await pg.click('[data-act="t-start"]'); await pg.check('#t-consent'); await pg.uncheck('#t-timer'); await pg.click('[data-act="t-next"]')
+    check('game: Ronde Insting is kilat cards, not a quiz', await pg.locator('.kl-card').count() == 1 and await pg.locator('.qq').count() == 0)
+    if not mobile: await axe(pg, 'kilat')
+    await _kilat(pg, False)
     if mobile: print('mobile game', await pg.evaluate('document.documentElement.scrollWidth')); await pg.screenshot(path=OUT + 'm_sebulan.png', full_page=True)
     else: await axe(pg, 'sebulan')
-    for v in ['kunci', 'tunda', 'tangga', 'ok', 'koperasi', None, 'darurat']:
-        if v: await pg.click(f'[data-act="sb-pick"][data-v="{v}"]')
-        await pg.click('[data-act="sb-next"]'); await pg.wait_for_timeout(40)
+    for e in ['pokok', 'keluarga', 'cicilan']: await pg.click(f'[data-act="sb-env"][data-v="{e}"]')
+    await pg.click('[data-act="sb-pick"][data-v="kunci"]'); await pg.click('[data-act="sb-next"]')
+    await pg.click('[data-act="sb-pick"][data-v="tunda"]'); await pg.click('[data-act="sb-next"]')
+    await pg.click('[data-act="sb-block"][data-v="tab"]'); await pg.click('[data-act="sb-block"][data-v="kak"]'); await pg.click('.sb-choices [data-act="sb-pick"]'); await pg.click('[data-act="sb-next"]')
+    await _setrange(pg, '#sb-range', '700000'); await pg.click('[data-act="sb-lock-slider"]'); await pg.click('[data-act="sb-next"]')
+    for i in [0, 2, 4]: await pg.click(f'[data-act="sb-flag"][data-v="{i}"]')
+    await pg.click('[data-act="sb-flags-done"]'); await pg.click('[data-act="sb-next"]')
+    await pg.click('[data-act="sb-pick"][data-v="koperasi"]'); await pg.click('[data-act="sb-next"]')
+    await pg.click('[data-act="sb-next"]')
+    await pg.click('[data-act="sb-pick"][data-v="darurat"]'); await pg.click('[data-act="sb-next"]')
     t = await pg.inner_text('.sb-card')
     check('game: safest path ends Hanya untuk darurat, sisa uang +Rp346.667', 'Dimas lolos bulan ini' in t and '+Rp346.667' in t and 'Hanya untuk darurat' in t)
-    if mobile: print('mobile report', await pg.evaluate('document.documentElement.scrollWidth')); await pg.screenshot(path=OUT + 'm_sebulan_rep.png', full_page=True)
+    if mobile: print('mobile report', await pg.evaluate('document.documentElement.scrollWidth'))
     else: await axe(pg, 'sebulan report')
+    await pg.click('[data-act="t-next"]'); await _kilat(pg, True)
+    for f, v in [('help', 'tidak'), ('ease', '4'), ('confidence', '4')]: await pg.click(f'[data-act="t-fb"][data-f="{f}"][data-v="{v}"]')
+    await pg.click('[data-act="t-finish"]'); await pg.wait_for_timeout(150); t = await pg.inner_text('.result-card')
+    check('game: 3 stars, score 0 → 100, recap shown', 'Penjaga Dompet' in t and 'naik 100 poin' in t and 'Jawaban kartu kilat' in t)
     await pg.goto(URL + '#home'); await pg.reload(); await go(pg, 'main')
     await pg.click('[data-act="qg-start"]'); await pg.wait_for_timeout(80)
     for k in ['ArrowLeft', 'ArrowRight', 'ArrowLeft']: await pg.keyboard.press(k); await pg.wait_for_timeout(40)
-    s = await pg.inner_text('.qg'); check('quick game: three answers recorded', s.count('Benar') + s.count('Salah') >= 1 and await pg.locator('.qg-name').count() == 1)
+    s = await pg.inner_text('.qg'); check('quick game: answers recorded', s.count('Benar') + s.count('Salah') >= 1 and await pg.locator('.qg-name').count() == 1)
     if not mobile: await axe(pg, 'quick game')
     await pg.click('[data-act="qg-quit"]') if await pg.locator('[data-act="qg-quit"]').count() else None
     print('game:', 'ALL PASS' if ok else 'FAILURES')

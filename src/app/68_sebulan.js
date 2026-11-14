@@ -1,12 +1,13 @@
 /* ================= GAME · Babak 2 "Sebulan Bertahan" =================
-   One month as Dimas, from payday to payday. The game decides which events happen and what each choice
-   changes in a copy of his profile; every rupiah figure shown comes from the engine (FW) on that copy. */
+   One month as Dimas, payday to payday, told as phone notifications. Each event is a short line and a few big
+   buttons or a small mini-game (envelopes, fund blocks, a slider, red flags in an ad). The longer explanation sits
+   behind "Kenapa?". Every rupiah figure comes from the engine (FW) on a copy of his profile. */
 const sbDebt = p => FW.sum(p.loans, l => l.outstanding);
 const r10k = x => Math.round(x / 10000) * 10000;
-const SB_SHOES = 750000, SB_LEAK = 700000, SB_CUT = 0.3;
+const SB_SHOES = 750000, SB_LEAK = 700000, SB_CUT = 0.3, SB_FLAG_MS = 12000;
 function sbNew() {
   const p = clone(DATA.personas.dimas);
-  return { i: 0, p, saldo: FW.surplus(p), stres: 30, need: null, flags: {}, picks: {}, out: null, done: false,
+  return { i: 0, p, saldo: FW.surplus(p), stres: 30, need: null, flags: {}, picks: {}, out: null, done: false, env: {}, blk: {}, flg: {},
     start: { utang: sbDebt(p), sur: FW.surplus(p), ceiling: FW.headroom(p).ceiling, ef: p.emergencyFund } };
 }
 const sbProd = id => DATA.products.find(x => x.id === id);
@@ -20,57 +21,67 @@ function sbOffers(g) {
 }
 function sbAddLoan(p, o) { p.loans.push({ id: 'g' + p.loans.length, dueDay: 10, rateMonthly: 0, ...o }); }
 const sbStress = s => s < 35 ? 'tenang' : s < 65 ? 'waswas' : 'tertekan';
+const clamp100 = x => Math.max(0, Math.min(100, x));
+// the ad in the red-flag mini-game: three warning signs and two ordinary lines (the brand is fictional)
+const SB_AD = [['Cair 5 menit, tanpa cek apa pun', true], ['Bisa dicicil 3–12 bulan', false], ['Izinkan akses kontak & galeri', true], ['Ada nomor layanan pelanggan', false], ['Tanpa nama PT dan nomor izin OJK', true]];
 const SB_HINTS = {
-  gajian: 'Uang yang pasti keluar (kebutuhan pokok, kiriman keluarga, cicilan) paling aman dipisah di hari gajian, sebelum terpakai.',
-  flash: 'Cicilan “0%” tetap cicilan: porsi cicilan naik dan batas cicilan aman untuk kejadian mendadak turun.',
-  rs: 'Tangga dana: pakai uang tanpa bunga dulu (dana darurat, bantuan keluarga), baru pinjam sisanya.',
-  batas: 'Batas aman FinWise adalah yang lebih kecil dari dua angka: 30% gaji dikurangi cicilan lama, dan 70% sisa uang.',
-  pilih: 'Bandingkan total biaya dan cocokkan dengan batas aman. Cair paling cepat bukan berarti paling aman, dan cek dulu izinnya.',
-  tagih: 'Kalau uang kurang, hubungi pemberi pinjaman sebelum jatuh tempo. Telat bayar tercatat di SLIK.',
+  gajian: 'Uang yang pasti keluar paling aman dipisah di hari gajian, sebelum terpakai.',
+  flash: 'Cicilan “0%” tetap cicilan: batas cicilan amanmu ikut turun.',
+  rs: 'Pakai uang tanpa bunga dulu (tabungan, bantuan keluarga), baru pinjam sisanya.',
+  batas: 'Ambil yang lebih kecil: 30% gaji dikurangi cicilan lama, atau 70% sisa uang.',
+  iklan: 'Cair instan tanpa cek, minta akses kontak, dan tanpa nama perusahaan adalah tanda pinjol ilegal.',
+  pilih: 'Bandingkan total biaya dan cek izinnya. Cair paling cepat bukan berarti paling aman.',
+  tagih: 'Kalau uang kurang, hubungi pemberi pinjaman sebelum jatuh tempo.',
   teror: 'Penagih dilarang menghubungi orang selain peminjam. Simpan bukti dan laporkan.',
   akhir: 'Sisa uang di akhir bulan paling berguna untuk membangun lagi dana darurat.',
 };
+const APPS = { bank: ['Bank', 'green'], toko: ['Toko', 'amber'], kakak: ['Kakak', 'pulih'], dimas: ['Catatan', 'deep'], iklan: ['Iklan', 'danger'], pinjam: ['Pinjaman', 'deep'], paylater: ['Paylater', 'amber'], grup: ['Grup kantor', 'danger'], kalender: ['Kalender', 'green'] };
 // events in order; `when` decides whether an event happens, `auto` resolves an event that has no real choice
 const SB_EVENTS = [
-  { id: 'gajian', day: 25, title: g => `Gajian masuk ${rp(FW.income(g.p))}`,
-    text: g => `Bulan ini yang pasti keluar: kebutuhan pokok ${rp(FW.needs(g.p))}, kiriman keluarga ${rp(g.p.family)}, dan cicilan ${rp(FW.instalments(g.p))}. Sisa uang Dimas ${rp(FW.surplus(g.p))}.`,
-    choices: () => [['kunci', 'Pisahkan dulu yang pasti keluar', 'Pindah ke rekening terpisah hari ini'], ['santai', 'Biarkan di satu rekening', 'Nanti juga cukup']],
+  { id: 'gajian', day: 25, app: 'bank', ui: 'envelopes',
+    notif: g => `Gaji masuk ${rp(FW.income(g.p))}`, ask: () => 'Bagi dulu ke amplop sebelum terpakai.',
     pick: (g, v) => v === 'kunci'
-      ? (g.flags.locked = true, g.stres -= 5, { tone: 'safe', head: 'Uang yang pasti keluar sudah aman.', body: `Yang terlihat di rekening tinggal ${rp(g.saldo)}. Karena terlihat sedikit, belanja kecil ikut tertahan.` })
-      : (g.flags.locked = false, { tone: 'amber', head: `${rp(FW.income(g.p))} terlihat di rekening.`, body: 'Terasa banyak. Kita lihat nanti apakah semuanya masih ada saat tagihan datang.' }) },
-  { id: 'flash', day: 27, title: () => `Flash sale sepatu ${rps(SB_SHOES)}`,
-    text: () => `Teman-teman kantor membeli sepatu lari yang sama. Ada pilihan paylater 3× ${rp(SB_SHOES / 3)}, katanya bunga 0%.`,
-    choices: () => [['paylater', 'Ambil paylater 3×', `${rps(SB_SHOES / 3)} per bulan, 3 bulan`], ['tunai', 'Bayar tunai dari sisa uang', `${rps(SB_SHOES)} sekarang`], ['tunda', 'Masukkan wishlist dulu', 'Cek lagi 30 hari lagi']],
+      ? (g.flags.locked = true, g.stres -= 5, { tone: 'safe', head: 'Uang yang pasti keluar sudah aman.', body: `Yang tersisa untuk dipakai bebas: ${rp(g.saldo)}. Karena terlihat sedikit, belanja kecil ikut tertahan.` })
+      : (g.flags.locked = false, { tone: 'amber', head: 'Semua uang dibiarkan di satu rekening.', body: `${rp(FW.income(g.p))} terlihat banyak. Kita lihat nanti apakah semuanya masih ada saat tagihan datang.` }) },
+  { id: 'flash', day: 27, app: 'toko',
+    notif: () => `Flash sale! Sepatu ${rps(SB_SHOES)}, cicil 3× 0%`,
+    choices: () => [['paylater', 'Cicil 3×'], ['tunai', 'Bayar tunai'], ['tunda', 'Simpan di wishlist']],
     pick: (g, v) => {
       if (v === 'paylater') {
         const c0 = FW.headroom(g.p).ceiling; sbAddLoan(g.p, { name: 'Paylater sepatu', type: 'paylater', instalment: SB_SHOES / 3, outstanding: SB_SHOES, months: 3, dueDay: 5 });
         const h = FW.headroom(g.p); g.flags.shoes = [c0, h.ceiling]; g.stres -= 5;
-        return { tone: 'amber', head: 'Sepatu dibawa pulang. Cicilannya ikut.', body: `Cicilan Dimas naik jadi ${rp(h.ex)} per bulan (${pct(h.dsrNow, 0)} dari gaji). Batas cicilan amannya turun dari ${rp(c0)} jadi ${rp(h.ceiling)}. Bunga 0% tetap cicilan.` };
+        return { tone: 'amber', head: `Batas cicilan amanmu turun ke ${rps(h.ceiling)}.`, body: `Cicilan Dimas naik jadi ${rp(h.ex)} per bulan (${pct(h.dsrNow, 0)} dari gaji). Batas cicilan amannya turun dari ${rp(c0)} jadi ${rp(h.ceiling)}. Bunga 0% tetap cicilan.` };
       }
-      if (v === 'tunai') { g.saldo -= SB_SHOES; g.stres -= 5; return { tone: 'amber', head: 'Lunas di tempat.', body: `Tidak ada utang baru, tapi sisa uang bulan ini tinggal ${rp(g.saldo)} untuk kejadian mendadak.` }; }
-      g.stres += 5; return { tone: 'safe', head: 'Belum beli.', body: `Kalau 30 hari lagi masih ingin dan uangnya ada, beli tanpa cicilan. Sisa uang tetap ${rp(g.saldo)}.` };
+      if (v === 'tunai') { g.saldo -= SB_SHOES; g.stres -= 5; return { tone: 'amber', head: `Lunas. Sisa uang tinggal ${rps(g.saldo)}.`, body: 'Tidak ada utang baru, tapi bantalan untuk kejadian mendadak bulan ini menipis.' }; }
+      g.stres += 5; return { tone: 'safe', head: 'Belum beli. Sisa uang utuh.', body: 'Kalau 30 hari lagi masih ingin dan uangnya ada, beli tanpa cicilan.' };
     } },
-  { id: 'rs', day: 1, title: () => 'Ayah masuk rumah sakit',
-    text: g => `Biaya yang harus disiapkan ${rp(g.p.need.amount)} dalam 3 hari. Dimas punya dana darurat ${rp(g.p.emergencyFund)}, dan ${g.p.need.familyFrom} bisa membantu ${rp(g.p.need.family)}. Dari mana dulu?`,
-    choices: g => { const n = g.p.need, ef = g.p.emergencyFund; return [['tangga', 'Dana darurat dan bantuan kakak dulu, sisanya pinjam', `Pinjam ${rps(n.amount - ef - n.family)}`], ['darurat', 'Dana darurat saja, sisanya pinjam', `Pinjam ${rps(n.amount - ef)}`], ['pinjam', 'Pinjam semuanya, dana darurat jangan disentuh', `Pinjam ${rps(n.amount)}`]]; },
+  { id: 'rs', day: 1, app: 'kakak', ui: 'blocks',
+    notif: g => `Ayah masuk RS. Butuh ${rps(g.p.need.amount)} dalam 3 hari.`, ask: () => 'Tutup dulu dari mana? Sisanya dipinjam.',
     pick: (g, v) => {
       const n = g.p.need, ef = g.p.emergencyFund; g.stres += 15; g.flags.ladder = v;
-      if (v === 'pinjam') { g.need = n.amount; return { tone: 'danger', head: `Pinjam ${rp(g.need)}.`, body: `Dana darurat memang disiapkan untuk kejadian seperti ini. Tidak memakainya membuat pinjaman ${rp(ef + n.family)} lebih besar dari yang perlu, dan bunganya tetap jalan.` }; }
-      g.p.emergencyFund = 0;
-      if (v === 'darurat') { g.need = n.amount - ef; return { tone: 'amber', head: `Pinjam ${rp(g.need)}.`, body: `Bantuan ${n.familyFrom} ${rp(n.family)} tanpa bunga tidak dipakai, jadi pinjamannya ${rp(n.family)} lebih besar dari yang perlu.` }; }
-      g.need = n.amount - ef - n.family; return { tone: 'safe', head: `Pinjamannya tinggal ${rp(g.need)}.`, body: 'Uang tanpa bunga dipakai dulu. Ini namanya tangga dana: makin kecil pinjamannya, makin kecil cicilan dan bunganya.' };
+      const useEf = v === 'tangga' || v === 'darurat', useFam = v === 'tangga' || v === 'kakak';
+      g.need = n.amount - (useEf ? ef : 0) - (useFam ? n.family : 0); if (useEf) g.p.emergencyFund = 0;
+      const extra = g.need - (n.amount - ef - n.family);
+      return { tone: extra ? (v === 'pinjam' ? 'danger' : 'amber') : 'safe', head: `Yang dipinjam: ${rp(g.need)}.`,
+        body: extra ? `Uang tanpa bunga yang tidak dipakai membuat pinjamannya ${rp(extra)} lebih besar dari yang perlu, dan bunganya tetap jalan.` : 'Tangga dana: uang tanpa bunga dipakai dulu. Makin kecil pinjamannya, makin kecil cicilan dan bunganya.' };
     } },
-  { id: 'batas', day: 1, title: () => 'Berapa cicilan yang masih aman?',
-    text: g => `Sebelum memilih pinjaman, cek batasnya dulu. Sisa uang Dimas sekarang ${rp(FW.surplus(g.p))} per bulan. Cicilan baru maksimal berapa supaya tetap aman?`,
-    choices: g => { const c = FW.headroom(g.p).ceiling; return [['lo', rp(r10k(c * 0.43)), ''], ['ok', rp(c), ''], ['hi', rp(r10k(c * 2.15)), '']]; },
+  { id: 'batas', day: 1, app: 'dimas', ui: 'slider',
+    notif: g => `Sisa uangku ${rps(FW.surplus(g.p))}/bulan. Cicilan baru maksimal berapa?`, ask: () => 'Geser ke cicilan yang menurutmu masih aman, lalu kunci.',
     pick: (g, v) => {
-      const h = FW.headroom(g.p), ok = v === 'ok'; g.flags.headroomOk = ok;
-      return { tone: ok ? 'safe' : 'amber', head: ok ? `Tepat: ${rp(h.ceiling)}.` : `Belum tepat. Batas amannya ${rp(h.ceiling)}.`,
+      const h = FW.headroom(g.p), val = +v || 0, off = Math.abs(val - h.ceiling) / Math.max(1, h.ceiling), ok = off <= 0.1; g.flags.headroomOk = ok;
+      return { tone: ok ? 'safe' : off <= 0.3 ? 'amber' : 'danger', head: ok ? `Tepat. Batas amannya ${rp(h.ceiling)}.` : `Batas amannya ${rp(h.ceiling)}, kamu pilih ${rp(val)}.`,
         body: `FinWise mengambil yang lebih kecil dari dua angka: 30% gaji dikurangi cicilan lama (${rp(h.lens1)}) dan 70% sisa uang (${rp(h.lens2)}). Dengan tenor 12 bulan, pinjaman maksimal yang aman sekitar ${rp(FW.maxSafeLoan(g.p, 12))}.${g.flags.shoes ? ` Tanpa paylater sepatu, batasnya ${rp(g.start.ceiling)}.` : ''}` };
     } },
-  { id: 'pilih', day: 2, title: g => `Pilih pinjaman ${rps(g.need)}`,
-    text: () => 'Uangnya harus ada dalam 3 hari. Tiga tawaran masuk. Bandingkan, lalu pilih satu.',
-    offers: true,
+  { id: 'iklan', day: 2, app: 'iklan', ui: 'flags',
+    notif: () => 'Cair Kilat 24 Jam: dana cair 5 menit!', ask: () => 'Ketuk semua tanda bahaya di iklan ini, lalu selesai.',
+    pick: (g, v) => {
+      const taps = String(v || '').split(',').filter(Boolean).map(Number), hit = taps.filter(i => SB_AD[i]?.[1]).length, wrong = taps.filter(i => SB_AD[i] && !SB_AD[i][1]).length, all = SB_AD.filter(x => x[1]).length;
+      g.flags.redFlags = hit; if (hit === all && !wrong) g.stres -= 5;
+      return { tone: hit === all && !wrong ? 'safe' : hit ? 'amber' : 'danger', head: `${hit} dari ${all} tanda bahaya ketemu${wrong ? `, ${wrong} salah ketuk` : ''}.`,
+        body: `Tanda bahayanya: ${SB_AD.filter(x => x[1]).map(x => x[0].toLowerCase()).join('; ')}. Pindar berizin wajib mencantumkan nama perusahaan dan izin OJK, dan hanya boleh mengakses kamera, mikrofon, dan lokasi.` };
+    } },
+  { id: 'pilih', day: 2, app: 'pinjam', ui: 'offers',
+    notif: g => `3 tawaran untuk ${rps(g.need)}. Pilih satu.`,
     pick: (g, v) => {
       const o = sbOffers(g).find(x => x.pr.id === v), others = sbOffers(g).filter(x => x.pr.id !== v && !x.illegal);
       g.chosen = { id: o.pr.id, name: o.pr.name, zone: o.zone };
@@ -78,45 +89,47 @@ const SB_EVENTS = [
         const got = r10k(g.need * (1 - SB_CUT)), cut = g.need - got;
         g.saldo -= cut; g.flags.illegal = true; g.stres += 25;
         sbAddLoan(g.p, { name: o.pr.name, type: 'pindar', instalment: g.need, outstanding: g.need, months: 1, dueDay: 25 });
-        return { tone: 'danger', head: 'Cair 5 menit, tapi tidak utuh.', body: `Yang masuk hanya ${rp(got)}; ${rp(cut)} dipotong sebagai “biaya layanan”, pola yang sering dilaporkan korban pinjol ilegal. Kekurangannya ditutup dari sisa uang. Seluruh ${rp(g.need)} harus kembali dalam 30 hari, dan aplikasinya sudah membaca kontak di HP Dimas.` };
+        return { tone: 'danger', head: `Cair 5 menit, tapi cuma ${rps(got)}.`, body: `${rp(cut)} dipotong sebagai “biaya layanan”, pola yang sering dilaporkan korban pinjol ilegal. Kekurangannya ditutup dari sisa uang. Seluruh ${rp(g.need)} harus kembali dalam 30 hari, dan aplikasinya sudah membaca kontak di HP Dimas.` };
       }
       sbAddLoan(g.p, { name: o.pr.name, type: o.pr.kind === 'koperasi' ? 'koperasi' : 'pindar', instalment: o.L.inst, outstanding: o.L.repay + o.L.fee, months: o.pr.months, rateMonthly: o.pr.unit === 'day' ? o.pr.rate * 30 : o.pr.rate });
       g.stres += { safe: 0, stretch: 10, danger: 20 }[o.zone];
       const cheaper = others.filter(x => x.L.total < o.L.total).sort((a, b) => a.L.total - b.L.total)[0], pricier = others.filter(x => x.L.total > o.L.total)[0];
-      return { tone: { safe: 'safe', stretch: 'amber', danger: 'danger' }[o.zone], head: `${o.pr.name}: cicilan ${rp(o.L.inst)} per bulan.`,
-        body: `Mulai bulan depan sisa uang Dimas jadi ${rp(FW.surplus(g.p), { plus: true })} per bulan. Total biaya pinjamannya ${rp(o.L.total)}${cheaper ? `, padahal ${cheaper.pr.name} hanya ${rp(cheaper.L.total)}` : pricier ? `; ${pricier.pr.name} akan memakan ${rp(pricier.L.total)}` : ''}.` };
+      return { tone: { safe: 'safe', stretch: 'amber', danger: 'danger' }[o.zone], head: `Cicilan ${rps(o.L.inst)}/bulan, sisa uang jadi ${rps(FW.surplus(g.p))}.`,
+        body: `Mulai bulan depan sisa uang Dimas jadi ${rp(FW.surplus(g.p), { plus: true })} per bulan. Total biaya ${o.pr.name}: ${rp(o.L.total)}${cheaper ? `, padahal ${cheaper.pr.name} hanya ${rp(cheaper.L.total)}` : pricier ? `; ${pricier.pr.name} akan memakan ${rp(pricier.L.total)}` : ''}.` };
     } },
-  { id: 'tagih', day: 5, title: g => `Tagihan paylater jatuh tempo`,
-    // what is due on the 5th beyond the planned budget: the new shoes instalment, plus small spending that leaked if nothing was set aside
-    pre: g => { const extra = (g.flags.shoes ? SB_SHOES / 3 : 0) + (g.flags.locked ? 0 : SB_LEAK); g.saldo -= extra; return extra; },
-    text: g => `Paylater lama ${rp(DATA.personas.dimas.loans.find(l => l.type === 'paylater').instalment)}${g.flags.shoes ? ` dan paylater sepatu ${rp(SB_SHOES / 3)}` : ''} jatuh tempo hari ini.${g.flags.locked ? '' : ` Ternyata ${rp(SB_LEAK)} sudah terpakai untuk jajan dan belanja kecil sejak gajian.`} ${g.saldo < 0 ? ` Uang Dimas kurang ${rp(-g.saldo)}.` : ''}`,
-    choices: g => g.saldo >= 0 ? null : [['nego', 'Hubungi pemberi pinjaman sebelum jatuh tempo', 'Minta jadwal baru'], ['telat', 'Telat saja, bayar minggu depan', 'Kena denda'], ['gali', 'Pinjam di aplikasi lain untuk menutup', 'Cair 1 jam']],
-    auto: g => ({ tone: 'safe', head: 'Semua tagihan tanggal 5 terbayar tepat waktu.', body: `${g.flags.locked ? 'Uangnya sudah dipisah sejak gajian, jadi tinggal dibayar. ' : ''}Sisa uang bulan ini ${rp(g.saldo)}. Riwayat kredit Dimas tetap lancar.` }),
+  { id: 'tagih', day: 5, app: 'paylater',
+    // what is due on the 5th beyond the planned budget: the shoes instalment, plus small spending that leaked if nothing was set aside
+    pre: g => { g.saldo -= (g.flags.shoes ? SB_SHOES / 3 : 0) + (g.flags.locked ? 0 : SB_LEAK); },
+    notif: g => `Tagihan ${rps(DATA.personas.dimas.loans.find(l => l.type === 'paylater').instalment + (g.flags.shoes ? SB_SHOES / 3 : 0))} jatuh tempo hari ini`,
+    ask: g => g.saldo < 0 ? `${g.flags.locked ? '' : `Ternyata ${rps(SB_LEAK)} habis untuk jajan sejak gajian. `}Uangmu kurang ${rps(-g.saldo)}.` : '',
+    choices: g => g.saldo >= 0 ? null : [['nego', 'Telepon pemberi pinjaman'], ['telat', 'Telat saja'], ['gali', 'Pinjam di aplikasi lain']],
+    auto: g => ({ tone: 'safe', head: 'Terbayar tepat waktu.', body: `${g.flags.locked ? 'Uangnya sudah dipisah sejak gajian, jadi tinggal dibayar. ' : ''}Sisa uang bulan ini ${rp(g.saldo)}. Riwayat kredit Dimas tetap lancar.` }),
     pick: (g, v) => {
-      if (v === 'nego') { g.stres += 5; g.carry = -g.saldo; g.saldo = 0; return { tone: 'safe', head: 'Pemberi pinjaman setuju menggeser sebagian tagihan.', body: `Tidak semua mau, tapi peluangnya jauh lebih besar sebelum telat. Kekurangan ${rp(g.carry)} dibayar bulan depan dan riwayat kredit tetap lancar. Contoh pesannya ada di PULIH.` }; }
-      if (v === 'telat') { g.stres += 15; g.p.slik = 'dpk'; g.p.onTime = false; g.flags.late = true; return { tone: 'danger', head: 'Telat 7 hari.', body: 'Denda keterlambatan bertambah, dan telat 1–90 hari tercatat di SLIK sebagai Kol 2 (dalam perhatian khusus). Catatan ini bisa menutup akses ke pinjaman murah seperti koperasi dan KUR.' }; }
+      if (v === 'nego') { g.stres += 5; g.carry = -g.saldo; g.saldo = 0; return { tone: 'safe', head: 'Tagihan digeser, riwayat tetap lancar.', body: `Tidak semua pemberi pinjaman mau, tapi peluangnya jauh lebih besar sebelum telat. Kekurangan ${rp(g.carry)} dibayar bulan depan. Contoh pesannya ada di PULIH.` }; }
+      if (v === 'telat') { g.stres += 15; g.p.slik = 'dpk'; g.p.onTime = false; g.flags.late = true; return { tone: 'danger', head: 'Telat 7 hari, kena denda dan tercatat.', body: 'Telat 1–90 hari tercatat di SLIK sebagai Kol 2 (dalam perhatian khusus). Catatan ini bisa menutup akses ke pinjaman murah seperti koperasi dan KUR.' }; }
       const pr = sbProd('pantas'), amt = Math.ceil(-g.saldo / 100000) * 100000, L = FW.loan({ principal: amt, rate: pr.rate, unit: pr.unit, months: pr.months });
       sbAddLoan(g.p, { name: pr.name, type: 'pindar', instalment: L.inst, outstanding: L.repay, months: pr.months, rateMonthly: pr.rate * 30 });
       g.saldo += amt; g.stres += 10; g.flags.dig = true;
-      return { tone: 'danger', head: 'Lubang ditutup lubang baru.', body: `Pinjaman ${rp(amt)} menambah cicilan ${rp(L.inst)} per bulan selama ${pr.months} bulan, dengan biaya ${rp(L.total)}. Sisa uang Dimas bulan depan jadi ${rp(FW.surplus(g.p), { plus: true })}.` };
+      return { tone: 'danger', head: `Lubang ditutup lubang baru: +${rps(L.inst)}/bulan.`, body: `Pinjaman ${rp(amt)} menambah cicilan ${rp(L.inst)} per bulan selama ${pr.months} bulan, dengan biaya ${rp(L.total)}. Sisa uang Dimas bulan depan jadi ${rp(FW.surplus(g.p), { plus: true })}.` };
     } },
-  { id: 'teror', day: 6, when: g => g.flags.illegal, title: () => 'Pesan masuk ke grup kantor',
-    text: () => 'Penagih Cair Kilat mengirim pesan ke atasan dan teman-teman Dimas, padahal belum jatuh tempo. Isinya menyebut Dimas penipu.',
-    choices: () => [['lapor', 'Simpan bukti dan lapor ke Kontak OJK 157', 'Telepon 157 atau WhatsApp 081-157-157-157'], ['bayar', 'Bayar seadanya supaya berhenti', 'Rp500 rb dari sisa uang'], ['diam', 'Diam saja, semoga berhenti', '']],
+  { id: 'teror', day: 6, when: g => g.flags.illegal, app: 'grup',
+    notif: () => '“Dimas penipu, bayar utangnya!”',
+    ask: () => 'Penagih Cair Kilat menyebar pesan ke grup kantor.',
+    choices: () => [['lapor', 'Simpan bukti, lapor OJK 157'], ['bayar', 'Bayar seadanya'], ['diam', 'Diam saja']],
     pick: (g, v) => {
-      if (v === 'lapor') { g.stres -= 5; return { tone: 'safe', head: 'Laporan masuk.', body: 'Menghubungi orang selain peminjam dan mempermalukannya dilarang (POJK 22/2023 Pasal 62). Bukti tangkapan layar membantu OJK dan Satgas PASTI menindak aplikasinya.' }; }
-      if (v === 'bayar') { g.saldo -= 500000; g.stres += 10; return { tone: 'danger', head: 'Penagihan tidak berhenti.', body: 'Pinjol ilegal biasanya meminta lebih, karena tidak ada aturan yang mengikat mereka. Sisa uang Dimas makin tipis.' }; }
+      if (v === 'lapor') { g.stres -= 5; return { tone: 'safe', head: 'Laporan masuk ke OJK 157.', body: 'Menghubungi orang selain peminjam dan mempermalukannya dilarang (POJK 22/2023 Pasal 62). Bukti tangkapan layar membantu OJK dan Satgas PASTI menindak aplikasinya.' }; }
+      if (v === 'bayar') { g.saldo -= 500000; g.stres += 10; return { tone: 'danger', head: 'Penagihan tidak berhenti.', body: 'Pinjol ilegal biasanya meminta lebih, karena tidak ada aturan yang mengikat mereka.' }; }
       g.stres += 20; return { tone: 'danger', head: 'Pesannya makin banyak.', body: 'Diam membuat penagih merasa aman. Simpan bukti dan laporkan; itu hakmu sebagai konsumen.' };
     } },
-  { id: 'akhir', day: 24, title: () => 'Besok gajian lagi',
-    text: g => g.saldo > 0 ? `Sisa uang bulan ini ${rp(g.saldo)}. Mau dipakai untuk apa?` : `Bulan ini Dimas tekor ${rp(-g.saldo)}. Apa langkahnya?`,
-    choices: g => g.saldo > 0 ? [['darurat', 'Isi lagi dana darurat', `+${rps(g.saldo)}`], ['hadiah', 'Hadiah kecil untuk diri sendiri', 'Sudah sebulan berat']] : [['rencana', 'Susun rencana hemat bulan depan', 'Potong keinginan dulu'], ['pinjam', 'Tutup dengan pinjaman lagi', 'Biar cepat selesai']],
+  { id: 'akhir', day: 24, app: 'kalender',
+    notif: g => g.saldo > 0 ? `Besok gajian. Sisa uang ${rps(g.saldo)}.` : `Besok gajian. Bulan ini tekor ${rps(-g.saldo)}.`,
+    choices: g => g.saldo > 0 ? [['darurat', 'Isi dana darurat'], ['hadiah', 'Hadiah untuk diri sendiri']] : [['rencana', 'Susun rencana hemat'], ['pinjam', 'Tutup dengan pinjaman']],
     pick: (g, v) => {
       if (v === 'darurat') { g.p.emergencyFund += g.saldo; g.saldo = 0; g.stres -= 5; const out = FW.spendTotal(g.p) + (g.p.family || 0) + FW.instalments(g.p);
-        return { tone: 'safe', head: `Dana darurat jadi ${rp(g.p.emergencyFund)}.`, body: `Itu ${nf(g.p.emergencyFund / out, 1)} bulan pengeluaran. Targetnya 3 bulan: langkah kecil, tapi arahnya benar.` }; }
+        return { tone: 'safe', head: `Dana darurat jadi ${rps(g.p.emergencyFund)}.`, body: `Itu ${nf(g.p.emergencyFund / out, 1)} bulan pengeluaran. Targetnya 3 bulan: langkah kecil, tapi arahnya benar.` }; }
       if (v === 'hadiah') { g.saldo = 0; g.stres -= 10; return { tone: 'amber', head: 'Dimas lebih lega.', body: 'Tidak salah, asal dari sisa uang dan bukan dari utang. Dana daruratnya masih kosong, jadi kejadian mendadak berikutnya akan dibiayai pinjaman lagi.' }; }
-      if (v === 'rencana') { g.stres -= 5; return { tone: 'safe', head: 'Rencana dibuat.', body: 'Persis yang ada di CEK: mulai dari pos keinginan, pisahkan uang yang pasti keluar saat gajian, lalu tanyakan jadwal ulang ke pemberi pinjaman sebelum jatuh tempo.' }; }
-      g.stres += 10; g.flags.dig = true; return { tone: 'danger', head: 'Kekurangannya pindah ke bulan depan.', body: 'Pinjaman menutup tekor bulan ini, tapi cicilannya membuat bulan depan tekor lagi. Ini awal gali lubang tutup lubang.' };
+      if (v === 'rencana') { g.stres -= 5; return { tone: 'safe', head: 'Rencana dibuat.', body: 'Mulai dari pos keinginan, pisahkan uang yang pasti keluar saat gajian, lalu tanyakan jadwal ulang ke pemberi pinjaman sebelum jatuh tempo.' }; }
+      g.stres += 10; g.flags.dig = true; return { tone: 'danger', head: 'Tekornya pindah ke bulan depan.', body: 'Pinjaman menutup tekor bulan ini, tapi cicilannya membuat bulan depan tekor lagi. Ini awal gali lubang tutup lubang.' };
     } },
 ];
 const sbActive = g => SB_EVENTS.filter(e => !e.when || e.when(g));
@@ -126,6 +139,7 @@ function sbEnter(g) {
   if (!ev) { g.done = true; return; }
   if (ev.pre && !g.preDone?.[ev.id]) { g.preDone = { ...g.preDone, [ev.id]: true }; ev.pre(g); }
   if (ev.choices && !ev.choices(g) && ev.auto) { g.picks[ev.id] = 'auto'; g.out = { ...ev.auto(g), d: {} }; }
+  if (ev.ui === 'flags') g.flg = { taps: [], start: Date.now() };
 }
 function sbPick(t, v) {
   const g = t.g, ev = sbActive(g)[g.i]; if (!ev || g.out) return;
@@ -133,16 +147,17 @@ function sbPick(t, v) {
   const res = ev.pick(g, v); g.picks[ev.id] = v; g.stres = clamp100(g.stres);
   g.out = { ...res, d: { saldo: g.saldo - before.saldo, ef: g.p.emergencyFund - before.ef, utang: sbDebt(g.p) - before.utang, stres: g.stres - before.stres } };
   if (ev.id === 'rs') { t.marks.ladder = true; t.marks.ladderOk = v === 'tangga'; }
-  if (ev.id === 'batas') { t.marks.headroom = true; t.marks.headroomOk = v === 'ok'; }
+  if (ev.id === 'batas') { t.marks.headroom = true; t.marks.headroomOk = !!g.flags.headroomOk; }
   if (ev.id === 'pilih') t.chosen = g.chosen;
 }
-const clamp100 = x => Math.max(0, Math.min(100, x));
 function sbNext(g) { g.out = null; g.i++; sbEnter(g); }
+// mini-game input → the value its pick() expects
+const sbBlocksValue = b => b.tab && b.kak ? 'tangga' : b.tab ? 'darurat' : b.kak ? 'kakak' : 'pinjam';
 // the safest path through the same month, played by the same rules, for the comparison at the end
 function sbBest() {
   const g = sbNew(), t = { g, marks: {} }; sbEnter(g);
-  const plan = { gajian: 'kunci', flash: 'tunda', rs: 'tangga', batas: 'ok', pilih: 'koperasi', akhir: 'darurat' };
-  for (let k = 0; k < 12 && !g.done; k++) { const ev = sbActive(g)[g.i]; if (!g.out) sbPick(t, plan[ev.id]); sbNext(g); }
+  const plan = { gajian: 'kunci', flash: 'tunda', rs: 'tangga', batas: () => String(FW.headroom(g.p).ceiling), iklan: SB_AD.map((x, i) => x[1] ? i : null).filter(x => x != null).join(','), pilih: 'koperasi', akhir: 'darurat' };
+  for (let k = 0; k < 14 && !g.done; k++) { const ev = sbActive(g)[g.i]; if (!g.out) { const v = plan[ev.id]; sbPick(t, typeof v === 'function' ? v() : v); } sbNext(g); }
   return g;
 }
 function sbLessons(g) {
@@ -157,36 +172,71 @@ function sbLessons(g) {
   if (g.flags.dig) L.push('Meminjam untuk menutup cicilan memperbesar tekor bulan berikutnya.');
   return L.slice(0, 4);
 }
-function sbMeters(g) {
-  const s = g.stres, debt = sbDebt(g.p);
+// Dimas' face follows his stress
+function dimasFace(s) {
+  const mood = s < 35 ? 'happy' : s < 65 ? 'meh' : 'sad';
+  const mouth = { happy: 'M17 29q7 6 14 0', meh: 'M17 30.5h14', sad: 'M17 33q7-6 14 0' }[mood];
+  return `<svg viewBox="0 0 48 48" class="face" role="img" aria-label="Dimas ${sbStress(s)}"><circle cx="24" cy="25" r="19" fill="#F2C9A0" stroke="#13231B" stroke-width="2"/><path d="M6.5 21C7 11 14 5.5 24 5.5S41 11 41.5 21c-4-5-10-7.5-17.5-7.5S10.5 16 6.5 21z" fill="#13231B"/><circle cx="17.5" cy="24" r="2.2" fill="#13231B"/><circle cx="30.5" cy="24" r="2.2" fill="#13231B"/><path d="${mouth}" fill="none" stroke="#13231B" stroke-width="2.4" stroke-linecap="round"/>${mood === 'sad' ? '<path d="M39 13q3.5 5.5 0 8q-3.5-2.5 0-8z" fill="#2B7FA3"/>' : ''}</svg>`;
+}
+function sbHud(g) {
+  const debt = sbDebt(g.p), s = g.stres;
   const m = [['Sisa uang bulan ini', rp(g.saldo, { plus: g.saldo < 0 }), g.saldo < 0 ? 'danger' : g.saldo < 300000 ? 'stretch' : 'safe', Math.max(0, Math.min(100, g.saldo / g.start.sur * 100))],
     ['Dana darurat', rp(g.p.emergencyFund), g.p.emergencyFund > 0 ? 'safe' : 'stretch', Math.min(100, g.p.emergencyFund / g.start.ef * 100)],
     ['Total utang', rp(debt), debt > g.start.utang * 1.4 ? 'danger' : debt > g.start.utang ? 'stretch' : 'safe', Math.min(100, debt / (g.start.utang * 2) * 100)],
     ['Stres', `${s}/100 · ${sbStress(s)}`, s >= 65 ? 'danger' : s >= 35 ? 'stretch' : 'safe', s]];
-  return `<div class="sb-meters" role="group" aria-label="Kondisi Dimas">${m.map(([k, v, z, w]) => `<div class="sbm"><div class="k">${k}</div><div class="v num">${v}</div><div class="bar" aria-hidden="true"><i style="width:${w.toFixed(0)}%;background:var(--${z})"></i></div></div>`).join('')}</div>`;
+  return `<div class="sb-hud" role="group" aria-label="Kondisi Dimas"><div class="sb-who">${dimasFace(s)}<b>Dimas</b><span class="tiny muted">25 th, karyawan</span></div>
+    ${m.map(([k, v, z, w]) => `<div class="sbm"><div class="k">${k}</div><div class="v num">${v}</div><div class="bar" aria-hidden="true"><i style="width:${w.toFixed(0)}%;background:var(--${z})"></i></div></div>`).join('')}</div>`;
 }
 const SB_DELTA = { saldo: 'Sisa uang', ef: 'Dana darurat', utang: 'Utang', stres: 'Stres' };
+// the interactive part of an event: buttons, or one of the mini-games
+function sbBody(g, ev) {
+  if (ev.ui === 'envelopes') {
+    const h = FW.headroom(g.p), envs = [['pokok', 'Kebutuhan pokok', FW.needs(g.p)], ['keluarga', 'Kirim keluarga', g.p.family], ['cicilan', 'Cicilan', h.ex]];
+    const left = FW.income(g.p) - FW.sum(envs.filter(e => g.env[e[0]]), e => e[2]), all = envs.every(e => g.env[e[0]]);
+    return `<div class="env-row">${envs.map(([k, l, a]) => `<button class="env ${g.env[k] ? 'on' : ''}" data-act="sb-env" data-v="${k}" aria-pressed="${!!g.env[k]}"><span class="env-flap" aria-hidden="true"></span><b>${l}</b><span class="num">${rps(a)}</span></button>`).join('')}</div>
+      <p class="sb-wallet">Di rekening: <b class="num">${rp(left)}</b></p>
+      <div class="sb-choices two"><button class="sb-choice" data-act="sb-pick" data-v="kunci" ${all ? '' : 'disabled'}><b>Selesai membagi</b></button><button class="sb-choice ghost" data-act="sb-pick" data-v="santai"><b>Biarkan di satu rekening</b></button></div>`;
+  }
+  if (ev.ui === 'blocks') {
+    const n = g.p.need, used = (g.blk.tab ? g.p.emergencyFund : 0) + (g.blk.kak ? n.family : 0), loan = n.amount - used;
+    return `<div class="blk-bar" aria-hidden="true">${g.blk.tab ? `<i class="b-tab" style="width:${(g.p.emergencyFund / n.amount * 100).toFixed(1)}%">Tabungan</i>` : ''}${g.blk.kak ? `<i class="b-kak" style="width:${(n.family / n.amount * 100).toFixed(1)}%">Kakak</i>` : ''}<i class="b-loan" style="width:${(loan / n.amount * 100).toFixed(1)}%">Pinjam</i></div>
+      <div class="blk-row"><button class="blk ${g.blk.tab ? 'on' : ''}" data-act="sb-block" data-v="tab" aria-pressed="${!!g.blk.tab}"><b>Tabungan</b><span class="num">${rps(g.p.emergencyFund)}</span></button><button class="blk ${g.blk.kak ? 'on' : ''}" data-act="sb-block" data-v="kak" aria-pressed="${!!g.blk.kak}"><b>Bantuan kakak</b><span class="num">${rps(n.family)}</span></button></div>
+      <p class="sb-wallet">Yang dipinjam: <b class="num">${rp(loan)}</b></p>
+      <div class="sb-choices"><button class="sb-choice" data-act="sb-pick" data-v="${sbBlocksValue(g.blk)}"><b>Kunci: pinjam ${rps(loan)}</b></button></div>`;
+  }
+  if (ev.ui === 'slider') return `<div class="sb-slide"><output id="sb-val" for="sb-range" class="num">Rp0</output><input type="range" id="sb-range" class="range" min="0" max="2000000" step="25000" value="0" aria-label="Cicilan baru per bulan" aria-valuetext="Rp0"></div>
+      <div class="row between tiny muted"><span>Rp0</span><span>Rp2 jt</span></div>
+      <div class="sb-choices"><button class="sb-choice" data-act="sb-lock-slider"><b>Kunci jawaban</b></button></div>`;
+  if (ev.ui === 'flags') {
+    const left = Math.max(0, Math.ceil((SB_FLAG_MS - (Date.now() - (g.flg.start || Date.now()))) / 1000));
+    return `<div class="ad-card"><div class="ad-brand">Cair Kilat 24 Jam <span class="tiny">· iklan</span></div><div class="ad-lines">${SB_AD.map(([l], i) => `<button class="ad-line ${g.flg.taps.includes(i) ? 'on' : ''}" data-act="sb-flag" data-v="${i}" aria-pressed="${g.flg.taps.includes(i)}">${esc(l)}</button>`).join('')}</div></div>
+      ${S.test?.timerOn !== false ? `<div class="kl-time" aria-hidden="true"><i style="animation-duration:${SB_FLAG_MS}ms;animation-delay:-${Date.now() - g.flg.start}ms"></i></div><p class="tiny muted"><span role="timer">${left} detik</span></p>` : ''}
+      <div class="sb-choices"><button class="sb-choice" data-act="sb-flags-done"><b>Selesai</b></button></div>`;
+  }
+  if (ev.ui === 'offers') return `<div class="grid g3 sb-offers">${sbOffers(g).map(o => `<div class="opt sb-offer"><div class="row between"><b>${esc(o.pr.name)}</b>${o.illegal ? '<span class="pill z-danger">Tidak berizin</span>' : zpill(o.zone)}</div>
+      <p class="tiny muted">${o.illegal ? 'Tidak ada di daftar OJK' : o.pr.kind === 'koperasi' ? 'Koperasi kantor Dimas' : 'Pindar berizin OJK'} · cair ${o.illegal ? '5 menit' : FW.hoursLabel(o.pr.hours)}</p>
+      ${o.illegal ? '<div class="facts f2"><div><div class="k">Bunga</div><div class="v">tidak jelas</div></div><div><div class="k">Syarat</div><div class="v">akses kontak</div></div></div>' : `<div class="facts f2"><div><div class="k">Cicilan</div><div class="v">${rps(o.L.inst)}/bln</div></div><div><div class="k">Total biaya</div><div class="v">${rps(o.L.total)}</div></div></div>`}
+      <button class="btn sm ${o.illegal ? 'ghost' : ''}" data-act="sb-pick" data-v="${o.pr.id}">Pilih</button></div>`).join('')}</div>`;
+  const ch = ev.choices ? ev.choices(g) : null;
+  return ch ? `<div class="sb-choices ${ch.length === 2 ? 'two' : ''}">${ch.map(([v, l]) => `<button class="sb-choice" data-act="sb-pick" data-v="${v}"><b>${esc(l)}</b></button>`).join('')}</div>` : '';
+}
 function sbView(t) {
   const g = t.g, evs = sbActive(g);
   const days = `<ol class="sb-days" aria-label="Hari dalam sebulan">${evs.map((e, i) => `<li class="${i < g.i || g.done ? 'done' : i === g.i ? 'on' : ''}" ${i === g.i && !g.done ? 'aria-current="step"' : ''}><span>tgl</span>${e.day}</li>`).join('')}</ol>`;
-  if (g.done) return days + sbMeters(g) + sbReport(t);
-  const ev = evs[g.i], ch = ev.choices ? ev.choices(g) : null;
-  const body = ev.offers && !g.out ? `<div class="grid g3 sb-offers">${sbOffers(g).map(o => `<div class="opt sb-offer"><div class="row between"><b>${esc(o.pr.name)}</b>${o.illegal ? '<span class="pill z-danger">Tidak berizin</span>' : zpill(o.zone)}</div>
-      <p class="tiny muted">${o.illegal ? 'Tidak ada di daftar OJK · minta akses kontak dan galeri' : o.pr.kind === 'koperasi' ? 'Koperasi tempat Dimas bekerja' : 'Pindar berizin OJK'} · cair ${o.illegal ? '5 menit' : FW.hoursLabel(o.pr.hours)}</p>
-      ${o.illegal ? '<div class="facts f2"><div><div class="k">Bunga</div><div class="v">tidak dijelaskan</div></div><div><div class="k">Syarat</div><div class="v">cukup KTP</div></div></div>' : `<div class="facts f2"><div><div class="k">Cicilan</div><div class="v">${rp(o.L.inst)}/bln</div></div><div><div class="k">Total biaya</div><div class="v">${rp(o.L.total)}</div></div></div><p class="tiny muted">${o.pr.months} bulan · ${o.pr.unit === 'day' ? nf(o.pr.rate * 100, 2) + '%/hari' : nf(o.pr.rate * 100, 1) + '%/bulan'}</p>`}
-      <button class="btn sm ${o.illegal ? 'ghost' : ''}" data-act="sb-pick" data-v="${o.pr.id}">Pilih ${esc(o.pr.name)}</button></div>`).join('')}</div>`
-    : !g.out && ch ? `<div class="sb-choices">${ch.map(([v, l, sub]) => `<button class="sb-choice" data-act="sb-pick" data-v="${v}"><b>${esc(l)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</button>`).join('')}</div>` : '';
+  if (g.done) return days + sbHud(g) + sbReport(t);
+  const ev = evs[g.i], app = APPS[ev.app], ask = ev.ask ? ev.ask(g) : '', fresh = g.shown !== g.i; g.shown = g.i;
   const d = g.out ? Object.entries(g.out.d).filter(([, x]) => Math.round(x)) : [];
-  const out = g.out ? `<div class="sb-out note ${g.out.tone}" aria-live="polite"><h3 id="sb-out" tabindex="-1">${esc(g.out.head)}</h3><p class="small">${esc(g.out.body)}</p>
+  const out = g.out ? `<div class="sb-out ${g.out.tone}" aria-live="polite"><p id="sb-out" tabindex="-1" class="sb-head">${esc(g.out.head)}</p>
       ${d.length ? `<ul class="sb-delta">${d.map(([k, x]) => `<li class="${(k === 'saldo' || k === 'ef') === x > 0 ? 'up' : 'down'}">${SB_DELTA[k]} ${k === 'stres' ? (x > 0 ? '+' : '−') + Math.abs(x) : (x > 0 ? '+' : '−') + rps(Math.abs(x))}</li>`).join('')}</ul>` : ''}
+      <details class="why"><summary>Kenapa?</summary><p class="small">${esc(g.out.body)}</p></details>
       <button class="btn amber" data-act="sb-next">${g.i === evs.length - 1 ? 'Lihat laporan akhir bulan' : 'Lanjut'}</button></div>` : '';
-  return days + sbMeters(g) + `<article class="card sb-card"><p class="sb-date">Tanggal ${ev.day}</p><h2 id="sb-h" tabindex="-1">${esc(ev.title(g))}</h2><p style="margin-top:6px">${esc(ev.text(g))}</p>${body}${out}</article>`;
+  return days + `<div class="sb-stage">${sbHud(g)}<div class="sb-phone"><div class="notif${fresh ? ' nf-in' : ''}"><span class="nf-app nf-${app[1]}" aria-hidden="true">${app[0][0]}</span><div><div class="nf-meta">${app[0]} · tgl ${ev.day}</div><h2 id="sb-h" tabindex="-1" class="nf-text">${esc(ev.notif(g))}</h2></div></div>
+    ${ask && !g.out ? `<p class="sb-ask">${esc(ask)}</p>` : ''}${g.out ? out : sbBody(g, ev)}</div></div>`;
 }
 function sbReport(t) {
   const g = t.g, p = g.p, H = FW.health(p), R = FW.readiness(p), h = FW.headroom(p), best = sbBest(), BR = FW.readiness(best.p);
   const row = (k, a, b) => `<tr><td>${k}</td><td class="num"><b>${a}</b></td><td class="num">${b}</td></tr>`;
   return `<article class="card sb-card"><p class="sb-date">Laporan akhir bulan</p><h2 id="sb-h" tabindex="-1">Dimas ${g.stres >= 65 ? 'bertahan, tapi tertekan' : FW.surplus(p) < 0 ? 'bertahan, tapi bulan depan tekor' : 'lolos bulan ini'}</h2>
-    <p class="small muted" style="margin-top:4px">Angka dihitung mesin FinWise dari keadaan Dimas setelah semua pilihanmu, dibanding jalur paling aman untuk bulan yang sama.</p>
     <div class="tbl-wrap" style="margin-top:12px"><table><thead><tr><th></th><th>Pilihanmu</th><th>Jalur paling aman</th></tr></thead><tbody>
      ${row('Kondisi keuangan', `${H.total}/100 · ${H.status}`, `${FW.health(best.p).total}/100`)}
      ${row(term('Kesiapan berutang'), READY[R.level].name, READY[BR.level].name)}
@@ -196,6 +246,6 @@ function sbReport(t) {
      ${row('Stres', `${g.stres}/100`, `${best.stres}/100`)}
     </tbody></table></div>
     <h3 style="margin-top:16px">Yang terjadi bulan ini</h3><ul class="small sb-lessons">${sbLessons(g).map(x => `<li>${esc(x)}</li>`).join('')}</ul>
-    <p class="tiny muted" style="margin-top:8px">Jalur paling aman: pisahkan uang saat gajian, tunda sepatu, pakai tangga dana, pinjam ${rps(best.need)} di koperasi, sisa uang ke dana darurat.</p>
-    <div style="margin-top:14px"><button class="btn amber" data-act="t-next">Lanjut ke Babak 3</button></div></article>`;
+    <p class="tiny muted" style="margin-top:8px">Angka dihitung mesin FinWise. Jalur paling aman: bagi gaji ke amplop, tunda sepatu, pakai tabungan dan bantuan kakak, pinjam ${rps(best.need)} di koperasi, sisa uang ke dana darurat.</p>
+    <div style="margin-top:14px"><button class="btn amber" data-act="t-next">Lanjut ke Ronde Final</button></div></article>`;
 }
