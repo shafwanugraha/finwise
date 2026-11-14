@@ -85,6 +85,32 @@ async def acceptance(pg):
     await go(pg, 'cek'); t = await pg.evaluate("[...document.querySelectorAll('.ratios .r-name')].map(x => x.innerText).join('|')")
     check('CEK: Cia ratios present', all(k in t for k in ['Total pengeluaran', 'Cicilan selain KPR', 'Kredit aktif']))
     print('acceptance:', 'ALL PASS' if ok else 'FAILURES')
+# P1d: the game. Plays the safest path through "Sebulan Bertahan" and a few answers of the 60-second game.
+async def game_checks(pg, mobile=False):
+    ok = True
+    def check(name, cond):
+        nonlocal ok; ok = ok and cond; print(('PASS ' if cond else 'FAIL ') + name)
+    await pg.goto(URL + '#home'); await pg.reload(); await go(pg, 'main')
+    await pg.click('[data-act="t-start"]'); await pg.check('#t-consent'); await pg.click('[data-act="t-next"]')
+    n = await pg.locator('.qq').count(); check(f'game: {n} quiz questions incl. max safe loan', n == 6 and 'pinjaman maksimal' in (await pg.inner_text('.quiz')))
+    for i in range(n): await pg.check(f'input[name="pre-{i}"][value="-1"]')
+    await pg.click('[data-act="t-next"]')
+    if mobile: print('mobile game', await pg.evaluate('document.documentElement.scrollWidth')); await pg.screenshot(path=OUT + 'm_sebulan.png', full_page=True)
+    else: await axe(pg, 'sebulan')
+    for v in ['kunci', 'tunda', 'tangga', 'ok', 'koperasi', None, 'darurat']:
+        if v: await pg.click(f'[data-act="sb-pick"][data-v="{v}"]')
+        await pg.click('[data-act="sb-next"]'); await pg.wait_for_timeout(40)
+    t = await pg.inner_text('.sb-card')
+    check('game: safest path ends Hanya untuk darurat, sisa uang +Rp346.667', 'Dimas lolos bulan ini' in t and '+Rp346.667' in t and 'Hanya untuk darurat' in t)
+    if mobile: print('mobile report', await pg.evaluate('document.documentElement.scrollWidth')); await pg.screenshot(path=OUT + 'm_sebulan_rep.png', full_page=True)
+    else: await axe(pg, 'sebulan report')
+    await pg.goto(URL + '#home'); await pg.reload(); await go(pg, 'main')
+    await pg.click('[data-act="qg-start"]'); await pg.wait_for_timeout(80)
+    for k in ['ArrowLeft', 'ArrowRight', 'ArrowLeft']: await pg.keyboard.press(k); await pg.wait_for_timeout(40)
+    s = await pg.inner_text('.qg'); check('quick game: three answers recorded', s.count('Benar') + s.count('Salah') >= 1 and await pg.locator('.qg-name').count() == 1)
+    if not mobile: await axe(pg, 'quick game')
+    await pg.click('[data-act="qg-quit"]') if await pg.locator('[data-act="qg-quit"]').count() else None
+    print('game:', 'ALL PASS' if ok else 'FAILURES')
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch()
@@ -117,6 +143,7 @@ async def main():
         await go(pg, 'main'); await pg.screenshot(path=OUT + 'game.png'); print('game title:', await pg.inner_text('main h1'))
         await go(pg, 'uji'); print('uji ->', await pg.evaluate('location.hash'))
         await acceptance(pg)
+        await game_checks(pg)
         print('desktop errors:', errs)
         await ctx.close()
         ctx = await b.new_context(viewport={'width': 390, 'height': 844}); pg = await ctx.new_page(); errs = []
@@ -125,6 +152,7 @@ async def main():
         for r in ['home', 'cek', 'pilah', 'pulih', 'kalkulator', 'openspace', 'main', 'mulai']:
             await go(pg, r); print('mobile', r, await pg.evaluate('document.documentElement.scrollWidth')); await pg.screenshot(path=OUT + 'm_' + r + '.png', full_page=True)
         await go(pg, 'cek'); await pg.click('.fab'); await pg.wait_for_timeout(100); await pg.screenshot(path=OUT + 'm_drawer.png')
+        await game_checks(pg, mobile=True)
         print('mobile errors:', errs)
         await b.close()
 asyncio.run(main())

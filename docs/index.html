@@ -689,6 +689,45 @@ table.cmp td.best{background:var(--safe-tint)}
 /* PULIH: can't pay this month */
 .pay-msg{font-weight:400;min-height:190px;line-height:1.5;font-size:.9375rem;resize:vertical;white-space:pre-wrap}
 .protect{margin:8px 0 6px;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+/* GAME · Sebulan Bertahan */
+.sb-days{list-style:none;margin:0 0 12px;padding:0;display:flex;gap:6px;flex-wrap:wrap}
+.sb-days li{min-width:52px;padding:6px 8px;border-radius:12px;background:var(--soft);color:var(--muted);text-align:center;font-weight:800;font-size:1.05rem;line-height:1.1}
+.sb-days li span{display:block;font-size:.6875rem;font-weight:600}
+.sb-days li.done{background:var(--green-tint);color:var(--green)}
+.sb-days li.on{background:var(--deep);color:var(--card)}
+.sb-meters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.sbm{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.sbm .k{font-size:.75rem;color:var(--muted);font-weight:700}.sbm .v{font-weight:800;margin:2px 0 6px;font-size:.9375rem}
+.sbm .bar i{transition:width .45s ease}
+@media (prefers-reduced-motion:reduce){.sbm .bar i{transition:none}}
+@media (max-width:700px){.sb-meters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.sb-card{border-left:6px solid var(--amber-strong)}
+.sb-date{font-size:.8125rem;font-weight:800;color:var(--stretch)}
+.sb-choices{display:grid;gap:10px;margin-top:14px}
+.sb-choice{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:12px 14px;cursor:pointer;font:inherit}
+.sb-choice b{font-size:1rem}.sb-choice span{font-size:.8125rem;color:var(--muted)}
+.sb-choice:hover{border-color:var(--green);background:var(--green-tint)}
+.sb-offers{margin-top:14px}
+.sb-out{margin-top:14px}.sb-out h3{font-size:1.05rem}
+.sb-delta{list-style:none;padding:0;margin:10px 0 12px;display:flex;flex-wrap:wrap;gap:6px}
+.sb-delta li{font-size:.8125rem;font-weight:800;border-radius:999px;padding:3px 10px;background:var(--card)}
+.sb-delta li.up{color:var(--safe)}.sb-delta li.down{color:var(--danger)}
+.sb-lessons{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+/* GAME · Legal atau ilegal */
+.qg-promo{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;border-left:6px solid var(--deep)}
+.qg-promo > div{flex:1 1 320px}
+.qg-score{font-weight:700;color:var(--muted)}.qg-score .num{font-size:1.6rem;color:var(--green);font-weight:800}
+.qg-clock{display:flex;gap:12px;align-items:center}.qg-clock > span{min-width:84px;font-weight:700}.qg-clock .bar{flex:1}
+.qg-clock .bar i{background:var(--amber-strong)}
+.qg-name{font-size:clamp(1.5rem,4.5vw,2.3rem);font-weight:800;text-align:center;padding:26px 10px;border-radius:18px;background:var(--soft);overflow-wrap:anywhere;line-height:1.15}
+.qg-btns{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.qg-btns .btn{min-height:64px;font-size:1.1rem;flex-direction:column;gap:0}
+.qg-btns .btn .tiny{font-weight:600;opacity:.85}
+.qg-legal{background:var(--safe);border-color:var(--safe);color:var(--card)}
+.qg-ilegal{background:var(--danger);border-color:var(--danger);color:var(--card)}
+.qg-last{border-radius:12px;padding:10px 12px}.qg-last.ok{background:var(--green-tint)}.qg-last.no{background:var(--danger-tint)}
+.qg-wrong{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+@media (max-width:560px){.sb-days{flex-wrap:nowrap;gap:4px}.sb-days li{flex:1 1 0;min-width:0;padding:5px 2px;font-size:.95rem}}
 </style>
 </head>
 <body>
@@ -1123,6 +1162,8 @@ const DATA = (() => {
     { q: 'Dimas butuh Rp12 jt. Ia punya tabungan Rp3 jt dan kakaknya bisa bantu Rp2 jt. Berapa yang sebenarnya perlu ia pinjam?', a: ['Rp12 juta', 'Rp9 juta', 'Rp7 juta', 'Rp3 juta'], correct: 2 },
     { q: 'Untuk pinjaman Rp7 jt, mana yang total biayanya paling murah?', a: ['Pindar 0,25%/hari, 6 bulan', 'Pindar 0,15%/hari, 12 bulan', 'Koperasi 1%/bulan, 12 bulan', 'Semuanya kurang lebih sama'], correct: 2 },
     { q: '“Cair Kilat 24 Jam” menjanjikan dana cair 5 menit. Apa status izinnya?', a: ['Berizin OJK', 'Tidak berizin (ilegal)', 'Sedang proses izin', 'Tidak bisa dicek'], correct: 1 },
+    // added after the UX revision (Alsya, Nov 2026); kept last so older 5-answer records still score the same questions
+    { q: 'Dengan tenor 12 bulan, berapa pinjaman maksimal yang masih aman untuk Dimas?', a: ['Sekitar Rp3 juta', 'Sekitar Rp7 juta', 'Sekitar Rp12 juta', 'Sekitar Rp20 juta'], correct: 1 },
   ];
 
   const hints = {
@@ -1476,7 +1517,7 @@ function userChip() {
 const secHead = (n, id, title, sub) => `<div class="sec-h" id="${id}" tabindex="-1"><span class="sec-n" aria-hidden="true">${n}</span><div><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ''}</div></div>`;
 const secNav = items => `<nav class="secnav" aria-label="Bagian di halaman ini">${items.map(([id, l], i) => `<button data-act="goto-sec" data-id="${id}"><span>${i + 1}</span>${l}</button>`).join('')}</nav>`;
 function footer() {
-  return `<footer><div class="wrap"><span><b>FinWise</b> · prototipe Tim 20 elevATE untuk validasi pengguna. Data: daftar pindar berizin OJK (${OJK.licensedPeriod}), daftar pinjol ilegal Satgas PASTI (${OJK.illegalPeriod}), statistik LPBBTI OJK (${OJK.stats.period}), tarif RIPLAY per ${dateID('2026-04-30')}, dan ulasan Google Play. Tokoh dan pemberi pinjaman di game Lolos Jebakan Pinjol adalah fiktif. Bukan nasihat keuangan.</span><span class="row" style="gap:12px"><button class="linkbtn" data-act="glossary">Kamus istilah</button><span>Cek legalitas resmi: Kontak OJK 157 · WhatsApp 081-157-157-157</span></span></div></footer>`;
+  return `<footer><div class="wrap"><span><b>FinWise</b> · prototipe Tim 20 elevATE untuk validasi pengguna. Data: daftar pindar berizin OJK (${OJK.licensedPeriod}), daftar pinjol ilegal Satgas PASTI (${OJK.illegalPeriod}), statistik LPBBTI OJK (${OJK.stats.period}), tarif RIPLAY per ${dateID('2026-04-30')}, dan ulasan Google Play. Tokoh dan pemberi pinjaman di game Lolos Jebakan Pinjol fiktif; game Legal atau ilegal memakai nama dari daftar resmi OJK dan Satgas PASTI. Bukan nasihat keuangan.</span><span class="row" style="gap:12px"><button class="linkbtn" data-act="glossary">Kamus istilah</button><span>Cek legalitas resmi: Kontak OJK 157 · WhatsApp 081-157-157-157</span></span></div></footer>`;
 }
 /* glossary: plain-language definitions, opened from any underlined term */
 const TERMS = {
@@ -1635,7 +1676,7 @@ function vHome() {
 
   <a class="challenge" href="#main">
     <span class="ch-ico">${ico('game')}</span>
-    <span class="ch-text"><small>Game literasi keuangan · 3 babak · ±10 menit</small><b>Lolos Jebakan Pinjol</b><span>Bantu Dimas mendapat Rp12 juta dalam 3 hari tanpa terjebak pinjol ilegal, lalu kumpulkan 3 bintang.</span></span>
+    <span class="ch-text"><small>Game literasi keuangan · ±10 menit, atau main cepat 60 detik</small><b>Lolos Jebakan Pinjol</b><span>Jalani sebulan sebagai Dimas: flash sale, tagihan, dan biaya rumah sakit. Setiap pilihan mengubah sisa uang, utang, dan stresnya.</span></span>
     <span class="btn amber">Main sekarang</span>
   </a>`;
 }
@@ -2892,15 +2933,284 @@ function vStatistik() {
     </tbody></table></div><p class="tiny muted" style="margin-top:8px">Sumber: Statistik LPBBTI OJK, ${st.period}.</p></div>`;
 }
 const starBar = (n, max) => `<div class="bar" style="flex:1" aria-hidden="true"><i style="width:${max ? (n / max * 100).toFixed(1) : 0}%;background:var(--amber-strong)"></i></div>`;
-/* ================= TEST MODE ================= */
-const TSTEPS = ['Siap main', 'Babak 1 · Tebak cepat', 'Babak 2 · Selamatkan Dimas', 'Babak 3 · Tebak lagi', 'Nilai game ini'];
-function newTest() {
+/* ================= GAME · Babak 2 "Sebulan Bertahan" =================
+   One month as Dimas, from payday to payday. The game decides which events happen and what each choice
+   changes in a copy of his profile; every rupiah figure shown comes from the engine (FW) on that copy. */
+const sbDebt = p => FW.sum(p.loans, l => l.outstanding);
+const r10k = x => Math.round(x / 10000) * 10000;
+const SB_SHOES = 750000, SB_LEAK = 700000, SB_CUT = 0.3;
+function sbNew() {
   const p = clone(DATA.personas.dimas);
-  return { id: 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), stage: 0, startedAt: Date.now(), consent: false, age: '', status: '', pre: Array(5).fill(null), post: Array(5).fill(null),
-    p, st: { step: 1, needLabel: p.need.label, need: p.need.amount, hours: 72, useSavings: 0, family: 0, purpose: 'konsumtif', mode: 'seimbang', picked: null, why: false, showOut: false },
-    marks: {}, help: 0, chosen: null, ack: false, feedback: { help: '', ease: 0, confidence: 0, comment: '' }, saved: null };
+  return { i: 0, p, saldo: FW.surplus(p), stres: 30, need: null, flags: {}, picks: {}, out: null, done: false,
+    start: { utang: sbDebt(p), sur: FW.surplus(p), ceiling: FW.headroom(p).ceiling, ef: p.emergencyFund } };
 }
-const score = arr => arr.reduce((s, a, i) => s + (a === DATA.quiz[i].correct ? 20 : 0), 0);
+const sbProd = id => DATA.products.find(x => x.id === id);
+function sbOffers(g) {
+  return ['koperasi', 'tenang', 'cairkilat'].map(id => {
+    const pr = sbProd(id);
+    if (pr.illegal) return { pr, illegal: true, zone: 'danger' };
+    const L = FW.loan({ principal: g.need, rate: pr.rate, unit: pr.unit, months: pr.months, feePct: pr.feePct || 0 });
+    return { pr, L, zone: FW.zoneOf(g.p, L.inst).zone };
+  });
+}
+function sbAddLoan(p, o) { p.loans.push({ id: 'g' + p.loans.length, dueDay: 10, rateMonthly: 0, ...o }); }
+const sbStress = s => s < 35 ? 'tenang' : s < 65 ? 'waswas' : 'tertekan';
+const SB_HINTS = {
+  gajian: 'Uang yang pasti keluar (kebutuhan pokok, kiriman keluarga, cicilan) paling aman dipisah di hari gajian, sebelum terpakai.',
+  flash: 'Cicilan “0%” tetap cicilan: porsi cicilan naik dan batas cicilan aman untuk kejadian mendadak turun.',
+  rs: 'Tangga dana: pakai uang tanpa bunga dulu (dana darurat, bantuan keluarga), baru pinjam sisanya.',
+  batas: 'Batas aman FinWise adalah yang lebih kecil dari dua angka: 30% gaji dikurangi cicilan lama, dan 70% sisa uang.',
+  pilih: 'Bandingkan total biaya dan cocokkan dengan batas aman. Cair paling cepat bukan berarti paling aman, dan cek dulu izinnya.',
+  tagih: 'Kalau uang kurang, hubungi pemberi pinjaman sebelum jatuh tempo. Telat bayar tercatat di SLIK.',
+  teror: 'Penagih dilarang menghubungi orang selain peminjam. Simpan bukti dan laporkan.',
+  akhir: 'Sisa uang di akhir bulan paling berguna untuk membangun lagi dana darurat.',
+};
+// events in order; `when` decides whether an event happens, `auto` resolves an event that has no real choice
+const SB_EVENTS = [
+  { id: 'gajian', day: 25, title: g => `Gajian masuk ${rp(FW.income(g.p))}`,
+    text: g => `Bulan ini yang pasti keluar: kebutuhan pokok ${rp(FW.needs(g.p))}, kiriman keluarga ${rp(g.p.family)}, dan cicilan ${rp(FW.instalments(g.p))}. Sisa uang Dimas ${rp(FW.surplus(g.p))}.`,
+    choices: () => [['kunci', 'Pisahkan dulu yang pasti keluar', 'Pindah ke rekening terpisah hari ini'], ['santai', 'Biarkan di satu rekening', 'Nanti juga cukup']],
+    pick: (g, v) => v === 'kunci'
+      ? (g.flags.locked = true, g.stres -= 5, { tone: 'safe', head: 'Uang yang pasti keluar sudah aman.', body: `Yang terlihat di rekening tinggal ${rp(g.saldo)}. Karena terlihat sedikit, belanja kecil ikut tertahan.` })
+      : (g.flags.locked = false, { tone: 'amber', head: `${rp(FW.income(g.p))} terlihat di rekening.`, body: 'Terasa banyak. Kita lihat nanti apakah semuanya masih ada saat tagihan datang.' }) },
+  { id: 'flash', day: 27, title: () => `Flash sale sepatu ${rps(SB_SHOES)}`,
+    text: () => `Teman-teman kantor membeli sepatu lari yang sama. Ada pilihan paylater 3× ${rp(SB_SHOES / 3)}, katanya bunga 0%.`,
+    choices: () => [['paylater', 'Ambil paylater 3×', `${rps(SB_SHOES / 3)} per bulan, 3 bulan`], ['tunai', 'Bayar tunai dari sisa uang', `${rps(SB_SHOES)} sekarang`], ['tunda', 'Masukkan wishlist dulu', 'Cek lagi 30 hari lagi']],
+    pick: (g, v) => {
+      if (v === 'paylater') {
+        const c0 = FW.headroom(g.p).ceiling; sbAddLoan(g.p, { name: 'Paylater sepatu', type: 'paylater', instalment: SB_SHOES / 3, outstanding: SB_SHOES, months: 3, dueDay: 5 });
+        const h = FW.headroom(g.p); g.flags.shoes = [c0, h.ceiling]; g.stres -= 5;
+        return { tone: 'amber', head: 'Sepatu dibawa pulang. Cicilannya ikut.', body: `Cicilan Dimas naik jadi ${rp(h.ex)} per bulan (${pct(h.dsrNow, 0)} dari gaji). Batas cicilan amannya turun dari ${rp(c0)} jadi ${rp(h.ceiling)}. Bunga 0% tetap cicilan.` };
+      }
+      if (v === 'tunai') { g.saldo -= SB_SHOES; g.stres -= 5; return { tone: 'amber', head: 'Lunas di tempat.', body: `Tidak ada utang baru, tapi sisa uang bulan ini tinggal ${rp(g.saldo)} untuk kejadian mendadak.` }; }
+      g.stres += 5; return { tone: 'safe', head: 'Belum beli.', body: `Kalau 30 hari lagi masih ingin dan uangnya ada, beli tanpa cicilan. Sisa uang tetap ${rp(g.saldo)}.` };
+    } },
+  { id: 'rs', day: 1, title: () => 'Ayah masuk rumah sakit',
+    text: g => `Biaya yang harus disiapkan ${rp(g.p.need.amount)} dalam 3 hari. Dimas punya dana darurat ${rp(g.p.emergencyFund)}, dan ${g.p.need.familyFrom} bisa membantu ${rp(g.p.need.family)}. Dari mana dulu?`,
+    choices: g => { const n = g.p.need, ef = g.p.emergencyFund; return [['tangga', 'Dana darurat dan bantuan kakak dulu, sisanya pinjam', `Pinjam ${rps(n.amount - ef - n.family)}`], ['darurat', 'Dana darurat saja, sisanya pinjam', `Pinjam ${rps(n.amount - ef)}`], ['pinjam', 'Pinjam semuanya, dana darurat jangan disentuh', `Pinjam ${rps(n.amount)}`]]; },
+    pick: (g, v) => {
+      const n = g.p.need, ef = g.p.emergencyFund; g.stres += 15; g.flags.ladder = v;
+      if (v === 'pinjam') { g.need = n.amount; return { tone: 'danger', head: `Pinjam ${rp(g.need)}.`, body: `Dana darurat memang disiapkan untuk kejadian seperti ini. Tidak memakainya membuat pinjaman ${rp(ef + n.family)} lebih besar dari yang perlu, dan bunganya tetap jalan.` }; }
+      g.p.emergencyFund = 0;
+      if (v === 'darurat') { g.need = n.amount - ef; return { tone: 'amber', head: `Pinjam ${rp(g.need)}.`, body: `Bantuan ${n.familyFrom} ${rp(n.family)} tanpa bunga tidak dipakai, jadi pinjamannya ${rp(n.family)} lebih besar dari yang perlu.` }; }
+      g.need = n.amount - ef - n.family; return { tone: 'safe', head: `Pinjamannya tinggal ${rp(g.need)}.`, body: 'Uang tanpa bunga dipakai dulu. Ini namanya tangga dana: makin kecil pinjamannya, makin kecil cicilan dan bunganya.' };
+    } },
+  { id: 'batas', day: 1, title: () => 'Berapa cicilan yang masih aman?',
+    text: g => `Sebelum memilih pinjaman, cek batasnya dulu. Sisa uang Dimas sekarang ${rp(FW.surplus(g.p))} per bulan. Cicilan baru maksimal berapa supaya tetap aman?`,
+    choices: g => { const c = FW.headroom(g.p).ceiling; return [['lo', rp(r10k(c * 0.43)), ''], ['ok', rp(c), ''], ['hi', rp(r10k(c * 2.15)), '']]; },
+    pick: (g, v) => {
+      const h = FW.headroom(g.p), ok = v === 'ok'; g.flags.headroomOk = ok;
+      return { tone: ok ? 'safe' : 'amber', head: ok ? `Tepat: ${rp(h.ceiling)}.` : `Belum tepat. Batas amannya ${rp(h.ceiling)}.`,
+        body: `FinWise mengambil yang lebih kecil dari dua angka: 30% gaji dikurangi cicilan lama (${rp(h.lens1)}) dan 70% sisa uang (${rp(h.lens2)}). Dengan tenor 12 bulan, pinjaman maksimal yang aman sekitar ${rp(FW.maxSafeLoan(g.p, 12))}.${g.flags.shoes ? ` Tanpa paylater sepatu, batasnya ${rp(g.start.ceiling)}.` : ''}` };
+    } },
+  { id: 'pilih', day: 2, title: g => `Pilih pinjaman ${rps(g.need)}`,
+    text: () => 'Uangnya harus ada dalam 3 hari. Tiga tawaran masuk. Bandingkan, lalu pilih satu.',
+    offers: true,
+    pick: (g, v) => {
+      const o = sbOffers(g).find(x => x.pr.id === v), others = sbOffers(g).filter(x => x.pr.id !== v && !x.illegal);
+      g.chosen = { id: o.pr.id, name: o.pr.name, zone: o.zone };
+      if (o.illegal) {
+        const got = r10k(g.need * (1 - SB_CUT)), cut = g.need - got;
+        g.saldo -= cut; g.flags.illegal = true; g.stres += 25;
+        sbAddLoan(g.p, { name: o.pr.name, type: 'pindar', instalment: g.need, outstanding: g.need, months: 1, dueDay: 25 });
+        return { tone: 'danger', head: 'Cair 5 menit, tapi tidak utuh.', body: `Yang masuk hanya ${rp(got)}; ${rp(cut)} dipotong sebagai “biaya layanan”, pola yang sering dilaporkan korban pinjol ilegal. Kekurangannya ditutup dari sisa uang. Seluruh ${rp(g.need)} harus kembali dalam 30 hari, dan aplikasinya sudah membaca kontak di HP Dimas.` };
+      }
+      sbAddLoan(g.p, { name: o.pr.name, type: o.pr.kind === 'koperasi' ? 'koperasi' : 'pindar', instalment: o.L.inst, outstanding: o.L.repay + o.L.fee, months: o.pr.months, rateMonthly: o.pr.unit === 'day' ? o.pr.rate * 30 : o.pr.rate });
+      g.stres += { safe: 0, stretch: 10, danger: 20 }[o.zone];
+      const cheaper = others.filter(x => x.L.total < o.L.total).sort((a, b) => a.L.total - b.L.total)[0], pricier = others.filter(x => x.L.total > o.L.total)[0];
+      return { tone: { safe: 'safe', stretch: 'amber', danger: 'danger' }[o.zone], head: `${o.pr.name}: cicilan ${rp(o.L.inst)} per bulan.`,
+        body: `Mulai bulan depan sisa uang Dimas jadi ${rp(FW.surplus(g.p), { plus: true })} per bulan. Total biaya pinjamannya ${rp(o.L.total)}${cheaper ? `, padahal ${cheaper.pr.name} hanya ${rp(cheaper.L.total)}` : pricier ? `; ${pricier.pr.name} akan memakan ${rp(pricier.L.total)}` : ''}.` };
+    } },
+  { id: 'tagih', day: 5, title: g => `Tagihan paylater jatuh tempo`,
+    // what is due on the 5th beyond the planned budget: the new shoes instalment, plus small spending that leaked if nothing was set aside
+    pre: g => { const extra = (g.flags.shoes ? SB_SHOES / 3 : 0) + (g.flags.locked ? 0 : SB_LEAK); g.saldo -= extra; return extra; },
+    text: g => `Paylater lama ${rp(DATA.personas.dimas.loans.find(l => l.type === 'paylater').instalment)}${g.flags.shoes ? ` dan paylater sepatu ${rp(SB_SHOES / 3)}` : ''} jatuh tempo hari ini.${g.flags.locked ? '' : ` Ternyata ${rp(SB_LEAK)} sudah terpakai untuk jajan dan belanja kecil sejak gajian.`} ${g.saldo < 0 ? ` Uang Dimas kurang ${rp(-g.saldo)}.` : ''}`,
+    choices: g => g.saldo >= 0 ? null : [['nego', 'Hubungi pemberi pinjaman sebelum jatuh tempo', 'Minta jadwal baru'], ['telat', 'Telat saja, bayar minggu depan', 'Kena denda'], ['gali', 'Pinjam di aplikasi lain untuk menutup', 'Cair 1 jam']],
+    auto: g => ({ tone: 'safe', head: 'Semua tagihan tanggal 5 terbayar tepat waktu.', body: `${g.flags.locked ? 'Uangnya sudah dipisah sejak gajian, jadi tinggal dibayar. ' : ''}Sisa uang bulan ini ${rp(g.saldo)}. Riwayat kredit Dimas tetap lancar.` }),
+    pick: (g, v) => {
+      if (v === 'nego') { g.stres += 5; g.carry = -g.saldo; g.saldo = 0; return { tone: 'safe', head: 'Pemberi pinjaman setuju menggeser sebagian tagihan.', body: `Tidak semua mau, tapi peluangnya jauh lebih besar sebelum telat. Kekurangan ${rp(g.carry)} dibayar bulan depan dan riwayat kredit tetap lancar. Contoh pesannya ada di PULIH.` }; }
+      if (v === 'telat') { g.stres += 15; g.p.slik = 'dpk'; g.p.onTime = false; g.flags.late = true; return { tone: 'danger', head: 'Telat 7 hari.', body: 'Denda keterlambatan bertambah, dan telat 1–90 hari tercatat di SLIK sebagai Kol 2 (dalam perhatian khusus). Catatan ini bisa menutup akses ke pinjaman murah seperti koperasi dan KUR.' }; }
+      const pr = sbProd('pantas'), amt = Math.ceil(-g.saldo / 100000) * 100000, L = FW.loan({ principal: amt, rate: pr.rate, unit: pr.unit, months: pr.months });
+      sbAddLoan(g.p, { name: pr.name, type: 'pindar', instalment: L.inst, outstanding: L.repay, months: pr.months, rateMonthly: pr.rate * 30 });
+      g.saldo += amt; g.stres += 10; g.flags.dig = true;
+      return { tone: 'danger', head: 'Lubang ditutup lubang baru.', body: `Pinjaman ${rp(amt)} menambah cicilan ${rp(L.inst)} per bulan selama ${pr.months} bulan, dengan biaya ${rp(L.total)}. Sisa uang Dimas bulan depan jadi ${rp(FW.surplus(g.p), { plus: true })}.` };
+    } },
+  { id: 'teror', day: 6, when: g => g.flags.illegal, title: () => 'Pesan masuk ke grup kantor',
+    text: () => 'Penagih Cair Kilat mengirim pesan ke atasan dan teman-teman Dimas, padahal belum jatuh tempo. Isinya menyebut Dimas penipu.',
+    choices: () => [['lapor', 'Simpan bukti dan lapor ke Kontak OJK 157', 'Telepon 157 atau WhatsApp 081-157-157-157'], ['bayar', 'Bayar seadanya supaya berhenti', 'Rp500 rb dari sisa uang'], ['diam', 'Diam saja, semoga berhenti', '']],
+    pick: (g, v) => {
+      if (v === 'lapor') { g.stres -= 5; return { tone: 'safe', head: 'Laporan masuk.', body: 'Menghubungi orang selain peminjam dan mempermalukannya dilarang (POJK 22/2023 Pasal 62). Bukti tangkapan layar membantu OJK dan Satgas PASTI menindak aplikasinya.' }; }
+      if (v === 'bayar') { g.saldo -= 500000; g.stres += 10; return { tone: 'danger', head: 'Penagihan tidak berhenti.', body: 'Pinjol ilegal biasanya meminta lebih, karena tidak ada aturan yang mengikat mereka. Sisa uang Dimas makin tipis.' }; }
+      g.stres += 20; return { tone: 'danger', head: 'Pesannya makin banyak.', body: 'Diam membuat penagih merasa aman. Simpan bukti dan laporkan; itu hakmu sebagai konsumen.' };
+    } },
+  { id: 'akhir', day: 24, title: () => 'Besok gajian lagi',
+    text: g => g.saldo > 0 ? `Sisa uang bulan ini ${rp(g.saldo)}. Mau dipakai untuk apa?` : `Bulan ini Dimas tekor ${rp(-g.saldo)}. Apa langkahnya?`,
+    choices: g => g.saldo > 0 ? [['darurat', 'Isi lagi dana darurat', `+${rps(g.saldo)}`], ['hadiah', 'Hadiah kecil untuk diri sendiri', 'Sudah sebulan berat']] : [['rencana', 'Susun rencana hemat bulan depan', 'Potong keinginan dulu'], ['pinjam', 'Tutup dengan pinjaman lagi', 'Biar cepat selesai']],
+    pick: (g, v) => {
+      if (v === 'darurat') { g.p.emergencyFund += g.saldo; g.saldo = 0; g.stres -= 5; const out = FW.spendTotal(g.p) + (g.p.family || 0) + FW.instalments(g.p);
+        return { tone: 'safe', head: `Dana darurat jadi ${rp(g.p.emergencyFund)}.`, body: `Itu ${nf(g.p.emergencyFund / out, 1)} bulan pengeluaran. Targetnya 3 bulan: langkah kecil, tapi arahnya benar.` }; }
+      if (v === 'hadiah') { g.saldo = 0; g.stres -= 10; return { tone: 'amber', head: 'Dimas lebih lega.', body: 'Tidak salah, asal dari sisa uang dan bukan dari utang. Dana daruratnya masih kosong, jadi kejadian mendadak berikutnya akan dibiayai pinjaman lagi.' }; }
+      if (v === 'rencana') { g.stres -= 5; return { tone: 'safe', head: 'Rencana dibuat.', body: 'Persis yang ada di CEK: mulai dari pos keinginan, pisahkan uang yang pasti keluar saat gajian, lalu tanyakan jadwal ulang ke pemberi pinjaman sebelum jatuh tempo.' }; }
+      g.stres += 10; g.flags.dig = true; return { tone: 'danger', head: 'Kekurangannya pindah ke bulan depan.', body: 'Pinjaman menutup tekor bulan ini, tapi cicilannya membuat bulan depan tekor lagi. Ini awal gali lubang tutup lubang.' };
+    } },
+];
+const sbActive = g => SB_EVENTS.filter(e => !e.when || e.when(g));
+// moves to the next event; events without a real choice resolve on entry
+function sbEnter(g) {
+  const evs = sbActive(g), ev = evs[g.i];
+  if (!ev) { g.done = true; return; }
+  if (ev.pre && !g.preDone?.[ev.id]) { g.preDone = { ...g.preDone, [ev.id]: true }; ev.pre(g); }
+  if (ev.choices && !ev.choices(g) && ev.auto) { g.picks[ev.id] = 'auto'; g.out = { ...ev.auto(g), d: {} }; }
+}
+function sbPick(t, v) {
+  const g = t.g, ev = sbActive(g)[g.i]; if (!ev || g.out) return;
+  const before = { saldo: g.saldo, ef: g.p.emergencyFund, utang: sbDebt(g.p), stres: g.stres };
+  const res = ev.pick(g, v); g.picks[ev.id] = v; g.stres = clamp100(g.stres);
+  g.out = { ...res, d: { saldo: g.saldo - before.saldo, ef: g.p.emergencyFund - before.ef, utang: sbDebt(g.p) - before.utang, stres: g.stres - before.stres } };
+  if (ev.id === 'rs') { t.marks.ladder = true; t.marks.ladderOk = v === 'tangga'; }
+  if (ev.id === 'batas') { t.marks.headroom = true; t.marks.headroomOk = v === 'ok'; }
+  if (ev.id === 'pilih') t.chosen = g.chosen;
+}
+const clamp100 = x => Math.max(0, Math.min(100, x));
+function sbNext(g) { g.out = null; g.i++; sbEnter(g); }
+// the safest path through the same month, played by the same rules, for the comparison at the end
+function sbBest() {
+  const g = sbNew(), t = { g, marks: {} }; sbEnter(g);
+  const plan = { gajian: 'kunci', flash: 'tunda', rs: 'tangga', batas: 'ok', pilih: 'koperasi', akhir: 'darurat' };
+  for (let k = 0; k < 12 && !g.done; k++) { const ev = sbActive(g)[g.i]; if (!g.out) sbPick(t, plan[ev.id]); sbNext(g); }
+  return g;
+}
+function sbLessons(g) {
+  const L = [], n = g.p.need;
+  if (g.flags.shoes) L.push(`Paylater “0%” sepatu menurunkan batas cicilan aman Dimas dari ${rp(g.flags.shoes[0])} jadi ${rp(g.flags.shoes[1])}.`);
+  if (g.flags.locked === false) L.push(`Uang yang tidak dipisah saat gajian bocor ${rp(SB_LEAK)} untuk belanja kecil.`);
+  if (g.flags.ladder === 'tangga') L.push(`Tangga dana memotong pinjaman dari ${rps(n.amount)} jadi ${rps(g.need)}.`);
+  else if (g.flags.ladder) L.push(`Tanpa tangga dana penuh, Dimas meminjam ${rp(g.need - (n.amount - g.start.ef - n.family))} lebih banyak dari yang perlu.`);
+  if (g.flags.illegal) L.push('Pinjol ilegal memotong dana di muka dan menagih lewat kontak. Cek nama aplikasinya di Database Pinjol sebelum memberi data apa pun.');
+  else if (g.chosen) { const o = sbOffers({ ...g, p: DATA.personas.dimas }); const k = o.find(x => x.pr.id === 'koperasi'), tk = o.find(x => x.pr.id === 'tenang'); if (k && tk) L.push(`Untuk ${rps(g.need)}, koperasi memakan biaya ${rps(k.L.total)}; pindar ${rps(tk.L.total)}.`); }
+  if (g.flags.late) L.push('Telat bayar tercatat di SLIK dan bisa menutup akses ke pinjaman murah.');
+  if (g.flags.dig) L.push('Meminjam untuk menutup cicilan memperbesar tekor bulan berikutnya.');
+  return L.slice(0, 4);
+}
+function sbMeters(g) {
+  const s = g.stres, debt = sbDebt(g.p);
+  const m = [['Sisa uang bulan ini', rp(g.saldo, { plus: g.saldo < 0 }), g.saldo < 0 ? 'danger' : g.saldo < 300000 ? 'stretch' : 'safe', Math.max(0, Math.min(100, g.saldo / g.start.sur * 100))],
+    ['Dana darurat', rp(g.p.emergencyFund), g.p.emergencyFund > 0 ? 'safe' : 'stretch', Math.min(100, g.p.emergencyFund / g.start.ef * 100)],
+    ['Total utang', rp(debt), debt > g.start.utang * 1.4 ? 'danger' : debt > g.start.utang ? 'stretch' : 'safe', Math.min(100, debt / (g.start.utang * 2) * 100)],
+    ['Stres', `${s}/100 · ${sbStress(s)}`, s >= 65 ? 'danger' : s >= 35 ? 'stretch' : 'safe', s]];
+  return `<div class="sb-meters" role="group" aria-label="Kondisi Dimas">${m.map(([k, v, z, w]) => `<div class="sbm"><div class="k">${k}</div><div class="v num">${v}</div><div class="bar" aria-hidden="true"><i style="width:${w.toFixed(0)}%;background:var(--${z})"></i></div></div>`).join('')}</div>`;
+}
+const SB_DELTA = { saldo: 'Sisa uang', ef: 'Dana darurat', utang: 'Utang', stres: 'Stres' };
+function sbView(t) {
+  const g = t.g, evs = sbActive(g);
+  const days = `<ol class="sb-days" aria-label="Hari dalam sebulan">${evs.map((e, i) => `<li class="${i < g.i || g.done ? 'done' : i === g.i ? 'on' : ''}" ${i === g.i && !g.done ? 'aria-current="step"' : ''}><span>tgl</span>${e.day}</li>`).join('')}</ol>`;
+  if (g.done) return days + sbMeters(g) + sbReport(t);
+  const ev = evs[g.i], ch = ev.choices ? ev.choices(g) : null;
+  const body = ev.offers && !g.out ? `<div class="grid g3 sb-offers">${sbOffers(g).map(o => `<div class="opt sb-offer"><div class="row between"><b>${esc(o.pr.name)}</b>${o.illegal ? '<span class="pill z-danger">Tidak berizin</span>' : zpill(o.zone)}</div>
+      <p class="tiny muted">${o.illegal ? 'Tidak ada di daftar OJK · minta akses kontak dan galeri' : o.pr.kind === 'koperasi' ? 'Koperasi tempat Dimas bekerja' : 'Pindar berizin OJK'} · cair ${o.illegal ? '5 menit' : FW.hoursLabel(o.pr.hours)}</p>
+      ${o.illegal ? '<div class="facts f2"><div><div class="k">Bunga</div><div class="v">tidak dijelaskan</div></div><div><div class="k">Syarat</div><div class="v">cukup KTP</div></div></div>' : `<div class="facts f2"><div><div class="k">Cicilan</div><div class="v">${rp(o.L.inst)}/bln</div></div><div><div class="k">Total biaya</div><div class="v">${rp(o.L.total)}</div></div></div><p class="tiny muted">${o.pr.months} bulan · ${o.pr.unit === 'day' ? nf(o.pr.rate * 100, 2) + '%/hari' : nf(o.pr.rate * 100, 1) + '%/bulan'}</p>`}
+      <button class="btn sm ${o.illegal ? 'ghost' : ''}" data-act="sb-pick" data-v="${o.pr.id}">Pilih ${esc(o.pr.name)}</button></div>`).join('')}</div>`
+    : !g.out && ch ? `<div class="sb-choices">${ch.map(([v, l, sub]) => `<button class="sb-choice" data-act="sb-pick" data-v="${v}"><b>${esc(l)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</button>`).join('')}</div>` : '';
+  const d = g.out ? Object.entries(g.out.d).filter(([, x]) => Math.round(x)) : [];
+  const out = g.out ? `<div class="sb-out note ${g.out.tone}" aria-live="polite"><h3 id="sb-out" tabindex="-1">${esc(g.out.head)}</h3><p class="small">${esc(g.out.body)}</p>
+      ${d.length ? `<ul class="sb-delta">${d.map(([k, x]) => `<li class="${(k === 'saldo' || k === 'ef') === x > 0 ? 'up' : 'down'}">${SB_DELTA[k]} ${k === 'stres' ? (x > 0 ? '+' : '−') + Math.abs(x) : (x > 0 ? '+' : '−') + rps(Math.abs(x))}</li>`).join('')}</ul>` : ''}
+      <button class="btn amber" data-act="sb-next">${g.i === evs.length - 1 ? 'Lihat laporan akhir bulan' : 'Lanjut'}</button></div>` : '';
+  return days + sbMeters(g) + `<article class="card sb-card"><p class="sb-date">Tanggal ${ev.day}</p><h2 id="sb-h" tabindex="-1">${esc(ev.title(g))}</h2><p style="margin-top:6px">${esc(ev.text(g))}</p>${body}${out}</article>`;
+}
+function sbReport(t) {
+  const g = t.g, p = g.p, H = FW.health(p), R = FW.readiness(p), h = FW.headroom(p), best = sbBest(), BR = FW.readiness(best.p);
+  const row = (k, a, b) => `<tr><td>${k}</td><td class="num"><b>${a}</b></td><td class="num">${b}</td></tr>`;
+  return `<article class="card sb-card"><p class="sb-date">Laporan akhir bulan</p><h2 id="sb-h" tabindex="-1">Dimas ${g.stres >= 65 ? 'bertahan, tapi tertekan' : FW.surplus(p) < 0 ? 'bertahan, tapi bulan depan tekor' : 'lolos bulan ini'}</h2>
+    <p class="small muted" style="margin-top:4px">Angka dihitung mesin FinWise dari keadaan Dimas setelah semua pilihanmu, dibanding jalur paling aman untuk bulan yang sama.</p>
+    <div class="tbl-wrap" style="margin-top:12px"><table><thead><tr><th></th><th>Pilihanmu</th><th>Jalur paling aman</th></tr></thead><tbody>
+     ${row('Kondisi keuangan', `${H.total}/100 · ${H.status}`, `${FW.health(best.p).total}/100`)}
+     ${row(term('Kesiapan berutang'), READY[R.level].name, READY[BR.level].name)}
+     ${row('Sisa uang bulan depan', rp(FW.surplus(p), { plus: true }), rp(FW.surplus(best.p), { plus: true }))}
+     ${row(term('Porsi cicilan'), pct(h.dsrNow, 0), pct(FW.headroom(best.p).dsrNow, 0))}
+     ${row('Total utang', rp(sbDebt(p)), rp(sbDebt(best.p)))}
+     ${row('Stres', `${g.stres}/100`, `${best.stres}/100`)}
+    </tbody></table></div>
+    <h3 style="margin-top:16px">Yang terjadi bulan ini</h3><ul class="small sb-lessons">${sbLessons(g).map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+    <p class="tiny muted" style="margin-top:8px">Jalur paling aman: pisahkan uang saat gajian, tunda sepatu, pakai tangga dana, pinjam ${rps(best.need)} di koperasi, sisa uang ke dana darurat.</p>
+    <div style="margin-top:14px"><button class="btn amber" data-act="t-next">Lanjut ke Babak 3</button></div></article>`;
+}
+/* ================= GAME · "Legal atau Ilegal?" (60 detik) =================
+   Names come only from the two official lists: licensed lenders (OJK) and illegal apps (Satgas PASTI).
+   An illegal app is shown by the first part of its listed name; the full listed name appears in the answer. */
+const QG_SECONDS = 60;
+let QG_POOL = null;
+function qgPool() {
+  if (QG_POOL) return QG_POOL;
+  const lic = LIC.map(l => norm(l.name)).filter(n => n.length >= 4), seen = new Set();
+  const legal = LIC.map(l => ({ name: l.name, legal: true, why: `Berizin OJK atas nama ${l.company}.` }));
+  const illegal = [];
+  ILL.forEach(g => {
+    const short = g.name.split(/\s+[-–|:]\s*|\s*[-–]\s*(?=pinjam|kredit|dana|uang|duit|cash)|\s*[(:|]/i)[0].trim(), n = norm(short);
+    // skip generic words and anything that could be read as a licensed brand
+    if (short.length < 3 || short.length > 30 || n.length < 4 || seen.has(n) || /^(pinjaman|pinjol|kredit|dana|uang|cash)(online|tunai|cepat)?$/.test(n) || lic.some(x => n.includes(x) || x.includes(n))) return;
+    seen.add(n); illegal.push({ name: short, legal: false, why: `Aplikasi “${g.name}” ada di daftar pinjol ilegal Satgas PASTI (${OJK.illegalPeriod}). Nama mirip bisa dipakai pihak lain; yang dicek adalah aplikasi dan perusahaannya.` });
+  });
+  return (QG_POOL = { legal, illegal });
+}
+function qgShuffle(a) { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
+function qgNew() {
+  const P = qgPool(), L = qgShuffle(P.legal), I = qgShuffle(P.illegal), items = [];
+  for (let k = 0; k < 40; k++) items.push((Math.random() < 0.5 ? L : I).pop() || L.pop() || I.pop());
+  let best = 0; try { best = +localStorage.getItem('finwise:qg-best') || 0; } catch {}
+  return { items: items.filter(Boolean), i: 0, right: 0, wrong: [], last: null, end: Date.now() + QG_SECONDS * 1000, done: false, best, warned: false };
+}
+function qgAnswer(v) {
+  const q = S.quick; if (!q || q.done) return;
+  const it = q.items[q.i], ok = (v === 'legal') === it.legal;
+  if (ok) q.right++; else q.wrong.push(it);
+  q.last = { it, ok }; q.i++;
+  if (q.i >= q.items.length) qgEnd();
+  announce(`${ok ? 'Benar' : 'Salah'}. ${it.name}: ${it.legal ? 'legal' : 'ilegal'}.${q.done ? '' : ` Berikutnya: ${q.items[q.i].name}.`}`);
+}
+function qgEnd() {
+  const q = S.quick; q.done = true; clearInterval(qgTimer);
+  if (q.right > q.best) { q.record = true; try { localStorage.setItem('finwise:qg-best', String(q.right)); } catch {} }
+}
+let qgTimer = null;
+function qgTick() {
+  const q = S.quick;
+  if (!q || q.done || S.route !== 'main') { clearInterval(qgTimer); if (q && !q.done && S.route !== 'main') S.quick = null; return; }
+  const left = Math.max(0, q.end - Date.now()), t = document.getElementById('qg-time'), bar = document.getElementById('qg-bar');
+  if (t) t.textContent = Math.ceil(left / 1000);
+  if (bar) bar.style.width = (left / (QG_SECONDS * 10)).toFixed(1) + '%';
+  if (left <= 10000 && !q.warned) { q.warned = true; announce('10 detik lagi'); }
+  if (left <= 0) { qgEnd(); render(); announce(`Waktu habis. Skormu ${q.right}.`); document.getElementById('qg-h')?.focus(); }
+}
+function vQuick() {
+  const q = S.quick;
+  if (q.done) {
+    const n = q.right + q.wrong.length;
+    return `<div class="card stack qg" style="max-width:720px"><div class="eyebrow e-pilah" style="font-weight:800;font-size:.8125rem">WAKTU HABIS</div>
+     <h1 id="qg-h" tabindex="-1">${q.right} benar dari ${n}</h1>
+     <p>${q.record ? (q.best ? `Rekor baru! Sebelumnya ${q.best}.` : 'Ini rekor pertamamu.') : q.best ? `Rekormu ${q.best}.` : ''} ${n ? `Ketepatanmu ${pct(q.right / n, 0)}.` : ''}</p>
+     ${q.wrong.length ? `<div><h2 style="font-size:1.05rem">Yang terkecoh</h2><ul class="small qg-wrong">${q.wrong.slice(0, 8).map(it => `<li><b>${esc(it.name)}</b>: ${it.legal ? 'legal' : 'ilegal'}. ${esc(it.why)}</li>`).join('')}</ul></div>` : ''}
+     <div class="note small"><b>Nama saja tidak cukup.</b> Banyak pinjol ilegal memakai nama yang mirip pindar berizin. Sebelum memberi data, cocokkan nama aplikasi dan nama perusahaannya (PT) dengan daftar OJK, dan curigai yang cair instan tanpa cek, meminta akses kontak atau galeri, atau hanya ada di toko APK pihak ketiga.</div>
+     <div class="row"><button class="btn amber" data-act="qg-start">Main lagi</button><a class="btn ghost" href="#openspace">Cek nama lain di Database Pinjol</a><button class="btn ghost" data-act="qg-quit">Kembali ke menu game</button></div></div>`;
+  }
+  const it = q.items[q.i], left = Math.max(0, Math.ceil((q.end - Date.now()) / 1000));
+  return `<div class="qg card stack" style="max-width:720px">
+    <div class="row between"><div><div class="lab">Legal atau ilegal?</div><h1 id="qg-h" tabindex="-1" style="font-size:1.2rem">Tebak secepatnya</h1></div><div class="qg-score"><span class="num">${q.right}</span> benar</div></div>
+    <div class="qg-clock"><span role="timer" aria-label="Sisa waktu"><b id="qg-time" class="num">${left}</b> detik</span><div class="bar" aria-hidden="true"><i id="qg-bar" style="width:${(left / QG_SECONDS * 100).toFixed(1)}%"></i></div></div>
+    <p class="qg-name" aria-hidden="true">${esc(it.name)}</p>
+    <div class="qg-btns"><button class="btn qg-legal" data-act="qg" data-v="legal" aria-label="Legal: ${esc(it.name)} berizin OJK">Legal <span class="tiny">berizin OJK</span></button><button class="btn qg-ilegal" data-act="qg" data-v="ilegal" aria-label="Ilegal: ${esc(it.name)} tidak berizin">Ilegal <span class="tiny">tidak berizin</span></button></div>
+    <p class="tiny muted">Tombol panah juga bisa: ← legal, → ilegal.</p>
+    ${q.last ? `<p class="small qg-last ${q.last.ok ? 'ok' : 'no'}">${q.last.ok ? 'Benar' : 'Salah'}: <b>${esc(q.last.it.name)}</b> ${q.last.it.legal ? 'legal' : 'ilegal'}. ${esc(q.last.it.why)}</p>` : '<p class="small muted">Nama-nama ini diambil dari daftar resmi OJK dan Satgas PASTI.</p>'}
+   </div>`;
+}
+/* ================= TEST MODE ================= */
+const TSTEPS = ['Siap main', 'Babak 1 · Tebak cepat', 'Babak 2 · Sebulan Bertahan', 'Babak 3 · Tebak lagi', 'Nilai game ini'];
+function newTest() {
+  const g = sbNew(); sbEnter(g);
+  return { id: 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), stage: 0, startedAt: Date.now(), consent: false, age: '', status: '', pre: Array(DATA.quiz.length).fill(null), post: Array(DATA.quiz.length).fill(null),
+    g, marks: {}, help: 0, chosen: null, ack: false, feedback: { help: '', ease: 0, confidence: 0, comment: '' }, saved: null };
+}
+// 0–100 whatever the number of questions (older records have 5, newer 6)
+const score = arr => Math.round(arr.reduce((s, a, i) => s + (a === DATA.quiz[i].correct ? 1 : 0), 0) / arr.length * 100);
 function quizBlock(name, arr) {
   return `<div class="quiz">${DATA.quiz.map((q, i) => `<fieldset class="qq" style="margin:0"><legend class="sr">Pertanyaan ${i + 1}</legend><b>${i + 1}. ${esc(q.q)}</b><div class="opts">${[...q.a, 'Tidak tahu'].map((a, j) => `<label><input type="radio" name="${name}-${i}" value="${j === q.a.length ? -1 : j}" ${arr[i] === (j === q.a.length ? -1 : j) ? 'checked' : ''} data-act-change="quiz" data-set="${name}" data-i="${i}">${esc(a)}</label>`).join('')}</div></fieldset>`).join('')}</div>`;
 }
@@ -2909,26 +3219,22 @@ function gameStars(r) { return (r.completed ? 1 : 0) + (r.safer ? 1 : 0) + (r.po
 const BADGES = ['Pemula Penasaran', 'Pemula Cerdas', 'Pejuang Hemat', 'Penjaga Dompet'];
 function vUji() {
   const t = S.test;
-  if (!t) return `<section class="gamehero"><div><div class="eyebrow" style="color:#FFD58A;font-weight:800;letter-spacing:.06em">GAME LITERASI KEUANGAN · 3 BABAK · ±10 MENIT</div><h1 tabindex="-1">Lolos Jebakan Pinjol: bantu Dimas dapat dana tanpa terjebak</h1>
-     <p class="lead">Ayah Dimas masuk rumah sakit. Dia butuh <b>Rp12 juta dalam 3 hari</b>, tabungannya cuma Rp3 juta, dan iklan pinjol “cair 5 menit” terus muncul. Kamu yang memutuskan.</p>
+  if (!t && S.quick) return vQuick();
+  if (!t) return `<section class="gamehero"><div><div class="eyebrow" style="color:#FFD58A;font-weight:800;letter-spacing:.06em">GAME LITERASI KEUANGAN · 3 BABAK · ±10 MENIT</div><h1 tabindex="-1">Lolos Jebakan Pinjol: sebulan jadi Dimas</h1>
+     <p class="lead">Jalani satu bulan sebagai Dimas, dari gajian ke gajian: flash sale, tagihan, dan kabar ayahnya masuk rumah sakit. Setiap pilihanmu mengubah sisa uang, utang, dan tingkat stresnya.</p>
      <button class="btn amber" data-act="t-start" style="margin-top:12px">Mulai main</button></div>
-     <div class="levels">${[['1', 'Tebak cepat', '5 soal tentang situasi Dimas. Tebak saja, boleh pilih “Tidak tahu”.'], ['2', 'Selamatkan Dimas', 'Pakai FinWise: hitung batas aman, susun tangga dana, pilih pinjaman.'], ['3', 'Tebak lagi', 'Soal yang sama. Lihat seberapa jauh kamu naik level.'], ['★', 'Skor & lencana', 'Dapatkan sampai 3 bintang dan lencana Penjaga Dompet.']].map(([n, tt, d]) => `<div class="lvl"><span>${n}</span><div><b>${tt}</b><p class="small">${d}</p></div></div>`).join('')}</div></section>
-   <div class="card small" style="margin-top:16px"><b>Aman & anonim.</b> Tidak ada nama atau data pribadi yang diminta. Jawabanmu membantu tim FinWise melihat apakah aplikasinya benar-benar membuat orang lebih paham utang.</div>`;
+     <div class="levels">${[['1', 'Tebak cepat', `${DATA.quiz.length} soal tentang situasi Dimas. Tebak saja, boleh pilih “Tidak tahu”.`], ['2', 'Sebulan Bertahan', 'Dari gajian ke gajian. Pilihanmu dihitung mesin FinWise, lalu dibandingkan dengan jalur paling aman.'], ['3', 'Tebak lagi', 'Soal yang sama. Lihat seberapa jauh kamu naik level.'], ['★', 'Skor & lencana', 'Dapatkan sampai 3 bintang dan lencana Penjaga Dompet.']].map(([n, tt, d]) => `<div class="lvl"><span>${n}</span><div><b>${tt}</b><p class="small">${d}</p></div></div>`).join('')}</div></section>
+   <div class="qg-promo card"><div><div class="lab">Main cepat · 60 detik</div><h2 style="font-size:1.15rem;margin-top:2px">Legal atau ilegal?</h2><p class="small muted" style="margin-top:4px">Nama aplikasi muncul satu per satu dari daftar OJK dan Satgas PASTI. Tebak sebanyak mungkin sebelum waktu habis.</p></div><button class="btn" data-act="qg-start">Main 60 detik</button></div>
+   <div class="card small" style="margin-top:16px"><b>Aman & anonim.</b> Tidak ada nama atau data pribadi yang diminta. Jawabanmu di game 3 babak membantu tim FinWise melihat apakah aplikasinya benar-benar membuat orang lebih paham utang.</div>`;
   const prog = `<div class="gprog" aria-hidden="true">${[1, 2, 3].map(n => `<i class="${t.stage > n ? 'done' : t.stage === n ? 'on' : ''}"></i>`).join('')}</div>`;
-  const bar = `<div class="testbar game"><span class="small"><b>Lolos Jebakan Pinjol</b> · ${TSTEPS[Math.min(t.stage, 4)]}</span>${t.stage >= 1 && t.stage <= 3 ? prog : ''}<span class="row">${t.stage === 2 ? `<button class="btn ghost sm" data-act="t-help">💡 Minta petunjuk</button>` : ''}<button class="btn ghost sm" data-act="t-quit">Keluar</button></span></div>`;
+  const bar = `<div class="testbar game"><span class="small"><b>Lolos Jebakan Pinjol</b> · ${TSTEPS[Math.min(t.stage, 4)]}</span>${t.stage >= 1 && t.stage <= 3 ? prog : ''}<span class="row">${t.stage === 2 ? `<button class="btn ghost sm" data-act="t-help">Minta petunjuk</button>` : ''}<button class="btn ghost sm" data-act="t-quit">Keluar</button></span></div>`;
   if (t.stage === 0) return bar + `<div class="card stack" style="max-width:640px"><h2>Sebelum mulai</h2>
     <label class="chk"><input type="checkbox" id="t-consent" data-act-change="t-field" data-f="consent" ${t.consent ? 'checked' : ''}><span>Saya setuju jawaban saya (tanpa nama) dipakai tim FinWise untuk menilai aplikasinya.</span></label>
     <div class="grid g2"><label class="f">Usia<select class="in" id="t-age" data-act-change="t-field" data-f="age"><option value="">Pilih</option>${['<18', '18–22', '23–27', '28–35', '>35'].map(a => `<option ${t.age === a ? 'selected' : ''}>${a}</option>`).join('')}</select></label>
      <label class="f">Status<select class="in" id="t-status" data-act-change="t-field" data-f="status"><option value="">Pilih</option>${['Pelajar/mahasiswa', 'Karyawan', 'Wirausaha', 'Lainnya'].map(a => `<option ${t.status === a ? 'selected' : ''}>${a}</option>`).join('')}</select></label></div>
     <div><button class="btn amber" data-act="t-next" ${t.consent ? '' : 'disabled'}>Ayo mulai Babak 1</button></div></div>`;
-  if (t.stage === 1) return bar + `<div class="card" style="margin-bottom:14px"><h2>Babak 1 · Tebak cepat</h2><p style="margin-top:6px">${esc(t.p.story)} Jawab dengan tebakanmu sendiri dulu; pilih “Tidak tahu” kalau benar-benar tidak tahu. Skor dihitung di akhir.</p></div>${quizBlock('pre', t.pre)}<div style="margin-top:16px"><button class="btn amber" data-act="t-next" ${t.pre.every(a => a !== null) ? '' : 'disabled'}>Lanjut ke Babak 2</button>${t.pre.every(a => a !== null) ? '' : `<span class="tiny muted" style="margin-left:8px">${t.pre.filter(a => a !== null).length}/5 dijawab</span>`}</div>`;
-  if (t.stage === 2) {
-    const s = t.st;
-    const inner = s.step === 1 ? pilahStep1(t.p, s, { test: true }) : s.step === 2 ? pilahStep2(t.p, s, { test: true }) : pilahStep3(t.p, s, { test: true });
-    return bar + `<div class="card mission" style="margin-bottom:14px"><div class="row between"><div><div class="lab">Babak 2 · Langkah ${s.step} dari 3</div><h2 style="margin-top:4px">${['Temukan batas cicilan aman Dimas', 'Tutup kebutuhan tanpa utang dulu', 'Pilih pinjaman terbaik untuk Dimas'][s.step - 1]}</h2><p class="small muted" style="margin-top:4px">${['Lihat berapa cicilan baru per bulan yang masih aman.', 'Dimas punya dana darurat Rp3 jt dan kakaknya bisa membantu Rp2 jt. Isi tangga dananya.', 'Bandingkan opsi lalu pilih yang menurutmu paling tepat.'][s.step - 1]}</p></div></div>
-      ${t.hint ? `<div class="note amber small" style="margin-top:10px">💡 ${esc(t.hint)}</div>` : ''}</div>${inner}
-      ${t.chosen ? `<div class="card" style="margin-top:16px;border-color:var(--amber-strong)"><div class="row between"><span>Pilihanmu: <b>${esc(t.chosen.name)}</b> ${zpill(t.chosen.zone)}</span><button class="btn amber" data-act="t-next">Kunci pilihan, lanjut Babak 3</button></div></div>` : ''}`;
-  }
+  if (t.stage === 1) return bar + `<div class="card" style="margin-bottom:14px"><h2>Babak 1 · Tebak cepat</h2><p style="margin-top:6px">${esc(DATA.personas.dimas.story)} Jawab dengan tebakanmu sendiri dulu; pilih “Tidak tahu” kalau benar-benar tidak tahu. Skor dihitung di akhir.</p></div>${quizBlock('pre', t.pre)}<div style="margin-top:16px"><button class="btn amber" data-act="t-next" ${t.pre.every(a => a !== null) ? '' : 'disabled'}>Lanjut ke Babak 2</button>${t.pre.every(a => a !== null) ? '' : `<span class="tiny muted" style="margin-left:8px">${t.pre.filter(a => a !== null).length}/${t.pre.length} dijawab</span>`}</div>`;
+  if (t.stage === 2) return bar + `${t.hint ? `<div class="note amber small" style="margin-bottom:12px" role="status">Petunjuk: ${esc(t.hint)}</div>` : ''}` + sbView(t);
   if (t.stage === 3) return bar + `<div class="card" style="margin-bottom:14px"><h2>Babak 3 · Tebak lagi</h2><p class="small muted" style="margin-top:4px">Soal yang sama. Kali ini pakai apa yang kamu lihat di FinWise.</p></div>${quizBlock('post', t.post)}<div style="margin-top:16px"><button class="btn amber" data-act="t-next" ${t.post.every(a => a !== null) ? '' : 'disabled'}>Lihat skorku</button></div>`;
   if (t.stage === 4) { const f = t.feedback; return bar + `<div class="card stack" style="max-width:680px"><h2>Satu langkah lagi: nilai game ini</h2>
     <div><b>Apakah kamu butuh bantuan orang lain untuk menyelesaikan game ini?</b><div class="seg" style="margin-top:8px">${[['tidak', 'Tidak'], ['sedikit', 'Sedikit'], ['ya', 'Ya']].map(([k, l]) => `<button class="${f.help === k ? 'on' : ''}" aria-pressed="${f.help === k}" data-act="t-fb" data-f="help" data-v="${k}">${l}</button>`).join('')}</div></div>
@@ -2940,25 +3246,25 @@ function vUji() {
   return `<div class="card stack result-card" style="max-width:720px"><div class="eyebrow e-pilah" style="font-weight:800;font-size:.8125rem">GAME SELESAI</div>
    <div class="stars" role="img" aria-label="${stars} dari 3 bintang">${[1, 2, 3].map(n => `<span class="${n <= stars ? 'on' : ''}">★</span>`).join('')}</div>
    <h2>Lencana: ${BADGES[stars]}</h2>
-   <div class="grid g3"><div class="kpi"><div class="k">Skor Babak 1</div><div class="v">${r.preScore}</div></div><div class="kpi"><div class="k">Skor Babak 3</div><div class="v" style="color:var(--safe)">${r.postScore}</div><div class="s">${r.postScore - r.preScore >= 0 ? 'naik ' : 'turun '}${Math.abs(r.postScore - r.preScore)} poin</div></div><div class="kpi"><div class="k">Pilihanmu</div><div class="v" style="font-size:1.05rem">${esc(t.chosen?.name || '-')}</div><div class="s">${t.chosen ? ZONE[t.chosen.zone][0] : ''}</div></div></div>
+   <div class="grid g3"><div class="kpi"><div class="k">Skor Babak 1</div><div class="v">${r.preScore}</div></div><div class="kpi"><div class="k">Skor Babak 3</div><div class="v" style="color:var(--safe)">${r.postScore}</div><div class="s">${r.postScore - r.preScore >= 0 ? 'naik ' : 'turun '}${Math.abs(r.postScore - r.preScore)} poin</div></div><div class="kpi"><div class="k">Kondisi Dimas di akhir bulan</div><div class="v">${r.endScore}/100</div><div class="s">${esc(t.chosen?.name || '-')}${t.chosen ? ' · ' + (t.chosen.id === 'cairkilat' ? 'ilegal' : ZONE[t.chosen.zone][0]) : ''}</div></div></div>
    <ul class="small stack" style="list-style:none;padding:0;gap:4px;margin:0">
-    <li>${r.completed ? '★' : '☆'} Menyelesaikan 3 langkah</li><li>${r.safer ? '★' : '☆'} Memilih pinjaman di zona Aman${r.safer ? '' : ' (koperasi karyawan adalah pilihan teraman untuk Dimas)'}</li><li>${r.postScore - r.preScore >= 30 || r.postScore === 100 ? '★' : '☆'} Skor naik ≥30 poin atau sempurna</li></ul>
+    <li>${r.completed ? '★' : '☆'} Menyelesaikan sebulan: tangga dana, batas aman, dan memilih pinjaman</li><li>${r.safer ? '★' : '☆'} Memilih pinjaman di zona Aman${r.safer ? '' : ' (koperasi karyawan adalah pilihan teraman untuk Dimas)'}</li><li>${r.postScore - r.preScore >= 30 || r.postScore === 100 ? '★' : '☆'} Skor naik ≥30 poin atau sempurna</li></ul>
    ${t.saved === 'db' ? '<div class="note safe">Hasil tersimpan untuk tim. Terima kasih sudah bermain!</div>' : t.saved === 'saving' ? '<div class="note">Menyimpan…</div>' : '<div class="note safe">Terima kasih sudah bermain! Bagikan FinWise ke teman yang sedang butuh dana supaya mereka cek dulu sebelum pinjam.</div>'}
-   <div class="row"><button class="btn amber" data-act="t-start">Main lagi</button><a class="btn ghost" href="#mulai">Sekarang cek keuanganku sendiri</a></div></div>`;
+   <div class="row"><button class="btn amber" data-act="t-start">Main lagi</button><button class="btn ghost" data-act="qg-start">Main cepat: legal atau ilegal?</button><a class="btn ghost" href="#mulai">Sekarang cek keuanganku sendiri</a></div></div>`;
 }
 function testRecord(t) {
   return { id: t.id, at: new Date(t.startedAt).toISOString(), age: t.age, status: t.status, pre: t.pre, post: t.post, preScore: score(t.pre), postScore: score(t.post),
     chosen: t.chosen?.id || null, chosenZone: t.chosen?.zone || null, safer: t.chosen?.zone === 'safe', ack: !!t.ack, marks: t.marks, helpClicks: t.help,
-    completed: !!t.chosen && !!t.marks.headroom && !!t.marks.ladder, helpNeeded: t.feedback.help, ease: t.feedback.ease, confidence: t.feedback.confidence,
+    completed: !!t.chosen && !!t.marks.headroom && !!t.marks.ladder && !!t.g?.done, endScore: t.g ? FW.health(t.g.p).total : null, endLevel: t.g ? FW.readiness(t.g.p).level : null, endStress: t.g ? t.g.stres : null, helpNeeded: t.feedback.help, ease: t.feedback.ease, confidence: t.feedback.confidence,
     comment: (t.feedback.comment || '').slice(0, 500), durationSec: Math.round(((t.endedAt || Date.now()) - t.startedAt) / 1000), device: innerWidth < 700 ? 'ponsel' : 'laptop' };
 }
-function encodeRecord(r) { const c = [r.id, r.at, r.age, r.status, r.pre.join(','), r.post.join(','), r.chosen, r.chosenZone, r.ack ? 1 : 0, r.marks.headroom ? 1 : 0, r.marks.ladder ? 1 : 0, r.helpClicks, r.helpNeeded, r.ease, r.confidence, r.durationSec, r.device, r.comment]; return 'FW1.' + btoa(unescape(encodeURIComponent(JSON.stringify(c)))); }
+function encodeRecord(r) { const c = [r.id, r.at, r.age, r.status, r.pre.join(','), r.post.join(','), r.chosen, r.chosenZone, r.ack ? 1 : 0, r.marks.headroom ? 1 : 0, r.marks.ladder ? 1 : 0, r.helpClicks, r.helpNeeded, r.ease, r.confidence, r.durationSec, r.device, r.comment, r.marks.ladderOk ? 1 : 0, r.marks.headroomOk ? 1 : 0, r.endScore, r.endLevel, r.endStress]; return 'FW1.' + btoa(unescape(encodeURIComponent(JSON.stringify(c)))); }
 function decodeRecord(code) {
   const c = JSON.parse(decodeURIComponent(escape(atob(code.trim().replace(/^FW1\./, '')))));
   const arr = s => String(s).split(',').map(Number);
   const pre = arr(c[4]), post = arr(c[5]);
-  if (pre.length !== 5 || post.length !== 5) throw new Error('bad');
-  return { id: String(c[0]).replace(/[^a-z0-9]/gi, '').slice(0, 40), at: String(c[1]), age: String(c[2]), status: String(c[3]), pre, post, preScore: score(pre), postScore: score(post), chosen: c[6], chosenZone: c[7], safer: c[7] === 'safe', ack: !!c[8], marks: { headroom: !!c[9], ladder: !!c[10] }, helpClicks: +c[11] || 0, completed: !!c[6] && !!c[9] && !!c[10], helpNeeded: String(c[12]), ease: +c[13], confidence: +c[14], durationSec: +c[15], device: String(c[16]), comment: String(c[17] || '').slice(0, 500), imported: true };
+  if (pre.length < 5 || pre.length > DATA.quiz.length || post.length !== pre.length) throw new Error('bad');
+  return { id: String(c[0]).replace(/[^a-z0-9]/gi, '').slice(0, 40), at: String(c[1]), age: String(c[2]), status: String(c[3]), pre, post, preScore: score(pre), postScore: score(post), chosen: c[6], chosenZone: c[7], safer: c[7] === 'safe', ack: !!c[8], marks: { headroom: !!c[9], ladder: !!c[10], ladderOk: !!c[18], headroomOk: !!c[19] }, endScore: c[20] ?? null, endLevel: c[21] ?? null, endStress: c[22] ?? null, helpClicks: +c[11] || 0, completed: !!c[6] && !!c[9] && !!c[10], helpNeeded: String(c[12]), ease: +c[13], confidence: +c[14], durationSec: +c[15], device: String(c[16]), comment: String(c[17] || '').slice(0, 500), imported: true };
 }
 async function saveTest(rec) {
   if (!(S.cap.db && S.cap.canWrite && S.cap.team)) return false;
@@ -2973,7 +3279,7 @@ function vHasil() {
   const okNoHelp = R.filter(r => r.completed && r.helpNeeded === 'tidak').length, safer = R.filter(r => r.safer).length;
   const imp = n ? FW.sum(R, r => r.postScore - r.preScore) / n : 0, pre = n ? FW.sum(R, r => r.preScore) / n : 0, post = n ? FW.sum(R, r => r.postScore) / n : 0;
   const gates = [['Menyelesaikan alur inti tanpa bantuan', n ? okNoHelp / n : 0, 0.8, v => pct(v, 0)], ['Memilih opsi yang lebih aman (zona Aman)', n ? safer / n : 0, 0.7, v => pct(v, 0)], ['Kenaikan skor pemahaman utang', imp, 30, v => '+' + v.toFixed(1) + ' poin']];
-  const csv = ['id,waktu,usia,status,pre,post,naik,pilihan,zona,aman,selesai,bantuan,klik_bingung,mudah,yakin,durasi_detik,perangkat,komentar', ...R.map(r => [r.id, r.at, r.age, r.status, r.preScore, r.postScore, r.postScore - r.preScore, r.chosen, r.chosenZone, r.safer ? 1 : 0, r.completed ? 1 : 0, r.helpNeeded, r.helpClicks, r.ease, r.confidence, r.durationSec, r.device, JSON.stringify(r.comment || '')].join(','))].join('\n');
+  const csv = ['id,waktu,usia,status,pre,post,naik,pilihan,zona,aman,selesai,bantuan,klik_bingung,mudah,yakin,durasi_detik,perangkat,tangga_tepat,batas_tepat,skor_akhir,level_akhir,stres_akhir,komentar', ...R.map(r => [r.id, r.at, r.age, r.status, r.preScore, r.postScore, r.postScore - r.preScore, r.chosen, r.chosenZone, r.safer ? 1 : 0, r.completed ? 1 : 0, r.helpNeeded, r.helpClicks, r.ease, r.confidence, r.durationSec, r.device, r.marks?.ladderOk ? 1 : 0, r.marks?.headroomOk ? 1 : 0, r.endScore ?? '', r.endLevel ?? '', r.endStress ?? '', JSON.stringify(r.comment || '')].join(','))].join('\n');
   return `<div class="phead"><div><div class="eyebrow e-pilah">DATA VALIDASI · GATE 1</div><h1>${n} permainan tercatat</h1><p>Target Gate 1 dari proposal: ≥80% menyelesaikan alur tanpa bantuan, ≥70% memilih opsi lebih aman, skor pemahaman naik ≥30 poin, nol cacat kalkulasi/privasi kritis.</p></div></div>
    ${S.resultsState === 'loading' ? '<p class="muted">Memuat hasil…</p>' : S.resultsState === 'slow' ? '<div class="note amber">Data belum bisa dijangkau. Coba buka ulang halaman ini nanti.</div>' : S.resultsState === 'error' ? '<div class="note danger">Gagal memuat hasil.</div>' : ''}
    <div class="grid g-side">
@@ -3113,7 +3419,7 @@ function render() {
   let main; try { main = view(); } catch (e) { console.error(e); main = `<div class="note danger" role="alert">Terjadi kesalahan saat menampilkan halaman ini. Muat ulang atau pilih profil lain.</div>`; }
   const ov = S.overlay?.type === 'edit' ? profileEditor() : S.overlay?.type === 'import' ? importSheet() : S.overlay?.type === 'pick' ? pickSheet() : S.overlay?.type === 'chat' ? chatSheet() : S.overlay?.type === 'glossary' ? glossarySheet() : '';
   app.innerHTML = `<div id="page" class="${S.drawer ? 'with-drawer' : ''}"${S.overlay ? ' inert' : ''}><button class="skip" data-act="skip">Lewati ke konten utama</button>` + header() + `<main id="main" tabindex="-1"><div class="wrap">${main}</div></main>` + footer()
-    + (!S.drawer && !S.overlay && !(S.route === 'main' && S.test && S.test.stage > 0 && S.test.stage < 5) ? '<button class="btn fab amber" data-act="drawer" data-v="chat">✦ Tanya FinWise</button>' : '') + '</div>' + (S.drawer ? drawerPanel() : '') + ov
+    + (!S.drawer && !S.overlay && !(S.route === 'main' && ((S.test && S.test.stage > 0 && S.test.stage < 5) || (S.quick && !S.quick.done))) ? '<button class="btn fab amber" data-act="drawer" data-v="chat">✦ Tanya FinWise</button>' : '') + '</div>' + (S.drawer ? drawerPanel() : '') + ov
     + (S.toast ? `<div class="toast" aria-hidden="true">${esc(S.toast)}</div>` : '');
   document.title = `${TITLES[S.route] || 'FinWise'} · FinWise`;
   const opened = S.overlay && !lastOverlay, closed = !S.overlay && lastOverlay;
@@ -3301,11 +3607,16 @@ const ACT = {
   glossary: el => { S.drawer = { tab: 'kamus', term: el.dataset.v || null, q: '' }; render(); },
   ai3: el => askAI(el.dataset.key, el.dataset.prompt, { json: true }),
   // test mode
-  't-start': () => { S.test = newTest(); if (location.hash !== '#main') location.hash = '#main'; render(); window.scrollTo(0, 0); },
-  't-quit': () => { S.test = null; location.hash = '#home'; },
+  't-start': () => { clearInterval(qgTimer); S.quick = null; S.test = newTest(); if (location.hash !== '#main') location.hash = '#main'; render(); window.scrollTo(0, 0); },
+  't-quit': () => { S.test = null; S.quick = null; clearInterval(qgTimer); location.hash = '#home'; },
   't-next': () => { const t = S.test; if (t.stage === 2) t.taskEnd = Date.now(); t.stage++; t.hint = ''; render(); window.scrollTo({ top: 0 }); },
   't-step': el => { const t = S.test; if (el.dataset.mark) t.marks[el.dataset.mark] = true; t.st.step = +el.dataset.v; t.hint = ''; render(); window.scrollTo({ top: 0 }); },
-  't-help': () => { const t = S.test; t.help++; t.hint = DATA.hints[['headroom', 'ladder', 'match'][t.st.step - 1]]; render(); },
+  't-help': () => { const t = S.test; t.help++; const ev = t.g && sbActive(t.g)[t.g.i]; t.hint = ev ? SB_HINTS[ev.id] : 'Jawab dengan tebakanmu sendiri dulu.'; render(); },
+  'sb-pick': el => { const t = S.test; if (!t?.g) return; sbPick(t, el.dataset.v); t.hint = ''; render(); document.getElementById('sb-out')?.focus({ preventScroll: true }); document.querySelector('.sb-out')?.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); },
+  'sb-next': () => { const t = S.test; if (!t?.g) return; sbNext(t.g); t.hint = ''; render(); document.querySelector('.sb-days')?.scrollIntoView({ block: 'start' }); window.scrollBy(0, -90); document.getElementById('sb-h')?.focus({ preventScroll: true }); },
+  'qg-start': () => { S.test = null; S.quick = qgNew(); if (location.hash !== '#main') location.hash = '#main'; render(); window.scrollTo(0, 0); document.getElementById('qg-h')?.focus(); announce(`60 detik dimulai. Nama pertama: ${S.quick.items[0].name}`); clearInterval(qgTimer); qgTimer = setInterval(qgTick, 200); },
+  qg: el => { qgAnswer(el.dataset.v); render(); },
+  'qg-quit': () => { clearInterval(qgTimer); S.quick = null; render(); },
   't-fb': el => { const f = S.test.feedback; f[el.dataset.f] = el.dataset.f === 'help' ? el.dataset.v : +el.dataset.v; render(); },
   't-finish': async () => { const t = S.test; t.endedAt = Date.now(); t.stage = 5; const rec = testRecord(t); t.saved = (S.cap.canWrite && S.cap.team) ? 'saving' : 'code'; render(); if (t.saved === 'saving') { t.saved = (await saveTest(rec)) ? 'db' : 'code'; render(); } },
   'import-code': async () => { const v = document.getElementById('imp-code').value; try { const rec = decodeRecord(v); const ok = await saveTest(rec); S.importMsg = ok ? 'Hasil tersimpan.' : 'Gagal menyimpan. Pastikan kamu pemilik/editor.'; } catch { S.importMsg = 'Kode tidak valid. Pastikan disalin utuh, diawali FW1.'; } render(); },
@@ -3353,6 +3664,7 @@ document.addEventListener('keydown', e => {
     if (e.key === 'Enter' && open && SUG.active >= 0) { e.preventDefault(); pickSug(inp, SUG.active); return; }
     if (e.key === 'Escape' && open) { e.preventDefault(); closeSug(inp); return; }
   }
+  if (S.quick && !S.quick.done && S.route === 'main' && !S.overlay && !e.target.matches?.('input,textarea,select') && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) { e.preventDefault(); qgAnswer(e.key === 'ArrowLeft' ? 'legal' : 'ilegal'); render(); return; }
   if (e.key === 'Escape' && S.overlay) { S.overlay = null; render(); }
   else if (e.key === 'Escape' && S.drawer) { S.drawer = null; render(); document.querySelector('[data-act="drawer"]')?.focus(); }
   if (e.key === 'Enter' && e.target.matches('tr[data-act]')) ACT[e.target.dataset.act]?.(e.target, e);

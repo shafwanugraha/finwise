@@ -3,13 +3,13 @@
 Pendamping keuangan untuk anak muda Indonesia, dengan tiga fungsi utama:
 
 1. **Asesmen pinjaman pribadi**, tiga langkah berurutan:
-   - **CEK** (sebelum berutang): kondisi keuangan, rasio, skor kesehatan, dan rencana hemat.
-   - **PILAH** (saat butuh dana): batas cicilan aman, tangga dana tanpa utang, dan perbandingan pinjaman legal berdasarkan total biaya.
-   - **PULIH** (setelah berutang): jadwal bayar, urutan pelunasan, dan cek "pinjam untuk bayar pinjaman".
+   - **CEK** (sebelum berutang): kesiapan berutang dan pinjaman maksimal yang aman, kondisi keuangan, rasio, dan rencana hemat.
+   - **PILAH** (saat butuh dana): untuk apa dananya, batas aman, tangga dana tanpa utang, lalu perbandingan pinjaman legal berdasarkan total biaya.
+   - **PULIH** (setelah berutang): analisis tiap pinjaman, jadwal bayar, langkah kalau tidak sanggup bayar, urutan pelunasan, dan cek "pinjam untuk bayar pinjaman".
 2. **Database pinjol**: legalitas aplikasi pinjaman dari daftar OJK dan Satgas PASTI, profil, ulasan, dan statistik industri.
-3. **Kalkulator pinjaman**: cicilan, total yang dikembalikan, dan bunga sebenarnya.
+3. **Kalkulator pinjaman**: cicilan, total yang dikembalikan, dan bunga sebenarnya, dengan tarif pindar berizin termurah (batas OJK sebagai skenario terburuk).
 
-Ada juga **game Lolos Jebakan Pinjol**, game literasi keuangan singkat (3 babak) yang juga dipakai untuk uji coba pengguna.
+Ada juga **game Lolos Jebakan Pinjol**: "Sebulan Bertahan" (sebulan sebagai Dimas, diapit kuis sebelum dan sesudah, dipakai untuk uji coba pengguna) dan permainan cepat 60 detik "Legal atau ilegal?".
 
 Prototipe Tim 20 elevATE. **Bukan nasihat keuangan.**
 

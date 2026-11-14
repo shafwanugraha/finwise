@@ -123,6 +123,8 @@ const DATA = (() => {
     { q: 'Dimas butuh Rp12 jt. Ia punya tabungan Rp3 jt dan kakaknya bisa bantu Rp2 jt. Berapa yang sebenarnya perlu ia pinjam?', a: ['Rp12 juta', 'Rp9 juta', 'Rp7 juta', 'Rp3 juta'], correct: 2 },
     { q: 'Untuk pinjaman Rp7 jt, mana yang total biayanya paling murah?', a: ['Pindar 0,25%/hari, 6 bulan', 'Pindar 0,15%/hari, 12 bulan', 'Koperasi 1%/bulan, 12 bulan', 'Semuanya kurang lebih sama'], correct: 2 },
     { q: '“Cair Kilat 24 Jam” menjanjikan dana cair 5 menit. Apa status izinnya?', a: ['Berizin OJK', 'Tidak berizin (ilegal)', 'Sedang proses izin', 'Tidak bisa dicek'], correct: 1 },
+    // added after the UX revision (Alsya, Nov 2026); kept last so older 5-answer records still score the same questions
+    { q: 'Dengan tenor 12 bulan, berapa pinjaman maksimal yang masih aman untuk Dimas?', a: ['Sekitar Rp3 juta', 'Sekitar Rp7 juta', 'Sekitar Rp12 juta', 'Sekitar Rp20 juta'], correct: 1 },
   ];
 
   const hints = {

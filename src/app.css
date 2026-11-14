@@ -679,3 +679,42 @@ table.cmp td.best{background:var(--safe-tint)}
 /* PULIH: can't pay this month */
 .pay-msg{font-weight:400;min-height:190px;line-height:1.5;font-size:.9375rem;resize:vertical;white-space:pre-wrap}
 .protect{margin:8px 0 6px;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+/* GAME · Sebulan Bertahan */
+.sb-days{list-style:none;margin:0 0 12px;padding:0;display:flex;gap:6px;flex-wrap:wrap}
+.sb-days li{min-width:52px;padding:6px 8px;border-radius:12px;background:var(--soft);color:var(--muted);text-align:center;font-weight:800;font-size:1.05rem;line-height:1.1}
+.sb-days li span{display:block;font-size:.6875rem;font-weight:600}
+.sb-days li.done{background:var(--green-tint);color:var(--green)}
+.sb-days li.on{background:var(--deep);color:var(--card)}
+.sb-meters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.sbm{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.sbm .k{font-size:.75rem;color:var(--muted);font-weight:700}.sbm .v{font-weight:800;margin:2px 0 6px;font-size:.9375rem}
+.sbm .bar i{transition:width .45s ease}
+@media (prefers-reduced-motion:reduce){.sbm .bar i{transition:none}}
+@media (max-width:700px){.sb-meters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.sb-card{border-left:6px solid var(--amber-strong)}
+.sb-date{font-size:.8125rem;font-weight:800;color:var(--stretch)}
+.sb-choices{display:grid;gap:10px;margin-top:14px}
+.sb-choice{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:12px 14px;cursor:pointer;font:inherit}
+.sb-choice b{font-size:1rem}.sb-choice span{font-size:.8125rem;color:var(--muted)}
+.sb-choice:hover{border-color:var(--green);background:var(--green-tint)}
+.sb-offers{margin-top:14px}
+.sb-out{margin-top:14px}.sb-out h3{font-size:1.05rem}
+.sb-delta{list-style:none;padding:0;margin:10px 0 12px;display:flex;flex-wrap:wrap;gap:6px}
+.sb-delta li{font-size:.8125rem;font-weight:800;border-radius:999px;padding:3px 10px;background:var(--card)}
+.sb-delta li.up{color:var(--safe)}.sb-delta li.down{color:var(--danger)}
+.sb-lessons{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+/* GAME · Legal atau ilegal */
+.qg-promo{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;border-left:6px solid var(--deep)}
+.qg-promo > div{flex:1 1 320px}
+.qg-score{font-weight:700;color:var(--muted)}.qg-score .num{font-size:1.6rem;color:var(--green);font-weight:800}
+.qg-clock{display:flex;gap:12px;align-items:center}.qg-clock > span{min-width:84px;font-weight:700}.qg-clock .bar{flex:1}
+.qg-clock .bar i{background:var(--amber-strong)}
+.qg-name{font-size:clamp(1.5rem,4.5vw,2.3rem);font-weight:800;text-align:center;padding:26px 10px;border-radius:18px;background:var(--soft);overflow-wrap:anywhere;line-height:1.15}
+.qg-btns{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.qg-btns .btn{min-height:64px;font-size:1.1rem;flex-direction:column;gap:0}
+.qg-btns .btn .tiny{font-weight:600;opacity:.85}
+.qg-legal{background:var(--safe);border-color:var(--safe);color:var(--card)}
+.qg-ilegal{background:var(--danger);border-color:var(--danger);color:var(--card)}
+.qg-last{border-radius:12px;padding:10px 12px}.qg-last.ok{background:var(--green-tint)}.qg-last.no{background:var(--danger-tint)}
+.qg-wrong{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+@media (max-width:560px){.sb-days{flex-wrap:nowrap;gap:4px}.sb-days li{flex:1 1 0;min-width:0;padding:5px 2px;font-size:.95rem}}

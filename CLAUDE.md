@@ -6,7 +6,7 @@ A single-page web app for young Indonesians with three main functions, which are
 2. Database Pinjol (`#openspace`, OJK legality lookup).
 3. Kalkulator.
 
-A 3-round financial-literacy game ("Lolos Jebakan Pinjol", menu "Game", route `#main`) used for user testing is an extra. The hero image is `src/img/hero.webp` (copied to `docs/img/` by build.py); the step illustrations are hand-made inline SVG (`STAGE_ART` in `src/app/10_home.js`), and the icons are in `ICONS` in `00_core.js`. It is built from `src/` into one self-contained file, `docs/index.html`, which GitHub Pages serves.
+The game ("Lolos Jebakan Pinjol", menu "Game", route `#main`) is an extra: pre-quiz → "Sebulan Bertahan" (one month as Dimas, `src/app/68_sebulan.js`; every figure from `FW` on a copy of his profile, compared with the safest path) → post-quiz, used for user testing (Gate 1 fields kept). The 60-second "Legal atau ilegal?" (`69_legal.js`) uses names only from the OJK and Satgas PASTI lists. The hero image is `src/img/hero.webp` (copied to `docs/img/` by build.py); the step illustrations are hand-made inline SVG (`STAGE_ART` in `src/app/10_home.js`), and the icons are in `ICONS` in `00_core.js`. It is built from `src/` into one self-contained file, `docs/index.html`, which GitHub Pages serves.
 
 ## Build and test
 - `python3 build.py` writes `docs/index.html`. Always rebuild after editing `src/`, and commit `src/` and `docs/` together.
@@ -30,23 +30,12 @@ A 3-round financial-literacy game ("Lolos Jebakan Pinjol", menu "Game", route `#
 - Emergency fund months are the fund ÷ total monthly outflow, including instalments (Cia's benchmark).
 - In PULIH, interest is only simulated for loans whose rate the user entered. Otherwise the instalments already include it.
 - One vocabulary: Porsi cicilan, Sisa uang, Total dikembalikan, Pinjaman maksimal yang aman, Kesiapan berutang.
+- Kalkulator defaults to the cheapest licensed lender in the database at its RIPLAY maximum (`cheapestReal` in `35_kalkulator.js`, real lenders only, never the illegal list); the OJK cap is shown as the worst case.
 
-## Open work (after P0, 14 Nov 2026)
-- **P1**
-  - PILAH Step 0 "Untuk apa?" (purpose + urgency) and the readiness gate:
-    - no-debt plan;
-    - emergency mode with acknowledgement first;
-    - amount capped at the max safe loan.
-  - Extended ladder rungs: reduce/delay, payment plan, campus/employer fund, quick cash.
-  - Loan purpose on existing loans with a per-loan "Analisis pinjaman" (Bijak / Pertimbangkan lagi / Tidak disarankan).
-  - "Jalan naik level" levers and emergency-fund milestones.
-  - Kalkulator: real-rate default, readiness chip, CTA by level.
-  - PULIH "Tidak sanggup bayar bulan ini?" with an editable message to the lender.
-  - Cia's remaining ratios: non-KPR ≤15/20%, savings 10/20%, profit for the self-employed.
-  - A new game ("Sebulan Bertahan" plus a 60-second "Legal atau Ilegal"), with the pre/post quiz kept.
+## Open work (after P1, 14 Nov 2026)
 - **P2**
-  - Intent question at entry.
-  - Collapsed ratios, a sticky mobile summary, and smaller banners.
-  - Monthly re-check and data export/import.
+  - Intent question at entry ("Apa yang kamu butuhkan sekarang?").
+  - CEK: collapsed ratios, a sticky mobile summary, and smaller banners.
+  - Monthly re-check loop and data export/import.
   - Restyle the inner pages.
 - **Later:** accounts and a database (Supabase with Google login, row-level security, an anonymous research snapshot with explicit consent per UU PDP / PP 33/2026, and a team dashboard).

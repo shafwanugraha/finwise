@@ -19,7 +19,7 @@ function render() {
   let main; try { main = view(); } catch (e) { console.error(e); main = `<div class="note danger" role="alert">Terjadi kesalahan saat menampilkan halaman ini. Muat ulang atau pilih profil lain.</div>`; }
   const ov = S.overlay?.type === 'edit' ? profileEditor() : S.overlay?.type === 'import' ? importSheet() : S.overlay?.type === 'pick' ? pickSheet() : S.overlay?.type === 'chat' ? chatSheet() : S.overlay?.type === 'glossary' ? glossarySheet() : '';
   app.innerHTML = `<div id="page" class="${S.drawer ? 'with-drawer' : ''}"${S.overlay ? ' inert' : ''}><button class="skip" data-act="skip">Lewati ke konten utama</button>` + header() + `<main id="main" tabindex="-1"><div class="wrap">${main}</div></main>` + footer()
-    + (!S.drawer && !S.overlay && !(S.route === 'main' && S.test && S.test.stage > 0 && S.test.stage < 5) ? '<button class="btn fab amber" data-act="drawer" data-v="chat">✦ Tanya FinWise</button>' : '') + '</div>' + (S.drawer ? drawerPanel() : '') + ov
+    + (!S.drawer && !S.overlay && !(S.route === 'main' && ((S.test && S.test.stage > 0 && S.test.stage < 5) || (S.quick && !S.quick.done))) ? '<button class="btn fab amber" data-act="drawer" data-v="chat">✦ Tanya FinWise</button>' : '') + '</div>' + (S.drawer ? drawerPanel() : '') + ov
     + (S.toast ? `<div class="toast" aria-hidden="true">${esc(S.toast)}</div>` : '');
   document.title = `${TITLES[S.route] || 'FinWise'} · FinWise`;
   const opened = S.overlay && !lastOverlay, closed = !S.overlay && lastOverlay;
@@ -207,11 +207,16 @@ const ACT = {
   glossary: el => { S.drawer = { tab: 'kamus', term: el.dataset.v || null, q: '' }; render(); },
   ai3: el => askAI(el.dataset.key, el.dataset.prompt, { json: true }),
   // test mode
-  't-start': () => { S.test = newTest(); if (location.hash !== '#main') location.hash = '#main'; render(); window.scrollTo(0, 0); },
-  't-quit': () => { S.test = null; location.hash = '#home'; },
+  't-start': () => { clearInterval(qgTimer); S.quick = null; S.test = newTest(); if (location.hash !== '#main') location.hash = '#main'; render(); window.scrollTo(0, 0); },
+  't-quit': () => { S.test = null; S.quick = null; clearInterval(qgTimer); location.hash = '#home'; },
   't-next': () => { const t = S.test; if (t.stage === 2) t.taskEnd = Date.now(); t.stage++; t.hint = ''; render(); window.scrollTo({ top: 0 }); },
   't-step': el => { const t = S.test; if (el.dataset.mark) t.marks[el.dataset.mark] = true; t.st.step = +el.dataset.v; t.hint = ''; render(); window.scrollTo({ top: 0 }); },
-  't-help': () => { const t = S.test; t.help++; t.hint = DATA.hints[['headroom', 'ladder', 'match'][t.st.step - 1]]; render(); },
+  't-help': () => { const t = S.test; t.help++; const ev = t.g && sbActive(t.g)[t.g.i]; t.hint = ev ? SB_HINTS[ev.id] : 'Jawab dengan tebakanmu sendiri dulu.'; render(); },
+  'sb-pick': el => { const t = S.test; if (!t?.g) return; sbPick(t, el.dataset.v); t.hint = ''; render(); document.getElementById('sb-out')?.focus({ preventScroll: true }); document.querySelector('.sb-out')?.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); },
+  'sb-next': () => { const t = S.test; if (!t?.g) return; sbNext(t.g); t.hint = ''; render(); document.querySelector('.sb-days')?.scrollIntoView({ block: 'start' }); window.scrollBy(0, -90); document.getElementById('sb-h')?.focus({ preventScroll: true }); },
+  'qg-start': () => { S.test = null; S.quick = qgNew(); if (location.hash !== '#main') location.hash = '#main'; render(); window.scrollTo(0, 0); document.getElementById('qg-h')?.focus(); announce(`60 detik dimulai. Nama pertama: ${S.quick.items[0].name}`); clearInterval(qgTimer); qgTimer = setInterval(qgTick, 200); },
+  qg: el => { qgAnswer(el.dataset.v); render(); },
+  'qg-quit': () => { clearInterval(qgTimer); S.quick = null; render(); },
   't-fb': el => { const f = S.test.feedback; f[el.dataset.f] = el.dataset.f === 'help' ? el.dataset.v : +el.dataset.v; render(); },
   't-finish': async () => { const t = S.test; t.endedAt = Date.now(); t.stage = 5; const rec = testRecord(t); t.saved = (S.cap.canWrite && S.cap.team) ? 'saving' : 'code'; render(); if (t.saved === 'saving') { t.saved = (await saveTest(rec)) ? 'db' : 'code'; render(); } },
   'import-code': async () => { const v = document.getElementById('imp-code').value; try { const rec = decodeRecord(v); const ok = await saveTest(rec); S.importMsg = ok ? 'Hasil tersimpan.' : 'Gagal menyimpan. Pastikan kamu pemilik/editor.'; } catch { S.importMsg = 'Kode tidak valid. Pastikan disalin utuh, diawali FW1.'; } render(); },
@@ -259,6 +264,7 @@ document.addEventListener('keydown', e => {
     if (e.key === 'Enter' && open && SUG.active >= 0) { e.preventDefault(); pickSug(inp, SUG.active); return; }
     if (e.key === 'Escape' && open) { e.preventDefault(); closeSug(inp); return; }
   }
+  if (S.quick && !S.quick.done && S.route === 'main' && !S.overlay && !e.target.matches?.('input,textarea,select') && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) { e.preventDefault(); qgAnswer(e.key === 'ArrowLeft' ? 'legal' : 'ilegal'); render(); return; }
   if (e.key === 'Escape' && S.overlay) { S.overlay = null; render(); }
   else if (e.key === 'Escape' && S.drawer) { S.drawer = null; render(); document.querySelector('[data-act="drawer"]')?.focus(); }
   if (e.key === 'Enter' && e.target.matches('tr[data-act]')) ACT[e.target.dataset.act]?.(e.target, e);
