@@ -20,17 +20,22 @@ The game ("Lolos Jebakan Pinjol", menu "Game", route `#main`) is an extra: pre-q
 - `data/raw/` is never committed: it holds raw Google Play reviews with reviewer names. Only aggregated data goes into `src/realdata.js`.
 - Do not name or link to illegal lending apps beyond what the Satgas PASTI list states. Do not show developers' personal names.
 
-## Core rule: decide first, size second, compare third, always show an exit
-- `FW.readiness(p)` gives one verdict for the whole app. Level 0 is "Belum bisa berutang", 1 is "Hanya untuk darurat", 2 is "Boleh, dengan batas", and 3 is "Siap berutang dengan sehat". It also returns the reasons and `max` (the largest safe loan for 3/6/12 months).
-  - Show it as the CEK hero, as the strip at the top of PILAH, and as the chip in the header.
-  - The names and colours are in `READY` in `00_core.js`.
+## Core rule: CEK describes, PILAH decides, PULIH acts, nothing is locked
+- **CEK** is the present only: Kondisi keuangan (8 indicators, the hero), money in and out, the debts already there (`debtChecks` benchmarks + `loanAnalysis` per loan), emergency fund and savings, and the plan. It never shows the borrowing verdict. The header chip shows the health status.
+- **PILAH** order: 1 Rencana (purpose, amount, tenor, urgency in one form) → 2 Dampaknya (instalment, Porsi cicilan, Sisa uang, zone, `readyCard` with `FW.readiness`, levers, and an offer of the safe amount) → 3 Pinjam lebih sedikit (optional fund ladder) → 4 Bandingkan pinjol.
+  - Nothing is locked. Risk is a warning above the content (`pilahWarn`). The single exception is gambling (`isJudi`).
+  - The list holds licensed pindar only. Bank (KTA), koperasi, the database's cheapest and median pindar, and the OJK cap are reference prices in `benchCard`, each cited (`BENCH` in `40_pilah.js`).
+  - The safe amount is applied only when the user presses it (`S.pilah.cap`).
+- `FW.readiness(p)` levels: 0 "Belum bisa berutang", 1 "Hanya untuk darurat", 2 "Boleh, dengan batas", 3 "Siap berutang dengan sehat"; names and colours in `READY` (`00_core.js`). Shown on PILAH step 2, as the strip on Kalkulator, and in the phone summary on PILAH/Kalkulator.
 - `FW.headroom(p).ceiling` is the safe instalment, after protecting planned monthly saving. `FW.maxSafeLoan(p, months)` converts it into a loan size at ±1.5%/month.
 - Never write "paling cocok" or "Ajukan tepat" for an option in the Bahaya zone. When every option is red, the result is "pilihan yang paling sedikit merugikan", sorted by the smallest monthly shortfall.
 - The health score keeps 8 indicators (FinHealth), and a monthly deficit always reads "Rentan". It is labelled "Kondisi keuangan" on screen.
 - Emergency fund months are the fund ÷ total monthly outflow, including instalments (Cia's benchmark).
 - In PULIH, interest is only simulated for loans whose rate the user entered. Otherwise the instalments already include it.
 - One vocabulary: Porsi cicilan, Sisa uang, Total dikembalikan, Pinjaman maksimal yang aman, Kesiapan berutang.
+- OJK caps follow SEOJK 19/SEOJK.06/2025 (`FW.ojkCap`): konsumtif 0,3%/day (≤6 months) or 0,2% (>6); produktif up to Rp50 jt 0,275% (≤6 months) or 0,1%; above Rp50 jt 0,1%; total ≤100% of principal.
 - Kalkulator defaults to the cheapest licensed lender in the database at its RIPLAY maximum (`cheapestReal` in `35_kalkulator.js`, real lenders only, never the illegal list); the OJK cap is shown as the worst case.
+- Danamas is productive-only in the data: its published rate is for Dana Usaha; the Dana Tunai rate is not in the team sheet.
 
 ## Storage and moving data
 - `finwise:saya` holds "Data saya"; `finwise:history` holds one small snapshot per day the data is saved (`recordCheck` in `src/app/27_history.js`), which CEK uses for "Dibanding cek …". Deleting "Data saya" clears both.

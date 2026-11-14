@@ -287,14 +287,19 @@ function header() {
       <a href="#main" class="game${on('main')}">${ico('game')}<span>Game</span></a>
       ${S.cap.team ? `<a href="#hasil" class="${on('hasil')}">Data validasi</a>` : ''}
     </nav>
-    <div class="who">${blank ? '<a class="btn sm" href="#mulai">Isi data saya</a>' : `<a class="userchip" href="#mulai" data-act="wiz-edit" title="Ubah data"><span class="avatar sm" aria-hidden="true">${esc(displayName(p)[0])}</span><span>${esc(displayName(p))}<span class="ready-dot rd-${READY[readyOf(p).level].tone}" aria-hidden="true"></span><span class="tiny muted">${READY[readyOf(p).level].short}</span></span></a>`}<button class="btn sm amber" data-act="drawer" data-v="chat" aria-expanded="${!!S.drawer}">✦ Tanya FinWise</button>${sizeBtn()}</div>
+    <div class="who">${blank ? '<a class="btn sm" href="#mulai">Isi data saya</a>' : `<a class="userchip" href="#mulai" data-act="wiz-edit" title="Ubah data"><span class="avatar sm" aria-hidden="true">${esc(displayName(p)[0])}</span><span>${esc(displayName(p))}<span class="ready-dot rd-${HS_TONE[FW.health(p).status]}" aria-hidden="true"></span><span class="tiny muted">${FW.health(p).status}</span></span></a>`}<button class="btn sm amber" data-act="drawer" data-v="chat" aria-expanded="${!!S.drawer}">✦ Tanya FinWise</button>${sizeBtn()}</div>
   </div>${journeyBar()}${mobileSummary()}</header>`;
 }
 // phones only (CSS): the verdict and the one number that matters stay in view while scrolling
+// CEK and PULIH are about the present (health); PILAH and Kalkulator are about a new loan (readiness)
+const HS_TONE = { Sehat: 'safe', Bertahan: 'stretch', Rentan: 'danger' };
+const loanPage = () => ['pilah', 'kalkulator'].includes(S.route);
 function mobileSummary() {
   if (!['cek', 'pilah', 'pulih', 'kalkulator'].includes(S.route) || needsSetup()) return '';
-  const p = P(), R = readyOf(p), RD = READY[R.level], sur = FW.surplus(p);
-  return `<div class="msum" aria-hidden="true"><div class="wrap"><span class="ready-dot rd-${RD.tone}"></span><b>${RD.short}</b>${R.level ? `<span>maks ${rps(R.max[6])}/6 bln</span>` : ''}<span class="${sur < 0 ? 'neg' : ''}">sisa ${rps(sur)}</span></div></div>`;
+  const p = P(), sur = FW.surplus(p), left = `<span class="${sur < 0 ? 'neg' : ''}">sisa ${rps(sur)}</span>`;
+  if (!loanPage()) { const H = FW.health(p); return `<div class="msum" aria-hidden="true"><div class="wrap"><span class="ready-dot rd-${HS_TONE[H.status]}"></span><b>${H.status} · ${H.total}/100</b><span>cicilan ${pct(FW.headroom(p).dsrNow, 0)}</span>${left}</div></div>`; }
+  const R = readyOf(p), RD = READY[R.level];
+  return `<div class="msum" aria-hidden="true"><div class="wrap"><span class="ready-dot rd-${RD.tone}"></span><b>${RD.short}</b>${R.level ? `<span>maks ${rps(R.max[6])}/6 bln</span>` : ''}${left}</div></div>`;
 }
 /* ---------- icons (24px line icons, inherit currentColor) ---------- */
 const ICONS = {
@@ -307,6 +312,10 @@ const ICONS = {
   timer: '<circle cx="12" cy="13.5" r="7"/><path d="M12 13.5V10"/><path d="M10 3h4"/><path d="M12 3v3.5"/><path d="m18.4 7.6 1.4-1.4"/>',
   route: '<circle cx="5" cy="17" r="2.2"/><circle cx="19" cy="7" r="2.2"/><path d="M7.2 17H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7.8"/>',
   check: '<path d="m5 12.5 4.3 4.3L19 7.2"/>',
+  alert: '<path d="M12 3.5 2.8 19.5h18.4L12 3.5z"/><path d="M12 10v4.2"/><path d="M12 17.2v.1"/>',
+  chat: '<path d="M4 5h16v11H10l-6 4V5z"/><path d="M8 9.2h8M8 12.4h5"/>',
+  compare: '<rect x="3.5" y="4" width="7" height="16" rx="2"/><rect x="13.5" y="4" width="7" height="16" rx="2"/><path d="M6 9h2M16 9h2M6 13h2M16 13h2"/>',
+  chart: '<path d="M4 4v16h16"/><path d="M8 16v-4M12 16V8M16 16v-6"/>',
 };
 const ico = (k, cls = '') => `<svg class="ico ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${ICONS[k] || ''}</svg>`;
 /* the three steps of the personal loan assessment, shared by the home page and the step bar */
@@ -329,7 +338,7 @@ function banner({ tone = 'green', eyebrow, title, sub, right = '' }) {
 }
 function userChip() {
   const p = P(); if (needsSetup()) return '';
-  return `<div class="pbchip"><span class="avatar sm" aria-hidden="true">${esc(displayName(p)[0])}</span><div><b>${esc(displayName(p))}</b><div class="tiny">${(R => `${READY[R.level].name}${R.level ? ` · maks ${rps(R.max[6])} (6 bln)` : ''}`)(readyOf(p))}</div></div><a class="btn sm ghost" href="#mulai" data-act="wiz-edit">Ubah data</a></div>`;
+  return `<div class="pbchip"><span class="avatar sm" aria-hidden="true">${esc(displayName(p)[0])}</span><div><b>${esc(displayName(p))}</b><div class="tiny">${loanPage() ? (R => `${READY[R.level].name}${R.level ? ` · maks ${rps(R.max[6])} (6 bln)` : ''}`)(readyOf(p)) : (H => `Kondisi keuangan ${H.total}/100 · ${H.status}`)(FW.health(p))}</div></div><a class="btn sm ghost" href="#mulai" data-act="wiz-edit">Ubah data</a></div>`;
 }
 // numbered section header so every page reads top-to-bottom as a sequence
 const secHead = (n, id, title, sub) => `<div class="sec-h" id="${id}" tabindex="-1"><span class="sec-n" aria-hidden="true">${n}</span><div><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ''}</div></div>`;
@@ -347,7 +356,7 @@ const TERMS = {
   'Satgas PASTI': 'Satuan Tugas Pemberantasan Aktivitas Keuangan Ilegal, yang merilis daftar pinjol dan investasi ilegal.',
   'Bunga efektif': 'Biaya pinjaman yang sebenarnya per tahun setelah memperhitungkan cicilan yang terus mengecilkan sisa utang. Biasanya jauh di atas bunga "flat" yang diiklankan.',
   'Bunga flat': 'Bunga dihitung dari pokok awal setiap bulan, walaupun sisa utangmu terus berkurang.',
-  'Plafon OJK': 'Batas biaya maksimum yang boleh ditagih pindar: konsumtif 0,3%/hari (tenor ≤6 bulan) atau 0,2%/hari (>6 bulan); produktif 0,275%/hari (≤Rp50 jt) atau 0,1%/hari (>Rp50 jt).',
+  'Plafon OJK': 'Batas biaya maksimum (bunga + semua biaya) yang boleh ditagih pindar menurut SEOJK 19/2025: konsumtif 0,3%/hari (tenor ≤6 bulan) atau 0,2%/hari (>6 bulan); produktif s.d. Rp50 jt 0,275%/hari (≤6 bulan) atau 0,1%/hari (>6 bulan); produktif di atas Rp50 jt 0,1%/hari. Totalnya tidak boleh lebih dari 100% pokok.',
   'TWP90': 'Tingkat Wanprestasi 90 hari: porsi pinjaman yang telat bayar lebih dari 90 hari. Makin tinggi, makin banyak kredit macet.',
   'TKB90': 'Tingkat Keberhasilan Bayar 90 hari: kebalikan TWP90 (100% − TWP90).',
   'Dana darurat': 'Tabungan khusus untuk kejadian mendadak. Patokan umum: 3 bulan kebutuhan pokok, atau 6 bulan jika penghasilan tidak stabil.',

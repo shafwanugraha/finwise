@@ -86,18 +86,18 @@ function vOpenspace() {
   const st = OJK.stats, revApps = RL.filter(l => l.reviews).length;
   return `${osNav()}
    <section class="oshero"><div class="eyebrow e-os">DATABASE PINJOL · TERBUKA UNTUK SEMUA, TANPA LOGIN</div><h1 tabindex="-1">Pinjol ini legal atau tidak?</h1><p class="lead" style="margin:8px 0 16px">Cek sebelum memberi data apa pun. Dicocokkan dengan daftar resmi OJK dan Satgas PASTI.</p>${searchBox(true)}</section>
-   <div class="grid g4 stats">
-    <a class="stat" href="#berizin"><span class="ic safe" aria-hidden="true">✓</span><span class="k">Pindar berizin</span><b>${LIC.length}</b><span class="s">daftar OJK ${OJK.licensedPeriod} · ${st.companies} per ${st.period}</span></a>
-    <a class="stat" href="#ilegal"><span class="ic danger" aria-hidden="true">!</span><span class="k">Pinjol ilegal tercatat</span><b>${OJK.illegalEntries.toLocaleString('id-ID')}</b><span class="s">${ILL.length} nama · Satgas PASTI ${OJK.illegalPeriod}</span></a>
-    <a class="stat" href="#statistik"><span class="ic amber" aria-hidden="true">%</span><span class="k">Kredit macet industri (${term('TWP90')})</span><b>${pct(st.trend[st.trend.length - 1].twp, 2)}</b><span class="s">${st.period} · naik dari ${pct(st.trend[0].twp, 2)} setahun lalu</span></a>
-    <a class="stat" href="#keluhan"><span class="ic" aria-hidden="true">★</span><span class="k">Ulasan dianalisis</span><b>${REV_TOTAL.toLocaleString('id-ID')}</b><span class="s">${revApps} aplikasi · ${CLUSTER_TOTAL} klaster keluhan & pujian</span></a>
-   </div>
-   <div class="card" style="margin-top:16px;border-color:var(--danger)"><div class="row between"><h2 style="font-size:1.2rem">Waspada nama tiruan</h2><span class="pill z-danger">${CLONED.length} pindar berizin ditiru</span></div>
+   <section class="feats" aria-labelledby="feats-h"><h2 id="feats-h" class="feats-h">Enam fitur Database Pinjol</h2>
+    <div class="feat-grid">${[
+      ['berizin', 'db', 'safe', 'Pindar berizin', LIC.length, `penyelenggara di daftar OJK. ${RL.length} lengkap dengan tarif RIPLAY, ulasan, dan skor keamanan.`, 'Lihat daftar'],
+      ['ilegal', 'alert', 'danger', 'Pinjol ilegal', ILL.length, `nama aplikasi dari ${OJK.illegalEntries.toLocaleString('id-ID')} entri Satgas PASTI ${OJK.illegalPeriod}.`, 'Cari nama'],
+      ['keluhan', 'chat', 'amber', 'Pemantau keluhan', REV_TOTAL.toLocaleString('id-ID'), `ulasan dari ${revApps} aplikasi, termasuk lonjakan ulasan negatif 72 jam terakhir.`, 'Lihat keluhan'],
+      ['bandingkan', 'compare', 'pulih', 'Bandingkan pinjol', 'Sampai 3', 'pindar berdampingan: total biaya, cicilan, ulasan, dan keamanan data.', 'Bandingkan'],
+      ['statistik', 'chart', 'deep', 'Statistik industri', pct(st.trend[st.trend.length - 1].twp, 2), `kredit macet industri (TWP90) per ${st.period}, per provinsi dan usia.`, 'Lihat statistik'],
+      ['kalkulator', 'calc', 'green', 'Kalkulator pinjaman', 'Gratis', 'hitung cicilan, total dikembalikan, dan bunga sebenarnya sebelum tanda tangan.', 'Hitung'],
+    ].map(([r, ic, tone, t, num, d, cta]) => `<a class="feat ft-${tone}" href="#${r}"><span class="feat-ico">${ico(ic)}</span><span class="feat-t">${t}</span><b class="feat-n">${num}</b><span class="feat-d">${d}</span><span class="feat-cta">${cta} →</span></a>`).join('')}</div></section>
+   <div class="card" style="margin-top:18px;border-color:var(--danger)"><div class="row between"><h2 style="font-size:1.2rem">Waspada nama tiruan</h2><span class="pill z-danger">${CLONED.length} pindar berizin ditiru</span></div>
     <p class="small" style="margin-top:6px">Nama-nama pindar berizin ini juga muncul di daftar pinjol ilegal, biasanya sebagai aplikasi tiruan di toko APK pihak ketiga. Nama sama belum tentu aman.</p>
     <div class="row" style="margin-top:10px">${CLONED.map(l => `<a class="chip danger" href="#pinjol" data-act="lender" data-id="${l.id}">${esc(l.name)}</a>`).join('')}</div></div>
-   <div class="grid g3" style="margin-top:16px">
-    ${[['berizin', 'Daftar pindar berizin', `${LIC.length} penyelenggara. ${RL.length} di antaranya lengkap dengan tarif RIPLAY, ulasan, dan skor keamanan.`], ['ilegal', 'Daftar pinjol ilegal', `${ILL.length} nama dari ${OJK.illegalEntries} entri: situs, toko APK, dan akun media sosial.`], ['keluhan', 'Pemantau keluhan', 'Lonjakan ulasan negatif dalam 72 jam terakhir per aplikasi.'], ['bandingkan', 'Bandingkan pinjol', 'Hingga 3 pindar berdampingan: total biaya, cicilan, ulasan, keamanan.'], ['statistik', 'Statistik industri', `Kredit macet per provinsi dan usia, ${st.period}.`], ['kalkulator', 'Kalkulator pinjaman', 'Hitung cicilan dan biaya maksimum sesuai plafon OJK.']].map(([r, t, d]) => `<a class="tile lg" href="#${r}"><b>${t}</b><span>${d}</span></a>`).join('')}
-   </div>
    <div class="card flat" style="margin-top:16px"><h3>Dari mana datanya</h3><div class="grid g3" style="margin-top:10px">${[['Daftar LPBBTI berizin', `OJK, ${OJK.licensedPeriod} (${LIC.length} penyelenggara)`], ['Daftar pinjol ilegal', `Satgas PASTI, ${OJK.illegalPeriod} (${OJK.illegalEntries} entri)`], ['Statistik LPBBTI', `OJK, ${st.period}`], ['Tarif & biaya (RIPLAY)', `${RL.length} pindar, diverifikasi ${dateID('2026-04-30')}`], ['Ulasan Google Play', `${REV_TOTAL.toLocaleString('id-ID')} ulasan dari ${revApps} aplikasi (sampai ${dateID(REV_TO)})`], ['Komunitas FinWise', 'ulasan pengguna, dimoderasi']].map(([a, b]) => `<div class="note small"><b>${a}</b><div class="tiny muted">${b}</div></div>`).join('')}</div>
     <p class="tiny muted" style="margin-top:8px">Nama pengulas dan pengembang perorangan tidak ditampilkan. Di versi pilot, data diperbarui otomatis.</p></div>`;
 }

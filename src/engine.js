@@ -198,7 +198,8 @@ const FW = (() => {
 
   /* ---------- PILAH: smart loan match ---------- */
   const WEIGHTS = {
-    seimbang: { cost: .35, health: .30, rep: .15, privacy: .10, speed: .10 },
+    // many pindar charge the same legal maximum, so reviews weigh more than they used to
+    seimbang: { cost: .30, health: .30, rep: .25, privacy: .10, speed: .05 },
   };
   function modeWeights(mode) {
     const base = WEIGHTS.seimbang; if (mode === 'seimbang') return base;
@@ -262,7 +263,8 @@ const FW = (() => {
 
   /* OJK caps on daily economic benefit (SEOJK 19/SEOJK.06/2025): consumer 0.3%/day <=6 mo, 0.2%/day >6 mo; productive 0.275%/day <=Rp50 jt, 0.1%/day above */
   function ojkCap(purpose, months, amount) {
-    if (purpose === 'produktif') return amount > 50e6 ? 0.001 : 0.00275;
+    // SEOJK 19/SEOJK.06/2025 (in force since 31 Jul 2025): productive up to Rp50 jt 0.275%/day for tenor ≤6 months, else 0.1%
+    if (purpose === 'produktif') return amount > 50e6 || months > 6 ? 0.001 : 0.00275;
     return months > 6 ? 0.002 : 0.003;
   }
 

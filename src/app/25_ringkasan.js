@@ -56,8 +56,7 @@ function analysisText(p, f, v, pr) {
   const parts = [];
   parts.push(`Setiap bulan masuk ${rp(f.inc)}. ${f.total ? `Pengeluaran rutinmu sekitar ${rp(f.needs)}` : `Kebutuhan pokok ${rp(f.needs)} dan keinginan ${rp(f.wants)}`}${f.fam ? `, ditambah ${rp(f.fam)} untuk keluarga` : ''}${f.inst ? ` dan cicilan ${rp(f.inst)}` : ''}, sehingga ${f.sur >= 0 ? `tersisa ${rp(f.sur)}` : `kurang ${rp(-f.sur)}`}.`);
   parts.push(v.head + ' ' + v.why);
-  const R = FW.readiness(p);
-  parts.push(`Kesiapan berutang: ${READY[R.level].name.toLowerCase()}${R.level ? `; pinjaman maksimal yang aman ${rp(R.max[6])} untuk 6 bulan (cicilan ≤ ${rp(f.h.ceiling)} per bulan)` : ''}. Kondisi keuanganmu ${f.hs.total}/100 (${f.hs.status}); kebiasaan yang paling menahan skor: ${f.hs.weakest.label.toLowerCase()}.`);
+  parts.push(`${p.loans.length ? `Cicilanmu ${rp(f.inst)} per bulan, ${pct(f.dsr, 0)} dari pendapatan (sehat ≤30%), dari ${p.loans.length} pinjaman.` : 'Kamu tidak punya cicilan aktif.'} Dana daruratmu cukup untuk ${nf(f.efMonths, 1)} bulan pengeluaran (target ${f.efTarget} bulan). Kondisi keuanganmu ${f.hs.total}/100 (${f.hs.status}); kebiasaan yang paling menahan skor: ${f.hs.weakest.label.toLowerCase()}.`);
   parts.push(`Langkah pertama yang paling berdampak: ${pr[0].title.charAt(0).toLowerCase() + pr[0].title.slice(1)}.`);
   return parts;
 }
@@ -68,20 +67,38 @@ function ratios(p) {
   const house = f.total ? null : FW.sum(p.spending.filter(c => /tempat tinggal|sewa|kos/i.test(c.name)), c => c.amount);
   // Cia's benchmark: every instalment except a home loan (KPR) counts here
   const nonKpr = FW.sum(p.loans.filter(l => l.type !== 'kpr'), l => l.instalment), spendR = f.out / inc, n = p.loans.length;
-  out.push({ k: 'Total pengeluaran', t: 'Rasio pengeluaran', f: '(semua pengeluaran + keluarga + cicilan) ÷ pendapatan', v: spendR, show: pct(spendR, 0), bench: '≤ 80% wajar · ≥ 90% bahaya', s: st(spendR, 0.8, 0.9) });
-  out.push({ k: 'Kebutuhan pokok + keluarga', t: 'Pokok', f: '(kebutuhan pokok + kirim keluarga) ÷ pendapatan', v: f.needR, show: pct(f.needR, 0), bench: '≤ 50%', s: st(f.needR, 0.5, 0.7), note: f.total ? 'Masih total pengeluaran (belum dirinci), jadi angka ini termasuk keinginan.' : '' });
-  if (!f.total) out.push({ k: 'Keinginan / gaya hidup', t: 'Keinginan', f: 'belanja keinginan ÷ pendapatan', v: f.wantR, show: pct(f.wantR, 0), bench: '≤ 30%', s: st(f.wantR, 0.3, 0.4) });
-  if (house != null && house > 0) out.push({ k: 'Tempat tinggal', t: 'Rasio tempat tinggal', f: 'sewa/kos + tagihan rumah ÷ pendapatan', v: house / inc, show: pct(house / inc, 0), bench: '≤ 30%', s: st(house / inc, 0.3, 0.4) });
-  out.push({ k: 'Tabungan rutin', t: 'Rasio tabungan', f: 'menabung per bulan ÷ pendapatan', v: f.saveR, show: pct(f.saveR, 0), bench: 'minimal 10% · target 20%', s: st(f.saveR, 0.2, 0.1, true) });
-  out.push({ k: 'Sisa uang', t: 'Sisa uang', f: 'sisa setelah semua pengeluaran ÷ pendapatan', v: f.surR, show: f.sur < 0 ? 'minus ' + pct(-f.surR, 0) : pct(f.surR, 0), bench: '≥ 20%', s: st(f.surR, 0.2, 0.1, true) });
-  out.push({ k: 'Porsi cicilan', t: 'Porsi cicilan', f: 'semua cicilan ÷ pendapatan (istilah resmi: DSR)', v: f.dsr, show: pct(f.dsr, 0), bench: '≤ 30% aman · > 40% bahaya', s: st(f.dsr, 0.3, 0.4) });
-  out.push({ k: 'Cicilan selain KPR', t: 'Rasio cicilan selain KPR', f: 'semua cicilan kecuali KPR ÷ pendapatan', v: nonKpr / inc, show: pct(nonKpr / inc, 0), bench: '≤ 15% aman · ≥ 20% bahaya', s: nonKpr / inc <= 0.15 ? 'safe' : nonKpr / inc < 0.2 ? 'stretch' : 'danger' });
-  out.push({ k: 'Kredit aktif', t: 'Jumlah kredit aktif', f: 'banyaknya pinjaman yang masih dicicil', v: n, show: n + ' kredit', bench: '≤ 2 · 4 atau lebih bahaya', s: n <= 2 ? 'safe' : n < 4 ? 'stretch' : 'danger' });
-  out.push({ k: 'Dana darurat (likuiditas)', t: 'Rasio likuiditas', f: 'tabungan siap pakai ÷ total pengeluaran sebulan (termasuk cicilan)', v: f.efMonths, show: f.efMonths.toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' bulan', bench: `≥ ${f.efTarget} bulan`, s: st(f.efMonths, f.efTarget, 1, true) });
-  if (f.fam > 0) out.push({ k: 'Tanggungan keluarga', t: 'Tanggungan keluarga', f: 'kirim keluarga ÷ pendapatan', v: f.fam / inc, show: pct(f.fam / inc, 0), bench: 'tanpa patokan baku', s: f.fam / inc > 0.2 ? 'stretch' : 'safe' });
+  out.push({ g: 'spend', k: 'Total pengeluaran', t: 'Rasio pengeluaran', f: '(semua pengeluaran + keluarga + cicilan) ÷ pendapatan', v: spendR, show: pct(spendR, 0), bench: '≤ 80% wajar · ≥ 90% bahaya', s: st(spendR, 0.8, 0.9) });
+  out.push({ g: 'spend', k: 'Kebutuhan pokok + keluarga', t: 'Pokok', f: '(kebutuhan pokok + kirim keluarga) ÷ pendapatan', v: f.needR, show: pct(f.needR, 0), bench: '≤ 50%', s: st(f.needR, 0.5, 0.7), note: f.total ? 'Masih total pengeluaran (belum dirinci), jadi angka ini termasuk keinginan.' : '' });
+  if (!f.total) out.push({ g: 'spend', k: 'Keinginan / gaya hidup', t: 'Keinginan', f: 'belanja keinginan ÷ pendapatan', v: f.wantR, show: pct(f.wantR, 0), bench: '≤ 30%', s: st(f.wantR, 0.3, 0.4) });
+  if (house != null && house > 0) out.push({ g: 'spend', k: 'Tempat tinggal', t: 'Rasio tempat tinggal', f: 'sewa/kos + tagihan rumah ÷ pendapatan', v: house / inc, show: pct(house / inc, 0), bench: '≤ 30%', s: st(house / inc, 0.3, 0.4) });
+  out.push({ g: 'save', k: 'Tabungan rutin', t: 'Rasio tabungan', f: 'menabung per bulan ÷ pendapatan', v: f.saveR, show: pct(f.saveR, 0), bench: 'minimal 10% · target 20%', s: st(f.saveR, 0.2, 0.1, true) });
+  out.push({ g: 'spend', k: 'Sisa uang', t: 'Sisa uang', f: 'sisa setelah semua pengeluaran ÷ pendapatan', v: f.surR, show: f.sur < 0 ? 'minus ' + pct(-f.surR, 0) : pct(f.surR, 0), bench: '≥ 20%', s: st(f.surR, 0.2, 0.1, true) });
+  out.push({ g: 'debt', k: 'Porsi cicilan', t: 'Porsi cicilan', f: 'semua cicilan ÷ pendapatan (istilah resmi: DSR)', v: f.dsr, show: pct(f.dsr, 0), bench: '≤ 30% aman · > 40% bahaya', s: st(f.dsr, 0.3, 0.4) });
+  out.push({ g: 'debt', k: 'Cicilan selain KPR', t: 'Rasio cicilan selain KPR', f: 'semua cicilan kecuali KPR ÷ pendapatan', v: nonKpr / inc, show: pct(nonKpr / inc, 0), bench: '≤ 15% aman · ≥ 20% bahaya', s: nonKpr / inc <= 0.15 ? 'safe' : nonKpr / inc < 0.2 ? 'stretch' : 'danger' });
+  out.push({ g: 'debt', k: 'Kredit aktif', t: 'Jumlah kredit aktif', f: 'banyaknya pinjaman yang masih dicicil', v: n, show: n + ' kredit', bench: '≤ 2 · 4 atau lebih bahaya', s: n <= 2 ? 'safe' : n < 4 ? 'stretch' : 'danger' });
+  out.push({ g: 'save', k: 'Dana darurat (likuiditas)', t: 'Rasio likuiditas', f: 'tabungan siap pakai ÷ total pengeluaran sebulan (termasuk cicilan)', v: f.efMonths, show: f.efMonths.toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' bulan', bench: `≥ ${f.efTarget} bulan`, s: st(f.efMonths, f.efTarget, 1, true) });
+  if (f.fam > 0) out.push({ g: 'spend', k: 'Tanggungan keluarga', t: 'Tanggungan keluarga', f: 'kirim keluarga ÷ pendapatan', v: f.fam / inc, show: pct(f.fam / inc, 0), bench: 'tanpa patokan baku', s: f.fam / inc > 0.2 ? 'stretch' : 'safe' });
   const run = FW.runway(p);
-  out.push({ k: 'Daya tahan uang', t: 'Daya tahan uang', f: 'kapan saldo habis dalam satu siklus gajian', v: run ? run.day / 30 : 1, show: run ? `habis tgl ${run.date}` : 'cukup sebulan', bench: 'cukup sampai gajian berikutnya', s: run ? 'danger' : 'safe' });
+  out.push({ g: 'spend', k: 'Daya tahan uang', t: 'Daya tahan uang', f: 'kapan saldo habis dalam satu siklus gajian', v: run ? run.day / 30 : 1, show: run ? `habis tgl ${run.date}` : 'cukup sebulan', bench: 'cukup sampai gajian berikutnya', s: run ? 'danger' : 'safe' });
   return out;
+}
+
+/* ---------- CEK · kondisi utang: what healthy debt looks like, and where the user stands ---------- */
+function debtChecks(p) {
+  const f = facts(p), inc = f.inc || 1, n = p.loans.length, nonKpr = FW.sum(p.loans.filter(l => l.type !== 'kpr'), l => l.instalment) / inc;
+  const slik = { lancar: ['Lancar (Kol 1)', 'safe'], kosong: ['Belum ada riwayat', 'grey'], tidaktahu: ['Belum dicek', 'grey'], dpk: ['Pernah telat (Kol 2)', 'stretch'], macet: ['Macet (Kol 5)', 'danger'] }[p.slik] || ['Belum dicek', 'grey'];
+  return [
+    { k: 'Porsi cicilan', t: 'Porsi cicilan', v: pct(f.dsr, 0), bench: '≤30% sehat · di atas 40% bahaya', s: f.dsr <= 0.3 ? 'safe' : f.dsr <= 0.4 ? 'stretch' : 'danger' },
+    { k: 'Cicilan selain KPR', t: 'Rasio cicilan selain KPR', v: pct(nonKpr, 0), bench: '≤15% sehat · 20% ke atas bahaya', s: nonKpr <= 0.15 ? 'safe' : nonKpr < 0.2 ? 'stretch' : 'danger' },
+    { k: 'Jumlah kredit aktif', t: 'Jumlah kredit aktif', v: n + ' pinjaman', bench: 'maksimal 2–3 · 4 atau lebih bahaya', s: n <= 2 ? 'safe' : n < 4 ? 'stretch' : 'danger' },
+    { k: 'Bayar tepat waktu', t: null, v: !n ? 'belum ada cicilan' : p.onTime === false ? 'pernah telat' : 'selalu tepat waktu', bench: 'tidak pernah telat', s: !n ? 'grey' : p.onTime === false ? 'danger' : 'safe' },
+    { k: 'Riwayat kredit', t: 'SLIK', v: slik[0], bench: 'Kol 1 (lancar)', s: slik[1], note: p.slik === 'tidaktahu' ? 'Cek gratis di iDebKu OJK.' : '' },
+    { k: 'Pengalaman pinjol', t: null, v: { belum: 'belum pernah', lancar: 'pernah, lancar', masalah: 'pernah bermasalah' }[p.pinjolExp] || 'belum diisi', bench: 'tidak pernah bermasalah', s: p.pinjolExp === 'masalah' ? 'danger' : p.pinjolExp ? 'safe' : 'grey' },
+  ];
+}
+function loanAnalysis(p) {
+  if (!p.loans.length) return '<p class="small muted">Kamu tidak punya pinjaman aktif. Pertahankan, dan sebelum berutang lihat PILAH dulu.</p>';
+  return `<ul class="loan-list">${p.loans.map(l => { const v = loanVerdict(p, l); return `<li><div class="row between" style="flex-wrap:nowrap;align-items:flex-start"><div><b>${esc(l.name)}</b><div class="tiny muted">${esc(LOAN_TYPES.find(t => t[0] === l.type)?.[1] || l.type)} · untuk ${esc(l.purpose && l.purpose !== 'lainnya' ? purposeName(l.purpose).toLowerCase() : 'belum diisi')} · ${rp(l.instalment)}/bulan, sisa ${l.months} bulan</div></div><span class="pill z-${v.tone}">${v.label}</span></div><ul class="small">${v.why.map(x => `<li>${esc(x)}</li>`).join('')}</ul><p class="small"><b>${esc(v.act)}</b>${v.v === 'unk' ? ' <a href="#mulai" data-act="wiz-edit" data-v="3">Isi tujuan</a>' : ''}</p></li>`; }).join('')}</ul>`;
 }
 
 /* ---------- per-loan analysis: is this loan a wise one, given what it is for? ---------- */

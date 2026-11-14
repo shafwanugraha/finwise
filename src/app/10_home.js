@@ -49,7 +49,7 @@ function stepStatus(st) {
   if (needsSetup()) return '';
   const p = P(), h = FW.headroom(p);
   const R = FW.readiness(p);
-  const txt = st.r === 'cek' ? `Kesiapan berutang: ${READY[R.level].name}`
+  const txt = st.r === 'cek' ? (H => `Kondisi keuangan ${H.total}/100 · ${H.status}`)(FW.health(p))
     : st.r === 'pilah' ? (R.level ? `Pinjaman maksimal aman ${rps(R.max[6])} (6 bulan)` : 'Belum ada ruang untuk pinjaman baru')
     : p.loans.length ? `${p.loans.length} utang aktif, cicilan ${rps(h.ex)}/bulan` : 'Belum ada utang aktif';
   return `<p class="stop-you">${ico('check')}<span>${txt}</span></p>`;

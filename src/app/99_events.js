@@ -153,7 +153,8 @@ const ACT = {
   'pilah-urg': el => { const st = S.pilah, u = URGENCY.find(x => x[0] === el.dataset.v); st.urg = u[0]; st.hours = u[2]; st.cap = undefined; st.ack = false; render(); announce('Urgensi: ' + u[1]); },
   'pilah-ack': () => { if (!S.pilah.ackBox) return; S.pilah.ack = true; render(); },
   'pilah-cap': el => { S.pilah.cap = +el.dataset.v || 0; S.pilah.picked = null; render(); announce(S.pilah.cap ? 'Jumlah pinjaman diganti ke jumlah aman' : 'Jumlah pinjaman dikembalikan'); },
-  'goto-plan': (el, e) => { e?.preventDefault?.(); location.hash = '#cek'; setTimeout(() => { const t = document.getElementById('s4'); t?.scrollIntoView(); t?.focus({ preventScroll: true }); }, 120); },
+  'goto-sec-cek': (el, e) => { e?.preventDefault?.(); location.hash = '#cek'; setTimeout(() => { const t = document.getElementById(el.dataset.id); t?.scrollIntoView(); t?.focus({ preventScroll: true }); }, 120); },
+  'goto-plan': (el, e) => { e?.preventDefault?.(); location.hash = '#cek'; setTimeout(() => { const t = document.getElementById('s5'); t?.scrollIntoView(); t?.focus({ preventScroll: true }); }, 120); },
   toggle: el => { const [scope, k] = el.dataset.k.split('.'); const o = scope === 't' ? S.test.st : S.pilah; o[k] = !o[k]; render(); },
   pick: el => { S.overlay = { type: 'pick', id: el.dataset.id, ack: false }; render(); },
   't-pick': el => { S.overlay = { type: 'pick', id: el.dataset.id, ack: false, test: true }; render(); },
@@ -169,7 +170,7 @@ const ACT = {
     if (isSaya(p)) p.hasLoans = true;
     persist(); location.hash = '#pulih'; toast('Cicilan baru ditambahkan ke jadwal PULIH');
   },
-  'to-pilah': el => { S.pilah.need = +el.dataset.amount || S.pilah.need; S.pilah.step = 2; },
+  'to-pilah': el => { S.pilah.need = +el.dataset.amount || S.pilah.need; S.pilah.step = planReady(S.pilah) ? 1 : 0; },
   'loan-del': el => { const p = P(); p.loans = p.loans.filter(l => l.id !== el.dataset.id); persist(); render(); },
   edit: () => { S.overlay = { type: 'edit' }; render(); },
   close: () => { S.overlay = null; render(); },
@@ -202,7 +203,7 @@ const ACT = {
   'pulih-msg-reset': () => { S.pulih.msg = null; render(); announce('Pesan dikembalikan ke versi awal'); setTimeout(() => document.getElementById('pay-msg')?.focus(), 60); },
   intent: el => { S.intent = el.dataset.v; },
   'calc-set': el => { Object.assign(calcState(), JSON.parse(el.dataset.v)); render(); window.scrollTo({ top: 0 }); announce('Kalkulator diperbarui'); },
-  'calc-to-pilah': () => { const c = calcState(); Object.assign(S.pilah, { need: c.amount, months: c.months, purpose: c.type === 'konsumtif' ? 'konsumtif' : 'produktif', cap: null, picked: null, step: S.pilah.cat ? 2 : 0 }); },
+  'calc-to-pilah': () => { const c = calcState(); Object.assign(S.pilah, { need: c.amount, months: c.months, purpose: c.type === 'konsumtif' ? 'konsumtif' : 'produktif', cap: null, picked: null, step: planReady({ ...S.pilah, need: c.amount, months: c.months }) ? 1 : 0 }); },
   'calc-lender': el => { const l = licById(el.dataset.id), d = l?.d, ri = d && rateInfo(d); if (!ri || ri.daily == null) return; Object.assign(calcState(), { mode: 'manual', rate: ri.daily, unit: 'day', admin: d.adminPct != null && d.adminUnit !== 'month' ? d.adminPct / 100 : null, lender: l.name, type: d.purpose === 'produktif' ? 'mikro' : 'konsumtif' }); },
   print: () => window.print(),
   'export-data': () => exportData(),

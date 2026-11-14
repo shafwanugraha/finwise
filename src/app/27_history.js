@@ -22,14 +22,14 @@ function recheckCard(p) {
   const prev = prevCheck(), now = snapshot(p), age = daysSince(p.updatedAt);
   const d = (a, b, f) => b === a ? 'tetap' : `${f(a)} → <b>${f(b)}</b>`;
   const lines = prev ? [
-    `Kesiapan berutang: ${prev.level === now.level ? `tetap <b>${READY[now.level].name}</b>` : `${READY[prev.level].name} → <b>${READY[now.level].name}</b>`}`,
     `Kondisi keuangan: ${d(prev.score, now.score, x => x + '/100')}`,
     `Sisa uang per bulan: ${d(prev.sur, now.sur, x => rp(x, { plus: true }))}`,
-    `Pinjaman maksimal yang aman (6 bln): ${d(prev.max6, now.max6, rp)}`,
+    `Porsi cicilan: ${d(Math.round(prev.dsr * 100), Math.round(now.dsr * 100), x => x + '%')}`,
+    `Dana darurat: ${d(prev.ef, now.ef, rp)}`,
   ] : [];
   return `<div class="recheck">
     <div><h3>${prev ? `Dibanding cek ${dateID(dayKey(prev.at))}` : 'Cek ulang tiap bulan'}</h3>
-     ${prev ? `<ul class="small">${lines.map(x => `<li>${x}</li>`).join('')}</ul>` : '<p class="small muted">Perbarui datamu setelah gajian bulan depan. FinWise akan menunjukkan apa yang berubah: kesiapan, kondisi, sisa uang, dan pinjaman maksimal yang aman.</p>'}
+     ${prev ? `<ul class="small">${lines.map(x => `<li>${x}</li>`).join('')}</ul>` : '<p class="small muted">Perbarui datamu setelah gajian bulan depan. FinWise akan menunjukkan apa yang berubah: kondisi keuangan, sisa uang, porsi cicilan, dan dana darurat.</p>'}
      ${age != null && age > 30 ? `<p class="small" style="margin-top:6px"><b>Datamu terakhir diperbarui ${age} hari lalu.</b> Angka di halaman ini memakai data itu.</p>` : ''}</div>
     <div class="recheck-acts"><a class="btn sm" href="#mulai" data-act="wiz-edit">Perbarui data</a><a class="btn sm ghost" href="${recheckLink((p.incomes[0] || {}).payday)}" target="_blank" rel="noopener noreferrer">Pengingat bulan depan<span class="sr"> di Google Calendar (tab baru)</span></a><button class="btn sm ghost" data-act="export-data">Unduh data (.json)</button></div>
    </div>`;

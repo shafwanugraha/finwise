@@ -41,8 +41,7 @@ function planCard(base, acts, after) {
     <div class="impact"><div class="lab">Dampaknya</div>
      <div class="stack small" style="gap:6px;margin-top:8px">
       <div class="row between"><span>Sisa uang per bulan</span><span class="num">${rp(FW.surplus(base), { plus: true })} → <b>${rp(FW.surplus(after), { plus: true })}</b></span></div>
-      <div class="row between"><span>Kesiapan berutang</span><span>${READY[FW.readiness(base).level].short} → <b>${READY[FW.readiness(after).level].short}</b></span></div>
-      <div class="row between"><span>Pinjaman maksimal yang aman (6 bln)</span><span class="num">${rp(FW.maxSafeLoan(base, 6))} → <b>${rp(FW.maxSafeLoan(after, 6))}</b></span></div>
+      <div class="row between"><span>Dana darurat 1 bulan tercapai</span><span>${(fb => { const gap = Math.max(0, fb.out - (base.emergencyFund || 0)), per = Math.max(0, FW.surplus(after)); return gap <= 0 ? '<b>sudah</b>' : per > 0 ? `<b>±${Math.ceil(gap / per)} bulan</b>` : '<b>belum bisa</b>'; })(facts(base))}</span></div>
       <div class="row between"><span>Disisihkan per bulan</span><span class="num">${rp(base.savingMonthly || 0)} → <b>${rp(after.savingMonthly || 0)}</b></span></div>
       <div class="row between"><span>Kondisi keuangan</span><span class="num">${hb.total} → <b>${ha.total}</b> (${ha.status})</span></div>
      </div>
@@ -51,50 +50,44 @@ function planCard(base, acts, after) {
     </div>
    </div></div>`;
 }
+// one ratio row: value, bar against its benchmark, formula and status
+function ratioRow(r, f) {
+  return `<li><div class="r-top"><span class="r-name">${term(r.t, r.k)}</span><b class="num" style="color:var(--${r.s})">${esc(r.show)}</b></div>
+    <div class="bar" aria-hidden="true"><i style="width:${Math.min(100, Math.max(3, (r.t === 'Rasio likuiditas' ? r.v / Math.max(1, f.efTarget) : r.t === 'Daya tahan uang' ? r.v : r.t === 'Jumlah kredit aktif' ? r.v / 4 : Math.abs(r.v)) * 100)).toFixed(0)}%;background:var(--${r.s})"></i></div>
+    <div class="r-meta tiny"><span>${esc(r.f)}</span><span>patokan <b>${esc(r.bench)}</b> ${STATUS_PILL[r.s]}</span></div>${r.note ? `<div class="tiny muted">${esc(r.note)}</div>` : ''}</li>`;
+}
+const STATUS_PILL = { safe: '<span class="pill z-safe">Baik</span>', stretch: '<span class="pill z-stretch">Perlu perhatian</span>', danger: '<span class="pill z-danger">Bermasalah</span>', grey: '<span class="pill z-grey">Belum ada data</span>' };
+// CEK describes the present only: money in, money out, the debts already there, and the safety net. New loans are PILAH's job.
 function vCek() {
   const p = P(), base = autoCaps(p), st = S.cek;
   const acts = planActions(base), planned = applyPlan(base, acts);
   const f = facts(p), v = verdict(p, f), pr = priorities(p, f), rs = ratios(p), hs = f.hs, run = FW.runway(p), sp5 = FW.split(p);
   const cuts = acts.filter(a => a.id === 'caps' || a.id === 'needs').flatMap(a => a.rows.map(r => ({ cat: r.name, from: r.from, to: r.to, save: r.from - r.to }))), cutSum = FW.sum(cuts, c => c.save);
-  const off = st.offer, offReady = off.amount > 0 && off.months > 0 && off.rate != null, L = FW.loan({ principal: off.amount, rate: off.rate, unit: off.unit, months: off.months });
-  const zO = FW.zoneOf(p, L.inst);
-  const after = { sur: FW.surplus(planned) }, saveM = Math.max(0, after.sur);
-  const goalReady = st.goal.amount > 0, suggestGoal = Math.round(f.efTarget * f.ess / 100000) * 100000;
+  const saveM = Math.max(0, FW.surplus(planned));
+  const goalReady = st.goal.amount > 0, suggestGoal = Math.round(f.efTarget * f.out / 100000) * 100000;
   const gp = FW.goalPlan(st.goal.amount || 0, [{ monthly: Math.max(saveM, 1) }]);
   const maxBar = Math.max(f.inc, f.needs + f.wants + f.fam + f.inst);
   const rows = [...p.spending.map(c => ({ name: c.name, kind: c.kind, amount: c.amount })), ...(f.fam ? [{ name: 'Kirim ke keluarga', kind: 'need', amount: f.fam }] : []), ...p.loans.map(l => ({ name: l.name, kind: 'debt', amount: l.instalment }))].filter(r => r.amount > 0);
   const kindPill = k => k === 'need' ? '<span class="pill z-green">Pokok</span>' : k === 'want' ? '<span class="pill z-amber">Keinginan</span>' : k === 'total' ? '<span class="pill z-grey">Belum dirinci</span>' : '<span class="pill z-grey">Cicilan</span>';
   const pillars = ['Spend', 'Save', 'Borrow', 'Plan'], pname = { Spend: 'Belanja', Save: 'Menabung', Borrow: 'Berutang', Plan: 'Rencana' };
   const ringC = hs.status === 'Sehat' ? 'var(--safe)' : hs.status === 'Bertahan' ? 'var(--stretch)' : 'var(--danger)';
-  const R = FW.readiness(p), RD = READY[R.level];
-  const prompt = `Data:\n${context()}\nRingkasan mesin FinWise: ${v.head} ${v.why}\nRasio: ${rs.map(r => `${r.k} ${r.show} (patokan ${r.bench})`).join('; ')}.\nPrioritas dari mesin: ${pr.slice(0, 3).map((x, i) => `${i + 1}. ${x.title}: ${x.text}`).join(' ')}\nTugas: tulis analisis singkat untuk pengguna ini dalam 3 paragraf pendek: (1) gambaran kondisinya dengan bahasa sehari-hari, (2) risiko terbesar yang perlu diwaspadai, (3) satu langkah pertama yang konkret minggu ini. Pakai hanya angka di atas.`;
+  const dc = debtChecks(p), dBad = dc.filter(x => x.s === 'danger' || x.s === 'stretch').length;
+  const group = g => rs.filter(r => r.g === g);
+  const prompt = `Data:\n${context()}\nRingkasan mesin FinWise: ${v.head} ${v.why}\nRasio: ${rs.map(r => `${r.k} ${r.show} (patokan ${r.bench})`).join('; ')}.\nPrioritas dari mesin: ${pr.slice(0, 3).map((x, i) => `${i + 1}. ${x.title}: ${x.text}`).join(' ')}\nTugas: tulis analisis singkat untuk pengguna ini dalam 3 paragraf pendek: (1) gambaran kondisinya dengan bahasa sehari-hari, (2) risiko terbesar yang perlu diwaspadai, (3) satu langkah pertama yang konkret minggu ini. Pakai hanya angka di atas. Jangan membahas pinjaman baru.`;
   aiAuto('ringkasan', prompt);
   const ai = S.ai.ringkasan, txt = analysisText(p, f, v, pr);
-  const prLink = x => x.act ? `<a class="btn sm" href="${x.href}" data-act="${x.act}" data-v="${x.v}" data-mode="${x.mode || ''}">${esc(x.cta)}</a>` : x.href === '#cek' ? `<button class="linkbtn small" data-act="goto-sec" data-id="s4">${esc(x.cta)} ↓</button>` : `<a class="small" href="${x.href}">${esc(x.cta)} →</a>`;
-  return banner({ tone: 'green', eyebrow: 'CEK · KESEHATAN KEUANGAN', title: 'Kondisi keuanganmu', sub: 'Dihitung dari isianmu. Mulai dari kesiapan berutang, lalu rasio, arus uang, dan rencana.', right: userChip() })
-  + secNav([['s1', 'Kesimpulan'], ['s2', 'Rasio & skor'], ['s3', 'Arus uang'], ['s4', 'Rencana'], ['s5', 'Sebelum beli']])
-  + `<section class="sec">${secHead(1, 's1', 'Kesimpulan', 'Gambaran singkat kondisimu bulan ini.')}
-    <div class="ready-card lv-${RD.tone}">
-     <div class="rc-main">
-      <div class="lab">${term('Kesiapan berutang')}</div>
-      <h3 class="rc-level">${RD.name}</h3>
-      <ul class="rc-why">${R.reasons.slice(0, 3).map(x => `<li>${esc(x)}</li>`).join('')}</ul>
-      <p class="rc-next">${esc(readyNext(R))}</p>
-      ${R.level < 3 ? (lv => lv.length ? `<div class="levers"><div class="lab">Jalan naik level</div><ul>${lv.map(x => `<li><b>${esc(x.t)}</b>: ${esc(x.txt)}</li>`).join('')}</ul></div>` : '')(levers(p)) : ''}
-      <div class="row" style="margin-top:12px">${R.level === 0 ? '<button class="btn" data-act="goto-sec" data-id="s4">Lihat rencana tanpa utang</button><a class="btn ghost" href="#pulih">Atur cicilan di PULIH</a>' : '<a class="btn" href="#pilah">Cari pinjaman di PILAH</a><button class="btn ghost" data-act="goto-sec" data-id="s4">Lihat rencana</button>'}</div>
-     </div>
-     <div class="rc-max">
-      <div class="lab">${term('Pinjaman maksimal yang aman')}</div>
-      ${R.level === 0 ? `<p class="rc-zero">Rp0</p><p class="small">Belum ada ruang untuk utang baru. Angka ini naik begitu sisa uangmu positif dan cicilan lama turun.</p>`
-        : `<dl class="rc-amts">${[3, 6, 12].map(m => `<div><dt>${m} bulan</dt><dd class="num">${rp(R.max[m])}</dd></div>`).join('')}</dl>
-      <p class="tiny muted" style="margin-top:8px">Cicilan maksimal ${rp(f.h.ceiling)} per bulan, dihitung dengan bunga legal termurah ±1,5% per bulan.</p>`}
-     </div>
-    </div>
-    <div class="hero-sum ${hs.deficit ? 'danger' : v.tone}" style="margin-top:14px">
-     <div class="ring sm" style="--p:${hs.total};--c:${ringC}" role="img" aria-label="Kondisi keuangan ${hs.total} dari 100, ${hs.status}"><div><div><b>${hs.total}</b><div class="tiny muted">${hs.status}</div></div></div></div>
+  const prLink = x => x.act ? `<a class="btn sm" href="${x.href}" data-act="${x.act}" data-v="${x.v}" data-mode="${x.mode || ''}">${esc(x.cta)}</a>` : x.href === '#cek' ? `<button class="linkbtn small" data-act="goto-sec" data-id="s5">${esc(x.cta)} ↓</button>` : `<a class="small" href="${x.href}">${esc(x.cta)} →</a>`;
+  return banner({ tone: 'green', eyebrow: 'CEK · KONDISI KEUANGAN', title: 'Kondisi keuanganmu', sub: 'Dari isianmu: uang masuk, uang keluar, utang yang sudah ada, dan dana daruratmu.', right: userChip() })
+  + secNav([['s1', 'Ringkasan'], ['s2', 'Masuk & keluar'], ['s3', 'Kondisi utang'], ['s4', 'Dana darurat'], ['s5', 'Rencana']])
+  + `<section class="sec">${secHead(1, 's1', 'Ringkasan bulan ini', 'Gambaran kondisimu dalam satu layar.')}
+    <div class="hero-sum hs-lg ${hs.deficit ? 'danger' : v.tone}">
+     <div class="ring" style="--p:${hs.total};--c:${ringC}" role="img" aria-label="Kondisi keuangan ${hs.total} dari 100, ${hs.status}"><div><div><b>${hs.total}</b><div class="tiny muted">${hs.status}</div></div></div></div>
      <div class="hs-text"><div class="lab">${term('Kondisi keuangan')} · ${hs.status}</div><h3>${esc(v.head)}</h3><p class="small">${esc(v.why)}</p></div>
      <dl class="hs-nums"><div><dt>Masuk</dt><dd>${rp(f.inc)}</dd></div><div><dt>Keluar</dt><dd>${rp(f.needs + f.wants + f.fam)}</dd></div><div><dt>Cicilan</dt><dd>${rp(f.inst)}</dd></div><div><dt>${term('Sisa uang')}</dt><dd style="color:${f.sur < 0 ? 'var(--danger)' : 'var(--safe)'}">${rp(f.sur, { plus: true })}</dd></div></dl>
     </div>
+    <details class="more score-more"><summary>Lihat rincian skor: 8 kebiasaan keuangan</summary>
+     <p class="small muted" style="margin-top:4px">8 kebiasaan × 12,5 poin. Paling menahan skormu: <b style="color:var(--ink)">${esc(hs.weakest.label)}</b>.</p>
+     <div class="habits">${pillars.map(pl => `<div><div class="lab">${pname[pl]}</div>${hs.ind.filter(i => i.pillar === pl).map(i => `<div class="row between tiny" style="margin-top:4px;flex-wrap:nowrap"><span>${esc(i.label)}</span><b class="num">${i.points.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}/12,5</b></div><div class="bar" aria-hidden="true"><i style="width:${Math.max(2, i.score * 100)}%;background:${i.score >= 1 ? 'var(--safe)' : i.score > 0 ? 'var(--stretch)' : 'var(--danger)'}"></i></div>`).join('')}</div>`).join('')}</div></details>
     <div class="grid g2" style="margin-top:14px">
      <div class="panel"><h3>Yang perlu kamu lakukan dulu</h3><ol class="prio">${pr.slice(0, 3).map((x, i) => `<li class="${x.tone}"><span class="n">${i + 1}</span><div><b>${esc(x.title)}</b><p class="small" style="margin:3px 0 6px">${esc(x.text)}</p>${prLink(x)}</div></li>`).join('')}</ol></div>
      <div class="panel aicard"><div class="row between"><span class="ai-badge">${ai?.text && !ai.loading ? 'Analisis AI' : 'Analisis FinWise'}</span>${ai?.loading ? '<span class="tiny" role="status">AI sedang menulis…</span>' : ''}</div>
@@ -106,21 +99,7 @@ function vCek() {
     ${recheckCard(p)}
     ${f.total ? `<div class="note amber" style="margin-top:14px"><b>Mau insight yang lebih dalam?</b> Kamu baru mengisi total pengeluaran. <a href="#mulai" data-act="wiz-edit" data-v="2" data-mode="rinci">Rinci per pos (±2 menit)</a> supaya FinWise bisa menunjukkan pos paling boros dan batas hemat per pos.</div>` : ''}
    </section>
-   <section class="sec">${secHead(2, 's2', 'Rasio dan kondisi keuangan', 'Rasio keuangan rumah tangga dibanding patokan umum, dan rincian skor kondisi keuanganmu.')}
-    <div class="grid g-side" style="align-items:start">
-     <div class="panel"><h3>Rasio keuanganmu</h3>
-      <p class="small muted" style="margin-top:4px">${(n => n ? `${n} dari ${rs.length} rasio di luar patokan. Mulai dari yang ini:` : `Semua ${rs.length} rasio dalam patokan.`)(rs.filter(r => r.s !== 'safe').length)}</p>
-      ${(row => { const bad = rs.filter(r => r.s !== 'safe'), good = rs.filter(r => r.s === 'safe');
-        return `${bad.length ? `<ul class="ratios">${bad.map(row).join('')}</ul>` : ''}${good.length ? `<details class="more"${bad.length ? '' : ' open'}><summary>${bad.length ? `Lihat ${good.length} rasio yang sudah dalam patokan` : 'Lihat semua rasio'}</summary><ul class="ratios">${good.map(row).join('')}</ul></details>` : ''}`; })(r => `<li><div class="r-top"><span class="r-name">${term(r.t, r.k)}</span><b class="num" style="color:var(--${r.s})">${esc(r.show)}</b></div>
-        <div class="bar" aria-hidden="true"><i style="width:${Math.min(100, Math.max(3, (r.t === 'Rasio likuiditas' ? r.v / Math.max(1, f.efTarget) : r.t === 'Daya tahan uang' ? r.v : Math.abs(r.v)) * 100)).toFixed(0)}%;background:var(--${r.s})"></i></div>
-        <div class="r-meta tiny"><span>${esc(r.f)}</span><span>patokan <b>${esc(r.bench)}</b> ${{ safe: '<span class="pill z-safe">Baik</span>', stretch: '<span class="pill z-stretch">Perlu perhatian</span>', danger: '<span class="pill z-danger">Bermasalah</span>' }[r.s]}</span></div>${r.note ? `<div class="tiny muted">${esc(r.note)}</div>` : ''}</li>`)}
-      <p class="tiny muted" style="margin-top:8px">Patokan dari pedoman 50/30/20 dan rasio keuangan rumah tangga (Greninger dkk., 1996). Tekan “?” untuk penjelasan singkat.</p></div>
-     <div class="panel"><h3>Rincian ${term('Kondisi keuangan', 'kondisi keuangan')}</h3>
-      <p class="small muted" style="margin-top:4px">8 kebiasaan × 12,5 poin. Paling menahan skormu: <b style="color:var(--ink)">${esc(hs.weakest.label)}</b>.</p>
-      <details class="more"><summary>Lihat rincian 8 kebiasaan</summary><div class="stack" style="margin-top:12px;gap:10px">${pillars.map(pl => `<div><div class="lab">${pname[pl]}</div>${hs.ind.filter(i => i.pillar === pl).map(i => `<div class="row between tiny" style="margin-top:4px;flex-wrap:nowrap"><span>${esc(i.label)}</span><b class="num">${i.points.toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}/12,5</b></div><div class="bar" aria-hidden="true"><i style="width:${Math.max(2, i.score * 100)}%;background:${i.score >= 1 ? 'var(--safe)' : i.score > 0 ? 'var(--stretch)' : 'var(--danger)'}"></i></div>`).join('')}</div>`).join('')}</div></details></div>
-    </div>
-   </section>
-   <section class="sec">${secHead(3, 's3', 'Ke mana uangmu pergi', 'Pemasukan, pengeluaran, dan kapan uangmu menipis dalam sebulan.')}
+   <section class="sec">${secHead(2, 's2', 'Uang masuk dan keluar', 'Dari mana uangmu datang, ke mana perginya, dan kapan menipis.')}
     <div class="grid g-side" style="align-items:start">
      <div class="panel"><div class="row between"><h3>Pengeluaran per bulan</h3><button class="btn ghost sm" data-act="import">Impor mutasi (CSV)</button></div>
       <div class="stack" style="margin-top:12px;gap:9px">${rows.map(r => `<div><div class="row between small"><span>${esc(r.name)} ${kindPill(r.kind)}</span><b class="num">${rp(r.amount)}</b></div><div class="bar" style="margin-top:4px" aria-hidden="true"><i style="width:${(r.amount / maxBar * 100).toFixed(1)}%;background:${r.kind === 'need' ? 'var(--green)' : r.kind === 'want' ? 'var(--amber-strong)' : 'var(--muted)'}"></i></div></div>`).join('') || '<p class="small muted">Belum ada pengeluaran.</p>'}</div>
@@ -135,27 +114,29 @@ function vCek() {
        ${monthStrip([...p.incomes.map(i => ({ day: i.payday || 1, label: 'Masuk', color: 'var(--safe)' })), ...p.loans.map(l => ({ day: l.dueDay, label: 'Cicilan', color: 'var(--amber)' })), ...(run ? [{ day: run.date, label: 'Habis', color: 'var(--danger)' }] : [])])}</div>
      </div>
     </div>
+    <div class="panel" style="margin-top:14px"><h3>Rasio uang masuk dan keluar</h3><ul class="ratios r2">${group('spend').filter(r => r.t !== 'Daya tahan uang').map(r => ratioRow(r, f)).join('')}</ul>
+     <p class="tiny muted" style="margin-top:8px">Patokan dari pedoman 50/30/20 dan rasio keuangan rumah tangga (Greninger dkk., 1996). Tekan “?” untuk penjelasan singkat.</p></div>
    </section>
-   <section class="sec">${secHead(4, 's4', 'Rencana FinWise', 'Langkah konkret bulan ini. Matikan yang tidak cocok; dampaknya langsung dihitung ulang.')}
-    ${planCard(base, acts, planned)}
-    ${cuts.length ? `<div class="panel" style="margin-top:14px"><h3>Saran hemat per pos</h3><div class="stack small" style="margin-top:8px;gap:6px">${cuts.map(c => `<div class="row between"><span>${esc(c.cat)}</span><span class="num">${rps(c.from)} → <b>${rps(c.to)}</b> <span class="tiny muted">(hemat ${rps(c.save)})</span></span></div>`).join('')}</div><p class="small" style="margin-top:8px">Total hemat <b>${rp(cutSum)} per bulan</b>.</p></div>` : ''}
+   <section class="sec">${secHead(3, 's3', 'Kondisi utangmu', 'Utang yang sehat itu seperti apa, dan di mana posisimu sekarang.')}
+    <div class="grid g-side" style="align-items:start">
+     <div class="panel"><h3>Patokan utang sehat</h3><p class="small muted" style="margin-top:4px">${dBad ? `${dBad} dari ${dc.length} patokan belum terpenuhi.` : 'Semua patokan yang bisa dinilai sudah terpenuhi.'}</p>
+      <ul class="dchecks">${dc.map(x => `<li class="dc-${x.s}"><span class="dc-mark" aria-hidden="true">${{ safe: '✓', stretch: '!', danger: '✕', grey: '–' }[x.s]}</span><div><div class="row between" style="flex-wrap:nowrap;gap:8px"><b>${x.t ? term(x.t, x.k) : esc(x.k)}</b><span class="num">${esc(x.v)}</span></div><div class="tiny muted">Sehat: ${esc(x.bench)}${x.note ? ' · ' + esc(x.note) : ''}</div></div>${STATUS_PILL[x.s]}</li>`).join('')}</ul></div>
+     <div class="panel"><h3>Penilaian tiap pinjaman</h3><p class="tiny muted">Dinilai dari tujuan pinjaman, bunganya, dan porsinya dari pendapatanmu.</p>${loanAnalysis(p)}
+      ${p.loans.length ? '<p class="small" style="margin-top:10px"><a href="#pulih">Atur jadwal bayar dan urutan pelunasan di PULIH →</a></p>' : ''}</div>
+    </div>
    </section>
-   <section class="sec">${secHead(5, 's5', 'Sebelum beli atau pinjam', 'Cek apakah penawaran paylater/cicilan muat, atau rencanakan tujuan tanpa utang.')}
+   <section class="sec">${secHead(4, 's4', 'Dana darurat dan tabungan', 'Bantalan untuk kejadian mendadak, supaya tidak perlu berutang.')}
     <div class="grid g2" style="align-items:start">
-     <div class="panel"><h3>Cek penawaran cicilan</h3>
-      <div class="grid g2" style="margin-top:10px">
-       <label class="f">Harga / pokok${rpInput('o-amount', off.amount, 'data-k="cek.offer.amount" data-t="rpn" placeholder="mis. 3.000.000"')}</label>
-       <label class="f">${term('Tenor')} (bulan)<input class="in num" id="o-months" type="number" min="1" max="36" value="${blankNum(off.months)}" placeholder="mis. 6" data-k="cek.offer.months" data-t="intn"></label>
-       <label class="f">Bunga (%)<input class="in num" id="o-rate" inputmode="decimal" value="${off.rate == null ? '' : (off.rate * 100).toLocaleString('id-ID', { maximumFractionDigits: 3 })}" placeholder="mis. 3" data-k="cek.offer.rate" data-t="pctn"></label>
-       <label class="f">Satuan<select class="in" id="o-unit" data-k="cek.offer.unit" data-t="text"><option value="month" ${off.unit === 'month' ? 'selected' : ''}>% per bulan</option><option value="day" ${off.unit === 'day' ? 'selected' : ''}>% per hari</option></select></label>
-      </div>
-      ${offReady ? `<dl class="kv" style="margin-top:12px"><div><dt>Cicilan per bulan</dt><dd>${rp(L.inst)}</dd></div><div><dt>Total dikembalikan</dt><dd>${rp(L.repay + L.fee)}</dd></div><div><dt>${term('Bunga efektif', 'Bunga sebenarnya per tahun')}</dt><dd>${pct(L.ear, 0)}</dd></div><div><dt>Sisa uangmu setelahnya</dt><dd style="color:${zO.left < 0 ? 'var(--danger)' : 'var(--safe)'}">${rp(zO.left, { plus: true })} ${zpill(zO.zone)}</dd></div></dl>
-       ${zO.zone === 'danger' ? `<div class="note danger small" style="margin-top:10px">Penawaran ini membuat arus kasmu minus atau porsi cicilanmu di atas 40%. Untuk kebutuhan mendesak, coba <a href="#pilah" data-act="to-pilah" data-amount="${off.amount}">tangga dana di PILAH</a>.</div>` : zO.zone === 'stretch' ? '<div class="note amber small" style="margin-top:10px">Masih bisa dibayar, tapi mepet. Pertimbangkan menabung dulu.</div>' : '<div class="note safe small" style="margin-top:10px">Masih dalam batas aman.</div>'}` : '<p class="small muted" style="margin-top:10px">Isi harga, tenor, dan bunga untuk melihat cicilan dan bunga sebenarnya. Mau versi lengkap dengan slider? <a href="#kalkulator">Buka kalkulator</a>.</p>'}</div>
+     <div class="panel"><h3>Bantalanmu sekarang</h3><ul class="ratios">${group('save').map(r => ratioRow(r, f)).join('')}</ul></div>
      <div class="panel"><h3>Tujuan tanpa utang</h3>
       <div class="grid g2" style="margin-top:10px"><label class="f">Tujuan<input class="in" id="g-label" value="${esc(st.goal.label)}" placeholder="mis. Laptop, dana darurat" data-k="cek.goal.label" data-t="text"></label><label class="f">Target${rpInput('g-amount', st.goal.amount, 'data-k="cek.goal.amount" data-t="rpn" placeholder="mis. 6.000.000"')}</label></div>
       ${!goalReady ? `<p class="small" style="margin-top:10px">Belum punya tujuan? Saran: <b>${term('Dana darurat', 'dana darurat')} ${f.efTarget} bulan = ${rp(suggestGoal)}</b>. <button class="btn ghost sm" data-act="goal-suggest" data-v="${suggestGoal}" ${suggestGoal > 0 ? '' : 'disabled'}>Pakai saran ini</button></p>`
        : `<dl class="kv" style="margin-top:12px"><div><dt>Ditabung per bulan (setelah rencana)</dt><dd>${rp(saveM)}</dd></div><div><dt>Target tercapai</dt><dd>${saveM > 0 ? 'bulan ke-' + gp.months + (gp.months >= 120 ? '+' : '') : 'tambah sisa uang dulu'}</dd></div></dl>`}</div>
     </div>
    </section>
-   <div class="nextbar"><span>Langkah berikutnya</span><a class="btn" href="#pilah">Butuh dana? Ke PILAH</a>${p.loans.length ? '<a class="btn ghost" href="#pulih">Atur cicilan di PULIH</a>' : ''}<a class="btn ghost" href="#openspace">Cek legalitas pinjol</a></div>`;
+   <section class="sec">${secHead(5, 's5', 'Rencana FinWise', 'Langkah konkret bulan ini. Matikan yang tidak cocok; dampaknya langsung dihitung ulang.')}
+    ${planCard(base, acts, planned)}
+    ${cuts.length ? `<div class="panel" style="margin-top:14px"><h3>Saran hemat per pos</h3><div class="stack small" style="margin-top:8px;gap:6px">${cuts.map(c => `<div class="row between"><span>${esc(c.cat)}</span><span class="num">${rps(c.from)} → <b>${rps(c.to)}</b> <span class="tiny muted">(hemat ${rps(c.save)})</span></span></div>`).join('')}</div><p class="small" style="margin-top:8px">Total hemat <b>${rp(cutSum)} per bulan</b>.</p></div>` : ''}
+   </section>
+   <div class="nextbar"><span>Langkah berikutnya</span><a class="btn" href="#pilah">Lagi butuh dana? Ke PILAH</a>${p.loans.length ? '<a class="btn ghost" href="#pulih">Utang terasa berat? Ke PULIH</a>' : ''}<a class="btn ghost" href="#openspace">Cek legalitas pinjol</a></div>`;
 }

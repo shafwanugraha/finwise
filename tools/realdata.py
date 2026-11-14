@@ -22,8 +22,9 @@ ASPECTS = [('Harga', r'bunga|biaya|denda|potongan|mahal|murah|admin|imbal'), ('K
 revmap = {key(k): k for k in rev}
 senmap = {}
 for _, r in sen.iterrows(): senmap.setdefault(key(r.app_name), []).append(r)
-PRODUCTIVE = {'amarthafin', 'modalku', 'akseleran', 'alami', 'cicil'}
-BOTH = {'danamas', 'maucash'}
+# Danamas: the published rate is for Dana Usaha (productive); the Dana Tunai (consumer) rate is not in the sheet
+PRODUCTIVE = {'amarthafin', 'modalku', 'akseleran', 'alami', 'cicil', 'danamas'}
+BOTH = {'maucash'}
 out = []
 for _, r in lg.iterrows():
     app = str(r.nama_aplikasi); k = key(app)

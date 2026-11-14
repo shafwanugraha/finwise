@@ -1,5 +1,7 @@
-/* ================= PILAH ================= */
-// what the money is for decides whether borrowing is acceptable at all (with the readiness level)
+/* ================= PILAH =================
+   Order: the plan first (what for, how much, how long, how soon), then what it does to the user's money,
+   then optional ways to borrow less, then every licensed lender side by side with reference prices.
+   Nothing is locked: risk is shown as a warning above the list. The one exception is gambling. */
 const PURPOSES = [
   ['kesehatan', 'Kesehatan', 'rumah sakit, obat, berobat'], ['pendidikan', 'Pendidikan', 'UKT, SPP, kursus'], ['pokok', 'Sewa & kebutuhan pokok', 'kos, makan, listrik'],
   ['usaha', 'Modal usaha / alat kerja', 'stok, modal, alat kerja'], ['utang', 'Bayar utang lain', 'tutup pinjol, paylater'], ['gaya', 'Barang atau gaya hidup', 'HP baru, liburan, konser'],
@@ -18,147 +20,162 @@ const PURPOSE_WORDS = [
 ];
 const classifyPurpose = t => { const x = String(t || ''); for (const [k, re] of PURPOSE_WORDS) if (re.test(x)) return k; return null; };
 const purposeName = k => k === 'judi' ? 'Judi online' : (PURPOSES.find(x => x[0] === k) || [, 'Belum dipilih'])[1];
-function pilahGate(p, st) {
-  const R = FW.readiness(p), cat = st.cat, urgent = !!st.urg && st.urg !== 'tunda', essential = ESSENTIAL.includes(cat);
-  if (!isSaya(p) || !cat) return { mode: 'normal', R };
-  if (cat === 'judi') return { mode: 'nodebt', why: 'judi', R };
-  if (cat === 'utang') return { mode: R.level === 0 ? 'nodebt' : 'debt', why: 'utang', R };
-  if (R.level === 0) return essential && urgent ? { mode: 'emergency', R } : { mode: 'nodebt', why: essential ? 'tunda' : 'gaya', R };
-  if (R.level === 1) return cat === 'gaya' ? { mode: 'nodebt', why: 'gaya', R } : { mode: 'capped', R };
-  return { mode: 'normal', R };
+const planReady = st => !!st.cat && st.need > 0 && st.months > 0 && !!st.urg;
+const isJudi = st => st.cat === 'judi' || classifyPurpose(st.needLabel) === 'judi';
+// reference prices for the scorecard; each one is cited on screen
+const BENCH = {
+  bank: { lo: 0.0088, hi: 0.0179, admin: 0.04, src: 'CIMB Niaga Xtra Dana, RIPLAY versi Feb 2026: 0,88–1,79% flat per bulan + admin 4%' },
+  kop: { month: 0.02, src: 'Permenkop UKM 8/2023 Pasal 27: bunga pinjaman koperasi simpan pinjam paling tinggi 24% per tahun' },
+};
+// the warning shown above the impact and the list; it never hides anything (gambling aside)
+function pilahWarn(p, st) {
+  const R = FW.readiness(p), cat = st.cat, urgent = !!st.urg && st.urg !== 'tunda', f = facts(p);
+  const plan = applyPlan(autoCaps(p), planActions(autoCaps(p))), per = Math.max(f.sur, Math.max(0, FW.surplus(plan)));
+  const mo = per > 0 && st.need > 0 ? Math.ceil(st.need / per) : null;
+  const save = mo ? ` Tanpa utang: menyisihkan ${rp(per)} per bulan, ${rp(st.need)} terkumpul dalam ±${mo} bulan.` : '';
+  if (cat === 'judi' || classifyPurpose(st.needLabel) === 'judi') return { tone: 'danger', stop: true, title: 'FinWise tidak membandingkan pinjaman untuk judi online.', text: 'Utang untuk judi hampir selalu bertambah, bukan tertutup. Kalau terasa sulit berhenti, ceritakan ke orang terdekat atau tenaga profesional.' };
+  if (cat === 'utang') return { tone: 'danger', title: 'Meminjam untuk membayar utang lain biasanya hanya memindahkan masalah ke bulan depan.', text: 'Coba dulu minta keringanan ke pemberi pinjaman lama sebelum jatuh tempo; langkahnya ada di PULIH.', link: ['#pulih', 'Langkahnya di PULIH'] };
+  if (R.level === 0) return { tone: 'danger', title: `Kesiapan berutangmu: ${READY[0].name}.`, text: `${R.reasons[0]}${ESSENTIAL.includes(cat) && urgent ? ' Kalau kebutuhan ini memang tidak bisa ditunda, pinjam sekecil mungkin.' : save}` };
+  if (cat === 'gaya' && R.level <= 2) return { tone: 'amber', title: 'Untuk barang atau gaya hidup, menabung dulu hampir selalu lebih murah daripada bunga.', text: save.trim() };
+  if (R.level === 1 && !ESSENTIAL.includes(cat)) return { tone: 'amber', title: `Kesiapan berutangmu: ${READY[1].name}.`, text: R.reasons[0] };
+  return null;
 }
+const warnBox = w => w ? `<div class="note ${w.tone} pwarn" role="status"><b>${esc(w.title)}</b>${w.text ? ` ${esc(w.text)}` : ''}${w.link ? ` <a href="${w.link[0]}">${w.link[1]}</a>` : ''}</div>` : '';
 function pilahCalc(p, st) {
   const h = FW.headroom(p);
   const lad = FW.ladder(st.need || 0, [{ key: 'savings', amount: Math.min(st.useSavings || 0, p.emergencyFund || 0) }, { key: 'family', amount: st.family || 0 },
     { key: 'reduce', amount: st.reduce || 0 }, { key: 'relief', amount: st.relief || 0 }, { key: 'fund', amount: st.fund || 0 }, { key: 'cash', amount: st.cash || 0 }]);
-  // the loan is capped at the largest safe amount (automatically when the gate says so; the user can lift it)
-  let cap = st.cap;
-  if (cap == null && isSaya(p) && ['capped', 'debt'].includes(pilahGate(p, st).mode)) cap = safeCapFor(p, st) || 0;
-  const amt = cap > 0 ? Math.min(lad.gap, cap) : lad.gap;
-  const products = isSaya(p) ? realProducts(st, amt) : DATA.products;
+  const amt = st.cap > 0 ? Math.min(lad.gap, st.cap) : lad.gap;
+  // only licensed pindar: koperasi and bank appear as reference prices, not as options
+  const products = (isSaya(p) ? realProducts(st, amt) : DATA.products).filter(x => !x.generic);
   const m = FW.match(p, { amount: amt, deadlineHours: st.hours || 0, purpose: st.purpose || 'konsumtif', mode: st.mode, products });
   return { h, lad, m, amt };
 }
-const pilahReady = (p, st) => st.need > 0 && st.hours > 0 && !!st.purpose && (!isSaya(p) || (st.months > 0 && !!st.cat));
+// compact readiness line used on Kalkulator and on PILAH's later steps
 function readyStrip(p) {
   const R = FW.readiness(p), RD = READY[R.level];
   return `<div class="ready-strip lv-${RD.tone}"><div><div class="lab">${term('Kesiapan berutang')}</div><b class="rs-level">${RD.name}</b><p class="small">${esc(R.reasons[0])} ${esc(readyNext(R))}</p></div>
    ${R.level ? `<div class="rs-max"><div class="lab">${term('Pinjaman maksimal yang aman')}</div><b class="num">${rp(R.max[6])}</b><span class="tiny muted">untuk 6 bulan · 12 bulan: ${rps(R.max[12])}</span></div>` : ''}</div>`;
 }
+function readyCard(p, months) {
+  const R = FW.readiness(p), RD = READY[R.level], lv = R.level < 3 ? levers(p) : [];
+  return `<div class="ready-card one lv-${RD.tone}">
+    <div class="rc-main"><div class="lab">${term('Kesiapan berutang')}</div><h3 class="rc-level">${RD.name}</h3>
+     <ul class="rc-why">${R.reasons.slice(0, 3).map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+     ${lv.length ? `<div class="levers"><div class="lab">Jalan naik level</div><ul>${lv.map(x => `<li><b>${esc(x.t)}</b>: ${esc(x.txt)}</li>`).join('')}</ul></div>` : ''}</div>
+    <div class="rc-max"><div class="lab">${term('Pinjaman maksimal yang aman')}</div>
+     ${R.max[6] <= 0 ? `<p class="rc-zero">Rp0</p><p class="small">Belum ada ruang untuk cicilan baru. Angka ini naik begitu sisa uangmu positif dan cicilan lama turun.</p>`
+       : `<dl class="rc-amts">${[...new Set([3, 6, 12, months].filter(Boolean))].sort((a, b) => a - b).map(m => `<div class="${m === months ? 'on' : ''}"><dt>${m} bulan${m === months ? ' (rencanamu)' : ''}</dt><dd class="num">${rp(m === 3 || m === 6 || m === 12 ? R.max[m] : FW.maxSafeLoan(p, m))}</dd></div>`).join('')}</dl>
+     <p class="tiny muted" style="margin-top:8px">Cicilan maksimal ${rp(FW.headroom(p).ceiling)} per bulan, dihitung dengan bunga legal ±1,5% per bulan.</p>`}</div></div>`;
+}
 function pilahStep0(p, st) {
-  const guess = !st.cat ? classifyPurpose(st.needLabel) : null;
+  const guess = !st.cat ? classifyPurpose(st.needLabel) : null, ready = planReady(st);
   return `<div class="grid g-side">
    <div class="card">
-    <h3>Untuk apa dananya?</h3>
-    <p class="small muted" style="margin-top:4px">Boleh tidaknya meminjam tergantung untuk apa. Biaya berobat tidak sama dengan HP baru.</p>
+    <h3>Rencana pinjamanmu</h3>
+    <p class="small muted" style="margin-top:4px">Isi sekali di sini. Semua langkah berikutnya memakai angka ini.</p>
     <label class="f" style="margin-top:12px">Ceritakan singkat <span class="tiny muted">(opsional)</span><input class="in" id="n-label" value="${esc(st.needLabel)}" placeholder="mis. biaya rumah sakit ibu, modal jualan" data-k="pilah.needLabel" data-t="text"></label>
     ${guess ? `<p class="small" style="margin-top:8px" role="status">Dari ceritamu, sepertinya untuk <b>${esc(purposeName(guess))}</b>. ${guess === 'judi' ? '' : `<button class="linkbtn" data-act="pilah-cat" data-v="${guess}">Pakai ini</button>`}</p>` : ''}
-    ${st.cat === 'judi' || guess === 'judi' ? '<div class="note danger small" style="margin-top:8px">FinWise tidak membandingkan pinjaman untuk judi online. Utang untuk judi hampir selalu bertambah, bukan tertutup. Kalau terasa sulit berhenti, ceritakan ke orang terdekat atau tenaga profesional.</div>' : ''}
-    <div class="purp" role="radiogroup" aria-label="Kategori tujuan" style="margin-top:12px">${PURPOSES.map(([k, l, d]) => `<button role="radio" aria-checked="${st.cat === k}" class="${st.cat === k ? 'on' : ''}" data-act="pilah-cat" data-v="${k}"><b>${l}</b><span class="tiny muted">${d}</span></button>`).join('')}</div>
-    <h3 style="margin-top:18px">Seberapa mendesak?</h3>
-    <div class="seg" role="radiogroup" aria-label="Urgensi" style="margin-top:8px">${URGENCY.map(([k, l]) => `<button role="radio" aria-checked="${st.urg === k}" class="${st.urg === k ? 'on' : ''}" data-act="pilah-urg" data-v="${k}">${l}</button>`).join('')}</div>
-    <div style="margin-top:16px"><button class="btn" data-act="pilah-step" data-v="1" ${st.cat && st.urg ? '' : 'disabled'}>Lanjut: cek batas aman</button>${st.cat && st.urg ? '' : '<p class="tiny muted" style="margin-top:6px">Pilih tujuan dan seberapa mendesak.</p>'}</div>
+    <div class="lab" style="margin-top:14px">Untuk apa?</div>
+    <div class="purp" role="radiogroup" aria-label="Untuk apa" style="margin-top:6px">${PURPOSES.map(([k, l, d]) => `<button role="radio" aria-checked="${st.cat === k}" class="${st.cat === k ? 'on' : ''}" data-act="pilah-cat" data-v="${k}"><b>${l}</b><span class="tiny muted">${d}</span></button>`).join('')}</div>
+    ${isJudi(st) ? warnBox(pilahWarn(p, { ...st, cat: 'judi' })) : ''}
+    <div class="grid g2" style="margin-top:14px">
+     <label class="f">Berapa yang kamu butuhkan?${rpInput('n-amount', st.need, 'data-k="pilah.need" data-t="rpn" placeholder="mis. 5.000.000"')}</label>
+     <label class="f">Mau dicicil berapa lama?<select class="in" id="n-months" data-k="pilah.months" data-t="intn">${st.months ? '' : '<option value="" selected>Pilih</option>'}${[1, 3, 6, 9, 12, 18, 24].map(m => `<option value="${m}" ${m === st.months ? 'selected' : ''}>${m} bulan</option>`).join('')}</select></label>
+    </div>
+    <div class="lab" style="margin-top:14px">Kapan dananya dibutuhkan?</div>
+    <div class="seg" role="radiogroup" aria-label="Kapan dibutuhkan" style="margin-top:6px">${URGENCY.map(([k, l]) => `<button role="radio" aria-checked="${st.urg === k}" class="${st.urg === k ? 'on' : ''}" data-act="pilah-urg" data-v="${k}">${l}</button>`).join('')}</div>
+    <div style="margin-top:16px"><button class="btn" data-act="pilah-step" data-v="1" ${ready && !isJudi(st) ? '' : 'disabled'}>Lihat dampaknya ke keuanganku</button>${ready ? '' : `<p class="tiny muted" style="margin-top:6px">Lengkapi: ${[!st.cat && 'untuk apa', !(st.need > 0) && 'jumlahnya', !st.months && 'lama cicilan', !st.urg && 'kapan dibutuhkan'].filter(Boolean).join(', ')}.</p>`}</div>
    </div>
-   <div class="card flat"><div class="lab">Kenapa ditanya?</div><ul class="small" style="margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:6px">
-    <li>Kalau kesiapan berutangmu <b>Belum bisa berutang</b>, FinWise hanya menampilkan pinjaman untuk keperluan mendesak seperti kesehatan, pendidikan, atau kebutuhan pokok.</li>
-    <li>Untuk barang atau gaya hidup, menabung dulu hampir selalu lebih murah daripada bunga.</li>
-    <li>Meminjam untuk membayar utang lain biasanya menunda masalah; PULIH punya langkah yang lebih aman.</li></ul></div>
+   <div class="card flat"><div class="lab">Setelah ini kamu akan melihat</div><ol class="small" style="margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:6px">
+    <li>Dampak rencanamu ke cicilan dan sisa uang, plus kesiapan berutang dan pinjaman maksimal yang aman.</li>
+    <li>Cara meminjam lebih sedikit, misalnya dari tabungan atau bantuan keluarga. Ini opsional.</li>
+    <li>Semua pindar berizin untuk jumlah dan tenor itu, dengan patokan harga bank, koperasi, dan batas OJK.</li></ol>
+    <p class="tiny muted" style="margin-top:10px">Tidak ada yang dikunci. Kalau rencanamu berisiko, FinWise memberi tahu di atas, tapi semua pilihan tetap bisa kamu lihat.</p></div>
   </div>`;
 }
-function pilahStep1(p, st, ctx) {
-  const h = FW.headroom(p), paydays = p.incomes.map(i => i.payday || 1), R = FW.readiness(p);
-  return `<div class="grid g-side">
-   <div class="stack">
-    <div class="card"><div class="row between"><h3>Daftar utang aktif</h3><span class="lab num">${rp(h.ex)}/bulan</span></div>
-     <div class="tbl-wrap" style="margin-top:10px"><table><thead><tr><th>Utang</th><th>Cicilan</th><th>Jatuh tempo</th><th>Sisa</th>${ctx.test ? '' : '<th></th>'}</tr></thead><tbody>
-      ${p.loans.map(l => `<tr><td><b>${esc(l.name)}</b><div class="tiny muted">${esc(l.type)}</div></td><td class="num">${rp(l.instalment)}</td><td>tgl ${l.dueDay}</td><td class="num">${l.months} bln</td>${ctx.test ? '' : `<td><button class="btn ghost sm" data-act="loan-del" data-id="${l.id}" aria-label="Hapus ${esc(l.name)}">Hapus</button></td>`}</tr>`).join('') || `<tr><td colspan="5" class="muted">Belum ada utang aktif.</td></tr>`}
-     </tbody></table></div>
-     ${ctx.test ? '' : `<form class="grid g4" style="margin-top:12px;align-items:end" data-form="addloan">
-      <label class="f">Nama<input class="in" id="nl-name" placeholder="mis. Paylater" required></label>
-      <label class="f">Cicilan/bln${rpInput('nl-inst', null, 'placeholder="mis. 500.000"')}</label>
-      <label class="f">Tgl jatuh tempo<input class="in" id="nl-due" type="number" min="1" max="31" placeholder="1–31"></label>
-      <label class="f">Sisa (bulan)<input class="in" id="nl-months" type="number" min="1" max="120" placeholder="mis. 6"></label>
-      <button class="btn ghost sm" style="grid-column:1/-1;justify-self:start">Tambah utang</button></form>`}
+function pilahStep1(p, st) {
+  const { h, amt } = pilahCalc(p, st), w = pilahWarn(p, st), mo = st.months || 6, mx = FW.maxSafeLoan(p, mo);
+  const best = amt > 0 ? cheapestReal(mo, st.purpose || 'konsumtif', amt) : null;
+  const cap = FW.ojkCap(st.purpose || 'konsumtif', mo, amt);
+  const worst = FW.loan({ principal: amt, rate: cap, unit: 'day', months: mo, maxTotal: amt * Math.min(cap * mo * 30, st.purpose === 'produktif' ? Infinity : 1) });
+  const L = best ? best.L : worst, z = FW.zoneOf(p, L.inst);
+  const zt = { safe: ['Cicilannya masih dalam batas amanmu.', 'safe'], stretch: [`Cicilannya melewati batas amanmu ${rp(h.ceiling)} per bulan.`, 'amber'], danger: [z.left < 0 ? `Sisa uangmu jadi minus ${rp(-z.left)} per bulan.` : `Porsi cicilanmu jadi ${pct(z.dsr, 0)}, di atas 40%.`, 'danger'] }[z.zone];
+  return `${warnBox(w)}<div class="grid g-side" style="align-items:start">
+   <div class="card">
+    <div class="row between"><div class="lab">Rencanamu</div><button class="linkbtn small" data-act="pilah-step" data-v="0">Ubah</button></div>
+    <h3 style="margin-top:2px">${esc(purposeName(st.cat))} · ${rp(st.need)} · ${mo} bulan</h3>
+    ${amt < st.need ? `<p class="small muted">Yang dihitung: ${rp(amt)}${st.cap > 0 ? ' (jumlah aman)' : ' (setelah dikurangi)'}.</p>` : ''}
+    <div class="facts f3" style="margin-top:12px">
+     <div><div class="k">Cicilan per bulan</div><div class="v">${rp(L.inst)}</div></div>
+     <div><div class="k">${term('Porsi cicilan')}</div><div class="v">${pct(h.dsrNow, 0)} → ${pct(z.dsr, 0)}</div></div>
+     <div><div class="k">${term('Sisa uang')} per bulan</div><div class="v" style="color:${z.left < 0 ? 'var(--danger)' : 'inherit'}">${rps(h.sur)} → ${rp(z.left, { plus: true })}</div></div>
     </div>
-    <div class="card"><h3>Peta jatuh tempo</h3>
-     ${monthStrip([...p.incomes.map(i => ({ day: i.payday || 1, label: 'Gajian', color: 'var(--safe)' })), ...p.loans.map(l => ({ day: l.dueDay, label: l.name.split(' ')[0], color: 'var(--amber)' }))])}
-     <p class="small muted" style="margin-top:8px">Jatuh tempo pinjaman baru sebaiknya tanggal <b style="color:var(--ink)">${Math.min(...paydays)}</b>, tepat setelah uang masuk. Pengingat dan jadwal bayar dikelola di PULIH.</p>
-    </div>
+    <div class="note ${zt[1]} small" style="margin-top:12px">${zpill(z.zone)} ${esc(zt[0])}</div>
+    <p class="tiny muted" style="margin-top:8px">${best ? `Dihitung dengan tarif maksimum ${esc(best.pr.name)}, pindar berizin dengan total biaya termurah untuk jumlah dan tenor ini. Kalau dikenai batas maksimum OJK, cicilannya ${rp(worst.inst)}.` : 'Belum ada pindar berizin di database yang melayani jumlah dan tenor ini, jadi dihitung dengan batas maksimum OJK.'}</p>
+    ${mx < st.need ? `<div class="capbox"><p class="small"><b>Pinjaman maksimal yang aman untuk ${mo} bulan: ${rp(mx)}.</b> ${mx > 0 ? `Sisanya, ${rp(st.need - mx)}, bisa ditutup dari tabungan, keluarga, atau ditunda.` : 'Saat ini belum ada ruang untuk cicilan baru.'}</p>
+     <div class="row" role="group" aria-label="Jumlah yang dihitung" style="margin-top:8px">${mx > 0 ? `<button class="btn sm ${st.cap > 0 ? '' : 'ghost'}" data-act="pilah-cap" data-v="${mx}" aria-pressed="${st.cap > 0}">Pakai jumlah aman ${rps(mx)}</button>` : ''}<button class="btn sm ${st.cap > 0 ? 'ghost' : ''}" data-act="pilah-cap" data-v="0" aria-pressed="${!(st.cap > 0)}">Tetap ${rps(st.need)}</button></div></div>` : ''}
+    <details class="more"><summary>Cara FinWise menghitung batas aman</summary>
+     <div class="stack small" style="margin-top:8px;gap:8px">
+      <div class="note ${h.binding === 'dsr' ? 'amber' : ''}"><b>Hitungan 1 · cicilan maks 30% pendapatan</b><div class="num">30% × ${rp(h.inc)} − cicilan ${rp(h.ex)} = <b>${rp(h.lens1)}</b></div></div>
+      <div class="note ${h.binding === 'cash' ? 'amber' : ''}"><b>Hitungan 2 · 70% sisa uangmu setelah tabungan rutin</b><div class="num">${h.sur <= 0 ? `Sisa uangmu ${rp(h.sur, { plus: true })}, jadi tidak ada ruang dari hitungan ini.` : `70% × (sisa ${rp(h.sur)}${h.save ? ` − tabungan rutin ${rp(h.save)}` : ''}) = <b>${rp(Math.max(0, h.lens2))}</b>`}</div></div>
+      <p>Yang dipakai: yang lebih kecil. Di atas ${rps(h.stretchMax)} per bulan, cicilanmu masuk zona Bahaya.</p></div></details>
    </div>
-   <div class="card" ${ctx.test ? 'id="t-headroom"' : ''}>
-    <div class="lab">${term('Batas cicilan aman', 'Batas cicilan baru yang aman')}</div>
-    <div class="big" style="color:${h.ceiling > 0 ? 'var(--safe)' : 'var(--danger)'};margin:6px 0 2px">${rp(h.ceiling)}<span class="small muted" style="font-size:1rem"> /bulan</span></div>
-    ${h.ceiling > 0 ? `<div class="small" style="margin-bottom:6px">Setara pinjaman maksimal <b>${rp(FW.maxSafeLoan(p, 6))}</b> untuk 6 bulan.</div>` : ''}
-    <div class="small muted">${term('Porsi cicilan')} sekarang ${pct(h.dsrNow)} · ${term('Sisa uang', 'sisa uang')} ${rp(h.sur, { plus: true })}/bulan</div>
-    <div style="margin:16px 0 4px">${zoneBar(h)}</div>
-    <div class="stack" style="margin-top:14px;gap:10px">
-     <div class="note ${h.binding === 'dsr' ? 'amber' : ''}"><b>Hitungan 1 · cicilan maks 30% pendapatan</b><div class="num small">30% × ${rp(h.inc)} − cicilan ${rp(h.ex)} = <b>${rp(h.lens1)}</b></div></div>
-     <div class="note ${h.binding === 'cash' ? 'amber' : ''}"><b>Hitungan 2 · 70% sisa uangmu setelah tabungan rutin</b><div class="num small">${h.sur <= 0 ? `Sisa uangmu ${rp(h.sur, { plus: true })}, jadi <b>tidak ada ruang</b> dari hitungan ini.` : `70% × (sisa ${rp(h.sur)}${h.save ? ` − tabungan rutin ${rp(h.save)}` : ''}) = <b>${rp(Math.max(0, h.lens2))}</b> (30% disisakan sebagai penyangga)`}</div></div>
-     <p class="small">Yang dipakai: hitungan yang hasilnya lebih kecil, yaitu <b>${h.binding === 'dsr' ? 'hitungan 1' : 'hitungan 2'}</b>. Di atas ${rps(h.stretchMax)} cicilanmu masuk ${term('Zona', 'zona Bahaya')}.</p>
-     ${h.ceiling <= 0 ? '<div class="note danger">Saat ini belum ada ruang untuk cicilan baru. Coba atur ulang pengeluaran di CEK atau rapikan utang di PULIH dulu.</div>' : ''}
-    </div>
-    <div class="row" style="margin-top:14px">${ctx.test ? `<button class="btn" data-act="t-step" data-v="2" data-mark="headroom">Saya sudah paham batas amanku, lanjut</button>`
-      : R.level === 0 ? `<a class="btn" href="#cek" data-act="goto-plan">Lihat rencana tanpa utang</a><button class="btn ghost" data-act="pilah-step" data-v="2">Saya tetap butuh dana darurat</button>` : `<button class="btn" data-act="pilah-step" data-v="2">Lanjut: tangga dana</button>`}</div>
-   </div>
-  </div>`;
+   ${readyCard(p, mo)}
+  </div>
+  ${w && w.stop ? '' : `<div class="row" style="margin-top:14px"><button class="btn" data-act="pilah-step" data-v="2">Lanjut: pinjam lebih sedikit (opsional)</button><button class="btn ghost" data-act="pilah-step" data-v="3">Langsung bandingkan pinjol</button></div>`}`;
 }
 const RUNG_TIPS = {
   reduce: { kesehatan: 'mis. pakai kelas rawat BPJS, tunda tindakan yang tidak mendesak', pendidikan: 'mis. bayar sebagian dulu, tunda kursus tambahan', pokok: 'mis. kurangi belanja, pindah ke tempat lebih murah', usaha: 'mis. mulai dari stok lebih kecil', gaya: 'mis. pilih yang lebih murah atau bekas', utang: 'mis. hentikan belanja paylater baru' },
   relief: { kesehatan: 'minta cicilan biaya ke rumah sakit, cek tanggungan BPJS', pendidikan: 'minta cicilan atau penundaan UKT ke kampus', pokok: 'minta tempo ke pemilik kos atau penagih tagihan', utang: 'minta restrukturisasi ke pemberi pinjaman lama (lihat PULIH)' },
 };
-function extraRungs(st) {
-  const r = (k, n, title, tip, aria) => `<div class="rung ${st[k] > 0 ? 'used' : 'cur'}"><span class="n">${n}</span><div><b>${title}</b><div class="tiny muted">${tip}</div></div><div class="rin">${rpInput('r-' + k, st[k], `data-k="pilah.${k}" data-t="rpn" placeholder="0" aria-label="${aria}"`)}</div></div>`;
-  return r('reduce', 3, 'Kurangi atau tunda sebagian kebutuhan', RUNG_TIPS.reduce[st.cat] || 'bagian mana yang bisa dikurangi atau ditunda', 'Jumlah yang dikurangi atau ditunda')
-    + r('relief', 4, 'Minta keringanan ke pihak yang menagih', RUNG_TIPS.relief[st.cat] || 'minta cicilan atau tempo bayar', 'Jumlah yang bisa dicicil atau ditunda pembayarannya')
-    + r('fund', 5, 'Dana bantuan', 'beasiswa atau dana darurat kampus, bantuan kantor, BPJS, zakat atau donasi', 'Dana bantuan')
-    + r('cash', 6, 'Tambah uang cepat', 'jual barang yang tidak terpakai, kerja tambahan atau freelance', 'Uang tambahan');
-}
-function gateNote(p, st, lad) {
-  if (!isSaya(p) || !st.cat || lad.gap === 0) return '';
-  const g = pilahGate(p, st), cap = safeCapFor(p, st);
-  const msg = {
-    nodebt: g.why === 'judi' ? 'FinWise tidak membandingkan pinjaman untuk judi online.' : g.why === 'utang' ? 'Dengan kondisimu sekarang, meminjam untuk membayar utang lain akan memperbesar lubang. Langkah berikutnya: rencana tanpa utang dan cara minta keringanan di PULIH.' : g.why === 'gaya' ? `Kesiapan berutangmu "${READY[g.R.level].name}", jadi pinjaman untuk ${purposeName(st.cat).toLowerCase()} tidak disarankan. Langkah berikutnya: rencana tanpa utang.` : `Kesiapan berutangmu "${READY[g.R.level].name}" dan kebutuhan ini masih bisa ditunda. Langkah berikutnya: rencana tanpa utang.`,
-    emergency: `Mode darurat: kesiapan berutangmu "${READY[g.R.level].name}", tapi kebutuhan ${purposeName(st.cat).toLowerCase()} ini mendesak. FinWise akan menunjukkan pilihan yang paling sedikit merugikan, setelah kamu mengonfirmasi risikonya.`,
-    capped: cap > 0 && cap < lad.gap ? `Kesiapan berutangmu "${READY[g.R.level].name}", jadi pinjaman dibatasi ke jumlah aman <b>${rp(cap)}</b>. Sisanya, ${rp(lad.gap - cap)}, dari tangga dana atau ditunda.` : '',
-    debt: `Meminjam untuk membayar utang lain biasanya hanya menunda masalah. Coba dulu minta keringanan di PULIH; kalau tetap perlu, pinjaman dibatasi ke jumlah aman${cap > 0 ? ` ${rp(cap)}` : ''}.`,
-  }[g.mode];
-  return msg ? `<div class="note ${g.mode === 'capped' ? 'amber' : g.mode === 'normal' ? '' : 'danger'} small" style="margin-bottom:12px">${msg}</div>` : '';
-}
-function pilahStep2(p, st, ctx) {
-  const { lad, h } = pilahCalc(p, st);
-  const pre = ctx.test ? 't.' : 'pilah.';
-  const kop = DATA.products.find(x => x.id === 'koperasi'), bank = DATA.products.find(x => x.id === 'bank');
-  const deadlineLabel = { 24: '1 hari', 72: '3 hari', 168: '1 minggu', 720: '1 bulan' };
+function pilahStep2(p, st) {
+  const { lad } = pilahCalc(p, st);
+  const r = (k, n, title, tip, aria, used) => `<div class="rung ${used > 0 ? 'used' : 'cur'}"><span class="n">${n}</span><div><b>${title}</b><div class="tiny muted">${tip}</div></div><div class="rin">${rpInput('r-' + k, st[k === 'savings' ? 'useSavings' : k], `data-k="pilah.${k === 'savings' ? 'useSavings' : k}" data-t="rpn" placeholder="0" aria-label="${aria}"`)}</div></div>`;
   return `<div class="grid g-side">
    <div class="card">
-    <h3>${term('Tangga dana')}: tutup yang bisa, sebelum berutang</h3>
-    <div class="grid g3" style="margin-top:12px">
-     <label class="f">Kebutuhan${rpInput('n-amount', st.need, `data-k="${pre}need" data-t="rpn" placeholder="mis. 5.000.000" ${ctx.test ? 'disabled' : ''}`)}</label>
-     <label class="f">Tenggat<select class="in" id="n-hours" data-k="${pre}hours" data-t="intn" ${ctx.test ? 'disabled' : ''}>${st.hours ? '' : '<option value="" selected>Pilih</option>'}${Object.entries(deadlineLabel).map(([v, l]) => `<option value="${v}" ${+v === st.hours ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
-     ${ctx.test || !isSaya(p) ? `<label class="f">Jenis<select class="in" id="n-purpose" data-k="${pre}purpose" data-t="text" ${ctx.test ? 'disabled' : ''}>${st.purpose ? '' : '<option value="" selected>Pilih</option>'}<option value="konsumtif" ${st.purpose === 'konsumtif' ? 'selected' : ''}>Pribadi (konsumtif)</option><option value="produktif" ${st.purpose === 'produktif' ? 'selected' : ''}>Usaha (produktif)</option></select></label>` : ''}
-     ${!ctx.test && isSaya(p) ? `<label class="f">Tenor yang kamu mau<select class="in" id="n-months" data-k="${pre}months" data-t="intn">${st.months ? '' : '<option value="" selected>Pilih</option>'}${[3, 6, 9, 12, 18, 24].map(m => `<option value="${m}" ${m === st.months ? 'selected' : ''}>${m} bulan</option>`).join('')}</select></label>` : ''}
-    </div>
+    <h3>${term('Tangga dana')}: pinjam lebih sedikit</h3>
+    <p class="small muted" style="margin-top:4px">Opsional. Setiap rupiah yang tertutup di sini tidak berbunga. Kosongkan yang tidak ada.</p>
     <div style="margin-top:8px">
-     <div class="rung ${lad.steps[0].use > 0 ? 'used' : 'cur'}"><span class="n">1</span><div><b>Dana darurat sendiri</b><div class="tiny muted">Saldo ${rp(p.emergencyFund || 0)} · tanpa biaya</div></div><div class="rin">${rpInput('r-sav', st.useSavings, `data-k="${pre}useSavings" data-t="rpn" placeholder="0" aria-label="Dana darurat yang dipakai"`)}</div></div>
-     <div class="rung ${lad.steps[1].use > 0 ? 'used' : 'cur'}"><span class="n">2</span><div><b>Bantuan / patungan keluarga</b><div class="tiny muted">${p.need?.familyFrom ? 'Mis. ' + esc(p.need.familyFrom) + ' · ' : ''}tanpa bunga, sepakati waktu kembali</div></div><div class="rin">${rpInput('r-fam', st.family, `data-k="${pre}family" data-t="rpn" placeholder="0" aria-label="Bantuan keluarga"`)}</div></div>
-     ${ctx.test || !isSaya(p) ? '' : extraRungs(st)}
-     <div class="rung ${p.access?.koperasi ? '' : 'dim'}"><span class="n">${ctx.test || !isSaya(p) ? 3 : 7}</span><div><b>Koperasi karyawan</b><div class="tiny muted">${p.access?.koperasi ? `Bisa sampai ${rps(kop.max)}, 1% per bulan, cair ±2 hari` : 'Tidak tersedia untukmu'}</div></div><span class="pill ${p.access?.koperasi ? 'z-green' : 'z-grey'}">${p.access?.koperasi ? 'Tersedia' : 'Tidak ada'}</span></div>
-     <div class="rung ${p.access?.bank && st.hours >= bank.hours ? '' : 'dim'}"><span class="n">${ctx.test || !isSaya(p) ? 4 : 8}</span><div><b>Bank atau KUR</b><div class="tiny muted">Umumnya lebih murah dari pinjol, persetujuan ±5 hari kerja</div></div><span class="pill ${!p.access?.bank ? 'z-grey' : !st.hours ? 'z-grey' : st.hours >= bank.hours ? 'z-green' : 'z-grey'}">${!p.access?.bank ? 'Tidak ada' : !st.hours ? 'Pilih tenggat' : st.hours >= bank.hours ? 'Masuk tenggat' : 'Terlalu lama'}</span></div>
-     <div class="rung"><span class="n">${ctx.test || !isSaya(p) ? 5 : 9}</span><div><b>Pindar berizin OJK</b><div class="tiny muted">${isSaya(p) ? `${RL.length} pindar nyata di database FinWise · biaya maks 0,1–0,3% per hari` : 'Biaya 0,1–0,3% per hari'} · pilihan terakhir</div></div><span class="pill z-amber">Terakhir</span></div>
+     ${r('savings', 1, 'Dana darurat sendiri', `Saldo ${rp(p.emergencyFund || 0)} · tanpa biaya`, 'Dana darurat yang dipakai', lad.steps[0].use)}
+     ${r('family', 2, 'Bantuan atau patungan keluarga', 'tanpa bunga, sepakati waktu kembali', 'Bantuan keluarga', lad.steps[1].use)}
+     ${r('reduce', 3, 'Kurangi atau tunda sebagian', RUNG_TIPS.reduce[st.cat] || 'bagian mana yang bisa dikurangi atau ditunda', 'Jumlah yang dikurangi atau ditunda', st.reduce)}
+     ${r('relief', 4, 'Minta keringanan ke pihak yang menagih', RUNG_TIPS.relief[st.cat] || 'minta cicilan atau tempo bayar', 'Jumlah yang bisa dicicil atau ditunda', st.relief)}
+     ${r('fund', 5, 'Dana bantuan', 'beasiswa atau dana darurat kampus, bantuan kantor, BPJS, zakat atau donasi', 'Dana bantuan', st.fund)}
+     ${r('cash', 6, 'Tambah uang cepat', 'jual barang yang tidak terpakai, kerja tambahan atau freelance', 'Uang tambahan', st.cash)}
     </div>
    </div>
    <div class="card" aria-live="polite">
-    ${!(st.need > 0) ? `<div class="lab">Kebutuhan dana</div><p class="muted" style="margin-top:8px">Isi jumlah kebutuhan, tenggat, dan jenis pinjaman di kiri. FinWise lalu menghitung berapa yang benar-benar perlu dipinjam.</p>` : `
-    <div class="lab">${esc(st.needLabel || 'Kebutuhan dana')}</div>
+    <div class="lab">${esc(st.needLabel || purposeName(st.cat))}</div>
     ${lad.covered > 0 ? `<div class="num" style="margin-top:6px;color:var(--muted);font-weight:700"><s style="text-decoration-color:var(--danger);text-decoration-thickness:2px">${rp(st.need)}</s></div>` : ''}<div class="big" style="margin:2px 0 6px;font-size:clamp(1.875rem,3.6vw,2.625rem)">${rp(lad.gap)}</div>
-    <div class="small muted">${lad.gap > 0 ? 'yang benar-benar perlu dipinjam' : 'tertutup tanpa utang baru'}</div>
+    <div class="small muted">${lad.gap > 0 ? 'yang perlu dipinjam' : 'tertutup tanpa utang baru'}</div>
     <div class="prog" style="margin:14px 0 6px"><i style="width:${(lad.covered / Math.max(1, st.need) * 100).toFixed(1)}%"></i></div>
     <div class="row between small"><span style="color:var(--safe)" class="num">Tertutup ${rp(lad.covered)}</span><span style="color:var(--amber)" class="num">Sisa ${rp(lad.gap)}</span></div>
-    ${lad.gap === 0 ? '<div class="note safe" style="margin-top:14px">Kamu tidak perlu pinjaman baru. Catat kesepakatan dengan keluarga dan susun ulang tabungan darurat di CEK.</div>' : (() => { const mo = st.months || 6, mx = FW.maxSafeLoan(p, mo); return mx >= lad.gap ? `<div class="note safe" style="margin-top:14px">${rp(lad.gap)} masih di bawah pinjaman maksimal yang aman untuk ${mo} bulan (${rp(mx)}). Berikutnya FinWise membandingkan pinjaman legal.</div>` : `<div class="note ${mx > 0 ? 'amber' : 'danger'}" style="margin-top:14px">${mx > 0 ? `Pinjaman maksimal yang aman untuk ${mo} bulan hanya <b>${rp(mx)}</b>. Sisanya, ${rp(lad.gap - mx)}, sebaiknya dari tangga dana, ditunda, atau dinegosiasikan dulu.` : 'Saat ini belum ada ruang untuk cicilan baru. Kalau tetap harus meminjam, FinWise akan menunjukkan pilihan yang paling sedikit merugikan.'}</div>`; })()}
-    `}
-    <div style="margin-top:14px">${ctx.test ? `<button class="btn" data-act="t-step" data-v="3" data-mark="ladder" ${lad.covered === 0 ? 'disabled' : ''}>Lanjut: bandingkan opsi</button>${lad.covered === 0 ? '<p class="tiny muted" style="margin-top:6px">Isi dulu sumber dana tanpa utang (langkah 1 dan 2).</p>' : ''}` : `${gateNote(p, st, lad)}<button class="btn" data-act="pilah-step" data-v="3" ${lad.gap === 0 || !pilahReady(p, st) ? 'disabled' : ''}>${{ nodebt: 'Lihat rencana tanpa utang', emergency: 'Lanjut: pilihan darurat' }[pilahGate(p, st).mode] || 'Lanjut: bandingkan opsi'}</button>${!pilahReady(p, st) ? `<p class="tiny muted" style="margin-top:6px">Lengkapi dulu: ${[!(st.need > 0) && 'jumlah kebutuhan', !st.hours && 'tenggat', !st.purpose && 'jenis', isSaya(p) && !st.months && 'tenor'].filter(Boolean).join(', ')}.</p>` : ''}`}</div>
+    ${lad.gap === 0 ? '<div class="note safe" style="margin-top:14px">Kamu tidak perlu pinjaman baru. Catat kesepakatan dengan keluarga, lalu isi lagi dana daruratmu di CEK.</div>' : ''}
+    <div class="row" style="margin-top:14px"><button class="btn" data-act="pilah-step" data-v="3" ${lad.gap === 0 ? 'disabled' : ''}>Bandingkan pinjol untuk ${rps(lad.gap)}</button></div>
    </div>
   </div>`;
+}
+// reference prices for the same amount and tenor: bank, koperasi, the pindar in the database, and the legal maximum
+function benchCard(st, amt, m) {
+  const n = st.months || 6, purpose = st.purpose || 'konsumtif';
+  const bank = r => amt * r * n + amt * BENCH.bank.admin, kop = amt * BENCH.kop.month * n;
+  const totals = m.ok.map(r => r.total).sort((a, b) => a - b), med = totals.length ? totals[Math.floor((totals.length - 1) / 2)] : null;
+  const cap = FW.ojkCap(purpose, n, amt), ojk = amt * Math.min(cap * n * 30, purpose === 'konsumtif' ? 1 : Infinity);
+  const rows = [
+    ['Bank (KTA)', bank(BENCH.bank.lo), bank(BENCH.bank.hi), 'perlu pengajuan dan syarat bank, cair beberapa hari'],
+    ['Koperasi simpan pinjam', null, kop, 'batas aturan; hanya kalau kamu anggota'],
+    totals.length ? ['Pindar termurah di database', totals[0], null, 'tarif maksimum di RIPLAY'] : null,
+    med != null ? ['Pindar, nilai tengah di database', med, null, `dari ${totals.length} pindar yang melayani rencanamu`] : null,
+    ['Batas maksimum OJK', ojk, null, `${nf(cap * 100, 3)}% per hari, total paling banyak 100% pokok`],
+  ].filter(Boolean);
+  const max = Math.max(...rows.map(r => r[2] ?? r[1]));
+  return `<div class="card bench"><h3>Patokan harga: pinjam ${rp(amt)} selama ${n} bulan</h3>
+    <p class="small muted" style="margin-top:4px">Total biaya (bunga + admin) kalau pinjam dari tempat lain. Ini patokan, bukan pilihan di daftar.</p>
+    <ul class="bench-rows">${rows.map(([k, a, b, note]) => { const v = b ?? a; return `<li><div class="row between" style="flex-wrap:nowrap;gap:10px"><b>${k}</b><span class="num"><b>${a != null && b != null ? `${rps(a)}–${rps(b)}` : (a == null ? 'maks ' : '') + rp(v)}</b><span class="tiny muted"> · cicilan ${a != null && b != null ? `${rps((amt + a) / n)}–${rps((amt + b) / n)}` : rps((amt + v) / n)}/bln</span></span></div>
+      <div class="bar" aria-hidden="true">${a != null && b != null ? `<i style="margin-left:${(a / max * 100).toFixed(1)}%;width:${Math.max(1.5, (b - a) / max * 100).toFixed(1)}%;background:var(--green)"></i>` : `<i style="width:${Math.max(1.5, v / max * 100).toFixed(1)}%;background:${k.startsWith('Batas') ? 'var(--danger)' : k.startsWith('Pindar') ? 'var(--amber-strong)' : 'var(--green)'}"></i>`}</div>
+      <div class="tiny muted">${note}</div></li>`; }).join('')}</ul>
+    <p class="tiny muted" style="margin-top:8px">Sumber: ${esc(BENCH.bank.src)}. ${esc(BENCH.kop.src)}. Batas OJK: SEOJK 19/SEOJK.06/2025. Pindar: tarif maksimum RIPLAY di database FinWise (per ${dateID('2026-04-30')}).</p></div>`;
 }
 // "why is #1 on top" in plain words; when every option is in the red it says so and never calls the loan a good fit
 function whyFirst(p, st, m, lad, h, ctx, amt) {
@@ -169,7 +186,7 @@ function whyFirst(p, st, m, lad, h, ctx, amt) {
   const fb = {
     cocok: [`Total yang dikembalikan ${rp(a.repay)} untuk ${rp(amt)} selama ${a.months} bulan${b ? `, ${a.total <= b.total ? rp(b.total - a.total) + ' lebih murah' : rp(a.total - b.total) + ' lebih mahal'} dari ${b.name}` : ''}.`,
       danger ? `Di antara semua pilihan, ini yang ${a.left < 0 ? `menyisakan minus paling kecil (${rp(a.left)} per bulan)` : 'beban cicilannya paling ringan'}.` : a.zone === 'safe' ? `Cicilan ${rp(a.inst)} masih di bawah batas amanmu ${rp(h.ceiling)}.` : '',
-      a.rating ? `Rating sampel ulasan ${nf(a.rating, 1)} dengan ${pct(a.positive || 0, 0)} ulasan positif.` : a.generic ? 'Lembaga resmi (koperasi/bank) dengan biaya umumnya lebih rendah dari pindar.' : ''],
+      a.rating ? `Rating sampel ulasan ${nf(a.rating, 1)} dengan ${pct(a.positive || 0, 0)} ulasan positif.` : a.generic ? '' : ''],
     waspada: [danger ? `Bahaya: ${a.left < 0 ? `sisa uangmu jadi minus ${rp(-a.left)} per bulan` : `porsi cicilanmu jadi ${pct(a.dsr, 0)}`}. Kekurangan ini biasanya ditutup dengan utang baru.` : a.zone === 'stretch' ? `Cicilan ${rp(a.inst)} melebihi batas amanmu ${rp(h.ceiling)}; sisa uangmu tinggal ${rp(a.left)}.` : '',
       `Bunga sebenarnya ±${pct(a.ear, 0)} per tahun, jauh di atas angka bulanan yang diiklankan.`,
       topComplaint ? `Keluhan terbanyak di ${a.name}: ${topComplaint.label.toLowerCase()} (${topComplaint.n} sebutan).` : a.generic ? 'Persetujuan bisa lebih lama dan butuh dokumen; ajukan lebih awal.' : 'Telat bayar dikenai denda harian dan tercatat di SLIK.'],
@@ -182,95 +199,62 @@ function whyFirst(p, st, m, lad, h, ctx, amt) {
     <div class="row">${[b, c].filter(Boolean).map((r, i) => `<span class="chip">vs #${i + 2} ${esc(r.name)}: ${r.total >= a.total ? 'hemat ' + rps(r.total - a.total) : 'lebih mahal ' + rps(a.total - r.total)}</span>`).join('')}</div></div>
     <div style="margin-top:12px">${ai3(ctx.test ? 'none' : 'pilah3', prompt, { cocok: fb.cocok.filter(Boolean), waspada: fb.waspada.filter(Boolean), saran: fb.saran }, { auto: !ctx.test, noAI: !!ctx.test, heads: danger ? ['Kenapa yang ini', 'Yang perlu diwaspadai', 'Saran'] : null })}</div></div>`;
 }
-// the largest loan that some available legal lender would price inside the safe instalment (instalment is linear in principal)
-function safeCapFor(p, st) {
-  const h = FW.headroom(p); if (h.ceiling <= 0) return 0;
-  const mo = st.months || 6, purpose = st.purpose || 'konsumtif'; let best = 0;
-  const prods = isSaya(p) ? realProducts(st, FW.maxSafeLoan(p, mo)) : DATA.products;
-  for (const pr of prods) {
-    if (pr.illegal || pr.unavailable || (pr.requires && !p.access?.[pr.requires]) || (pr.purpose && pr.purpose !== purpose)) continue;
-    const t = FW.loan({ principal: 1e6, rate: pr.rate, unit: pr.unit, months: pr.months, feePct: pr.feePct || 0, maxTotal: pr.maxTotalPct != null ? 1e6 * pr.maxTotalPct : undefined });
-    const k = t.inst / 1e6; if (!k) continue;
-    const P = Math.min(Math.floor((h.ceiling - 1) / k / 10000) * 10000, pr.max || Infinity);
-    if (P >= (pr.min || 0) && P > best) best = P;
-  }
-  return best;
-}
 const MODES = [['seimbang', 'Seimbang'], ['termurah', 'Termurah'], ['ringan', 'Cicilan teringan'], ['reputasi', 'Reputasi terbaik']];
 const SORT_TXT = { seimbang: 'gabungan biaya, kecocokan dengan batas amanmu, reputasi, dan keamanan data', termurah: 'total biaya (bunga + admin), dari yang paling murah', ringan: 'cicilan per bulan, dari yang paling ringan', reputasi: 'rating ulasan peminjam, dari yang tertinggi' };
-function pilahNoDebt(p, st) {
-  const { lad } = pilahCalc(p, st), g = pilahGate(p, st), f = facts(p);
-  const plan = applyPlan(autoCaps(p), planActions(autoCaps(p))), surAfter = Math.max(0, FW.surplus(plan)), per = Math.max(f.sur, surAfter);
-  const mo = per > 0 ? Math.ceil(lad.gap / per) : null;
-  return `<div class="card nodebt"><div class="eyebrow e-cek" style="font-weight:800;font-size:.8125rem">RENCANA TANPA UTANG</div>
-    <h3 style="margin-top:4px">${esc(st.needLabel || purposeName(st.cat))}: ${rp(lad.gap)} yang belum tertutup</h3>
-    <ol class="nd-steps">
-     <li><b>Tutup dari tangga dana dulu.</b> Kurangi atau tunda sebagian, minta keringanan ke pihak yang menagih, cari dana bantuan, atau tambah uang cepat. <button class="linkbtn" data-act="pilah-step" data-v="2">Isi tangga dana</button></li>
-     <li><b>${mo ? `Tunda dan menabung: dengan menyisihkan ${rp(per)} per bulan, ${rp(lad.gap)} terkumpul dalam ±${mo} bulan` : 'Naikkan dulu sisa uangmu'}</b>${mo ? `${per > f.sur ? ' (setelah rencana hemat di CEK)' : ''}, tanpa bunga sama sekali.` : '. Saat ini belum ada sisa untuk ditabung; mulai dari rencana di CEK.'} <a class="small" href="#cek" data-act="goto-plan">Buka rencana di CEK</a></li>
-     ${g.why === 'utang' ? '<li><b>Minta keringanan ke pemberi pinjaman lama.</b> Hubungi sebelum jatuh tempo dan minta restrukturisasi. <a class="small" href="#pulih">Langkahnya di PULIH</a></li>' : ''}
-     ${g.R.level <= 1 ? `<li><b>Naikkan kesiapan berutangmu.</b> ${esc(g.R.reasons[0])} <a class="small" href="#cek">Lihat jalan naik level</a></li>` : ''}
-    </ol>
-    ${ESSENTIAL.includes(st.cat) && st.urg === 'tunda' ? '<p class="small muted" style="margin-top:10px">Ternyata harus dibayar segera? <button class="linkbtn" data-act="pilah-step" data-v="0">Ubah urgensinya</button> dan FinWise akan menunjukkan pilihan darurat.</p>' : ''}
-    <p class="small muted" style="margin-top:6px">Mau tetap melihat angkanya? <a href="#kalkulator">Hitung di Kalkulator</a>.</p></div>`;
-}
-function pilahStep3(p, st, ctx) {
-  const gate = ctx.test ? { mode: 'normal' } : pilahGate(p, st);
-  if (gate.mode === 'nodebt') return pilahNoDebt(p, st);
-  if (gate.mode === 'emergency' && !st.ack) { const { amt, m } = pilahCalc(p, st), w = m.ok[0];
-    return `<div class="card ack" style="border-color:var(--danger)"><div class="eyebrow" style="color:var(--danger);font-weight:800;font-size:.8125rem">MODE DARURAT</div><h3 style="margin-top:4px">Sebelum melihat pilihan pinjaman</h3>
-     <p class="small" style="margin-top:6px">Kesiapan berutangmu <b>${READY[gate.R.level].name}</b>. ${esc(gate.R.reasons[0])} ${w ? `Pinjaman ${rp(amt)} akan membuat sisa uangmu sekitar <b>${rp(w.left, { plus: true })}</b> per bulan.` : ''}</p>
-     <label class="row" style="gap:10px;margin-top:12px;align-items:flex-start"><input type="checkbox" data-act-change="pilah-ackbox" ${st.ackBox ? 'checked' : ''} style="margin-top:4px"><span class="small">Saya sudah mencoba tangga dana, kebutuhan ini tidak bisa ditunda, dan saya paham pinjaman ini membuat keuanganku lebih berat setiap bulan sampai lunas.</span></label>
-     <div class="row" style="margin-top:12px"><button class="btn" data-act="pilah-ack" ${st.ackBox ? '' : 'disabled'}>Tampilkan pilihan yang paling sedikit merugikan</button><button class="btn ghost" data-act="pilah-step" data-v="2">Kembali ke tangga dana</button></div></div>`; }
+function pilahStep3(p, st) {
+  const w = pilahWarn(p, st);
+  if (w && w.stop) return warnBox(w);
   const { lad, m, h, amt } = pilahCalc(p, st);
-  const pre = ctx.test ? 't' : 'pilah';
+  if (!(amt > 0)) return '<div class="note safe">Tidak ada yang perlu dipinjam. <button class="linkbtn" data-act="pilah-step" data-v="2">Lihat tangga dana</button></div>';
   const other = m.rows.filter(r => r.status === 'filtered' || r.status === 'na'), blocked = m.rows.filter(r => r.status === 'blocked');
-  const anySafe = m.ok.some(x => x.zone !== 'danger'), mo = st.months || m.ok[0]?.months || 6, mx = FW.maxSafeLoan(p, mo), cap = ctx.test ? 0 : safeCapFor(p, st);
+  const anySafe = m.ok.some(x => x.zone !== 'danger'), mo = st.months || 6, mx = FW.maxSafeLoan(p, mo);
   const card = r => {
     const best = r.rank === 1 && r.zone !== 'danger';
     const perMonth = amt ? r.total / amt / Math.max(1, r.months) : 0;
     const why = r.zone === 'danger' ? (r.left < 0 ? `sisa uangmu jadi minus ${rp(-r.left)} per bulan` : `porsi cicilanmu jadi ${pct(r.dsr, 0)}, di atas batas bahaya 40%`) : r.zone === 'stretch' ? `cicilannya melebihi batas amanmu ${rp(h.ceiling)}` : '';
     return `<div class="opt ${best ? 'best' : ''} ${st.picked === r.id ? 'picked' : ''}">
-     <div class="row between" style="align-items:flex-start;flex-wrap:nowrap"><div class="row" style="gap:10px;align-items:flex-start;flex-wrap:nowrap;min-width:0"><span class="rank">${r.rank}</span><div><b style="font-size:1rem">${esc(r.name)}</b>${r.real ? ' <span class="tag">data nyata</span>' : r.generic && isSaya(p) ? ' <span class="tag">perkiraan umum</span>' : ''}</div></div>${zpill(r.zone)}</div>
-     <div class="op-part"><div class="op-h">Tentang pemberi pinjaman</div><p class="tiny muted">${esc(r.legal)} · biaya ±${nf(perMonth * 100, 1)}% per bulan${r.real ? ' (tarif maks RIPLAY)' : ''} · cair ${r.hours == null ? 'tidak dipublikasikan' : '±' + FW.hoursLabel(r.hours)}${r.rating ? ` · ★ ${nf(r.rating, 1)}` : ''}${r.note ? ' · ' + esc(r.note) : ''}</p></div>
+     <div class="row between" style="align-items:flex-start;flex-wrap:nowrap"><div class="row" style="gap:10px;align-items:flex-start;flex-wrap:nowrap;min-width:0"><span class="rank">${r.rank}</span><div><b style="font-size:1rem">${esc(r.name)}</b></div></div>${zpill(r.zone)}</div>
+     <div class="op-part"><div class="op-h">Tentang pemberi pinjaman</div><p class="tiny muted">${esc(r.legal)} · biaya ±${nf(perMonth * 100, 1)}% per bulan (tarif maks RIPLAY)${r.rating ? ` · ★ ${nf(r.rating, 1)}` : ''}${r.note ? ' · ' + esc(r.note) : ''}</p></div>
      <div class="op-part"><div class="op-h">Pinjaman ini</div><div class="facts f2"><div>${lab('Cicilan', 'per bulan')}<div class="v">${rp(r.inst)} <span class="tiny muted">×${r.months}</span></div></div><div>${lab('Total dikembalikan', `biaya ${rps(r.total)}${r.fee > 0 ? `, termasuk admin ${rps(r.fee)}` : ''}`, 'Total dikembalikan')}<div class="v">${rp(r.repay)}</div></div></div></div>
      <div class="op-part"><div class="op-h">Dampaknya ke keuanganmu</div><div class="facts f2"><div>${lab('Porsi cicilan', 'semua cicilan ÷ gajimu', 'Porsi cicilan')}<div class="v">${pct(h.dsrNow, 0)} → ${pct(r.dsr, 0)}</div></div><div>${lab('Sisa uang', 'per bulan setelah semua', 'Sisa uang')}<div class="v" style="color:${r.left < 0 ? 'var(--danger)' : 'inherit'}">${rps(h.sur)} → ${rp(r.left, { plus: true })}</div></div></div></div>
      ${why ? `<div class="note ${r.zone === 'danger' ? 'danger' : 'amber'} small">${r.zone === 'danger' ? (anySafe ? 'Ditaruh di bawah karena ' : 'Bahaya karena ') : 'Mepet karena '}${why}.</div>` : ''}
-     <div class="row between"><span class="tiny muted">${term('Bunga efektif', 'Bunga sebenarnya')} ±${pct(r.ear, 0)}/tahun${r.real ? ` · <a href="#openspace" data-act="lender" data-id="${r.real}">profil & ulasan</a>` : ''}</span><button class="btn sm ${r.zone === 'danger' ? 'ghost' : ''}" data-act="${ctx.test ? 't-pick' : 'pick'}" data-id="${r.id}" aria-pressed="${st.picked === r.id}" aria-label="Pilih ${esc(r.name)}">${st.picked === r.id ? 'Dipilih' : 'Pilih opsi ini'}</button></div>
+     <div class="row between"><span class="tiny muted">${term('Bunga efektif', 'Bunga sebenarnya')} ±${pct(r.ear, 0)}/tahun${r.real ? ` · <a href="#openspace" data-act="lender" data-id="${r.real}">profil & ulasan</a>` : ''}</span><button class="btn sm ${r.zone === 'danger' ? 'ghost' : ''}" data-act="pick" data-id="${r.id}" aria-pressed="${st.picked === r.id}" aria-label="Pilih ${esc(r.name)}">${st.picked === r.id ? 'Dipilih' : 'Pilih opsi ini'}</button></div>
     </div>`;
   };
-  const realNote = isSaya(p) && !ctx.test ? `<div class="note small" style="margin-bottom:12px"><b>Data nyata:</b> ${RL.length} pindar berizin dari database FinWise, dihitung dengan <b>tarif maksimum</b> di dokumen RIPLAY (per ${dateID('2026-04-30')}) dan dibatasi plafon biaya OJK untuk tenor ${st.months} bulan. Biaya sebenarnya bisa lebih rendah tergantung penilaian kreditmu. Kecepatan cair pindar tidak dipublikasikan, jadi tenggat hanya menyaring koperasi dan bank.</div>` : '';
-  const capNote = !ctx.test && amt < lad.gap ? `<div class="note safe" style="margin-bottom:12px">Kamu memakai jumlah aman: <b>${rp(amt)}</b> dari pinjaman, sisanya <b>${rp(lad.gap - amt)}</b> dari tangga dana, keringanan, atau ditunda. <button class="linkbtn" data-act="pilah-cap" data-v="0">Kembalikan ke ${rp(lad.gap)}</button></div>` : '';
-  const dangerNote = m.allDanger ? `<div class="note danger" role="status" style="margin-bottom:12px"><b>Tidak ada pinjaman yang aman untuk ${rp(amt)}.</b> ${mx <= 0 ? 'Saat ini belum ada ruang untuk cicilan baru.' : cap > 0 && cap < amt ? `Jumlah yang masih aman dari pemberi pinjaman legal yang tersedia: <b>${rp(cap)}</b> untuk ${mo} bulan.` : cap <= 0 ? `Jumlah yang aman untukmu (±${rps(mx)}) lebih kecil dari pinjaman minimal pemberi pinjaman legal, jadi lebih baik ditutup dari tangga dana, keringanan, atau ditunda.` : ''} Di bawah ini pilihan yang paling sedikit merugikan, diurutkan dari minus per bulan yang paling kecil.
-    ${ctx.test ? '' : `<div class="row" style="margin-top:8px">${cap > 0 && cap < amt ? `<button class="btn sm" data-act="pilah-cap" data-v="${cap}">Pakai jumlah aman (${rps(cap)})</button>` : ''}<button class="btn sm ghost" data-act="pilah-step" data-v="2">Kembali ke tangga dana</button><a class="btn sm ghost" href="#cek">Rencana tanpa utang</a></div>`}</div>` : '';
+  const capNote = amt < lad.gap ? `<div class="note safe" style="margin-bottom:12px">Kamu memakai jumlah aman: <b>${rp(amt)}</b>. Sisanya, <b>${rp(lad.gap - amt)}</b>, dari tangga dana, keringanan, atau ditunda. <button class="linkbtn" data-act="pilah-cap" data-v="0">Kembalikan ke ${rp(lad.gap)}</button></div>` : '';
+  const dangerNote = m.allDanger ? `<div class="note danger" role="status" style="margin-bottom:12px"><b>Tidak ada pinjaman yang aman untuk ${rp(amt)}.</b> ${mx > 0 ? `Pinjaman maksimal yang aman untuk ${mo} bulan: <b>${rp(mx)}</b>.` : 'Saat ini belum ada ruang untuk cicilan baru.'} Daftar di bawah tetap lengkap, diurutkan dari minus per bulan yang paling kecil.
+    <div class="row" style="margin-top:8px">${mx > 0 && mx < amt ? `<button class="btn sm" data-act="pilah-cap" data-v="${mx}">Hitung dengan ${rps(mx)}</button>` : ''}<button class="btn sm ghost" data-act="pilah-step" data-v="2">Pinjam lebih sedikit</button></div></div>` : '';
   const sortTxt = m.allDanger && st.mode === 'seimbang' ? 'minus per bulan yang paling kecil (pilihan paling sedikit merugikan)' : SORT_TXT[st.mode];
-  return `${realNote}${capNote}${dangerNote}<div class="row between" style="margin-bottom:12px"><div><h3>Pinjaman legal untuk ${rp(amt)}</h3><p class="small muted">Batas cicilan amanmu ${rp(h.ceiling)}/bulan · tenggat ${FW.hoursLabel(st.hours)}. Diurutkan menurut ${sortTxt}. Urutan tidak bisa dibeli pemberi pinjaman.</p></div>
-    <div><div class="lab" style="margin-bottom:4px">Urutkan menurut yang paling penting bagimu</div><div class="seg" role="group" aria-label="Prioritas urutan">${MODES.map(([k, l]) => `<button class="${st.mode === k ? 'on' : ''}" aria-pressed="${st.mode === k}" data-act="mode" data-scope="${pre}" data-v="${k}">${l}</button>`).join('')}</div></div></div>
+  return `${warnBox(w)}${capNote}${dangerNote}${benchCard(st, amt, m)}
+   <div class="row between" style="margin:18px 0 12px"><div><h3>Semua pindar berizin untuk ${rp(amt)}, ${mo} bulan</h3><p class="small muted">${m.ok.length} pindar dari database FinWise, dihitung dengan tarif maksimum di RIPLAY dan dibatasi plafon OJK. Diurutkan menurut ${sortTxt}. Urutan tidak bisa dibeli pemberi pinjaman.</p></div>
+    <div><div class="lab" style="margin-bottom:4px">Urutkan menurut</div><div class="seg" role="group" aria-label="Urutkan menurut">${MODES.map(([k, l]) => `<button class="${st.mode === k ? 'on' : ''}" aria-pressed="${st.mode === k}" data-act="mode" data-scope="pilah" data-v="${k}">${l}</button>`).join('')}</div></div></div>
    ${m.ok.length ? `<div class="grid g3 top3">${m.ok.slice(0, 3).map(card).join('')}</div>
-    ${m.ok.length > 3 ? `<div style="margin-top:10px"><button class="btn ghost sm" data-act="toggle" data-k="${pre}.showAll" aria-expanded="${!!st.showAll}">${st.showAll ? 'Sembunyikan opsi lainnya' : `Lihat ${m.ok.length - 3} opsi lainnya`}</button></div>${st.showAll ? `<div class="grid g3" style="margin-top:12px">${m.ok.slice(3).map(card).join('')}</div>` : ''}` : ''}
-    ${whyFirst(p, st, m, lad, h, ctx, amt)}` : '<div class="note danger">Tidak ada pinjaman legal yang memenuhi jumlah, jenis, dan tenggatmu. Coba ubah tenggat atau jumlah di tangga dana.</div>'}
+    ${m.ok.length > 3 ? `<div class="card allp" style="margin-top:14px"><h3>Semua pilihan (${m.ok.length})</h3><div class="tbl-wrap" style="margin-top:8px"><table><thead><tr><th>#</th><th>Pindar</th><th>Cicilan</th><th>Total dikembalikan</th><th>Ulasan</th><th>Zona</th><th><span class="sr">Aksi</span></th></tr></thead><tbody>
+      ${m.ok.map(r => `<tr class="${st.picked === r.id ? 'picked' : ''}"><td class="num">${r.rank}</td><td><b>${esc(r.name)}</b>${r.real ? ` <a class="tiny" href="#openspace" data-act="lender" data-id="${r.real}">profil</a>` : ''}</td><td class="num">${rp(r.inst)} ×${r.months}</td><td class="num">${rp(r.repay)}</td><td class="num">${r.rating ? '★ ' + nf(r.rating, 1) : '–'}</td><td>${zpill(r.zone)}</td><td><button class="btn sm ghost" data-act="pick" data-id="${r.id}" aria-label="Pilih ${esc(r.name)}">${st.picked === r.id ? 'Dipilih' : 'Pilih'}</button></td></tr>`).join('')}
+     </tbody></table></div></div>` : ''}
+    ${whyFirst(p, st, m, lad, h, {}, amt)}` : '<div class="note danger">Tidak ada pindar berizin di database yang melayani jumlah dan tenor ini. Coba ubah jumlah atau lama cicilan di langkah 1.</div>'}
    <div class="grid g2" style="margin-top:16px">
-    <div class="card flat"><div class="row between"><h3>Tidak memenuhi syarat (${other.length})</h3><button class="btn ghost sm" data-act="toggle" data-k="${pre}.showOut">${st.showOut ? 'Tutup' : 'Lihat'}</button></div>
-     ${st.showOut ? `<div class="stack small" style="margin-top:10px;gap:6px">${other.map(r => `<div class="row between"><span><b>${esc(r.name)}</b></span><span class="muted">${esc(r.reason)}</span></div>`).join('')}</div>` : `<p class="small muted" style="margin-top:6px">Termasuk ${other.slice(0, 3).map(r => esc(r.name)).join(', ')}${other.length > 3 ? ', dan lainnya' : ''}.</p>`}</div>
+    <div class="card flat"><div class="row between"><h3>Tidak memenuhi syarat (${other.length})</h3><button class="btn ghost sm" data-act="toggle" data-k="pilah.showOut">${st.showOut ? 'Tutup' : 'Lihat'}</button></div>
+     ${st.showOut ? `<div class="stack small" style="margin-top:10px;gap:6px">${other.map(r => `<div class="row between"><span><b>${esc(r.name)}</b></span><span class="muted">${esc(r.reason)}</span></div>`).join('')}</div>` : `<p class="small muted" style="margin-top:6px">${other.length ? `Termasuk ${other.slice(0, 3).map(r => esc(r.name)).join(', ')}${other.length > 3 ? ', dan lainnya' : ''}: jumlah, tenor, atau jenisnya tidak cocok.` : 'Semua pindar di database melayani rencanamu.'}</p>`}</div>
     <div class="card flat" style="border-color:var(--danger)"><h3 style="color:var(--danger)">Diblokir</h3>
      <div class="stack small" style="margin-top:8px;gap:6px">${blocked.map(r => `<div class="row between"><b>${esc(r.name)}</b><span class="pill z-danger">${esc(r.reason)}</span></div>`).join('')}</div>
      <p class="tiny muted" style="margin-top:8px">Pinjaman tidak berizin tidak pernah ditampilkan sebagai pilihan.</p></div>
    </div>
-   <div class="card flat" style="margin-top:16px"><div class="row between"><h3>Kenapa urutannya begini?</h3><button class="btn ghost sm" data-act="toggle" data-k="${pre}.why">${st.why ? 'Tutup' : 'Lihat cara mengurutkan'}</button></div>
+   <div class="card flat" style="margin-top:16px"><div class="row between"><h3>Kenapa urutannya begini?</h3><button class="btn ghost sm" data-act="toggle" data-k="pilah.why">${st.why ? 'Tutup' : 'Lihat cara mengurutkan'}</button></div>
     ${st.why ? (st.mode !== 'seimbang' || m.allDanger ? `<p class="small" style="margin-top:10px">Mode ini mengurutkan murni menurut ${sortTxt}. Opsi Bahaya tetap ditaruh setelah opsi yang lebih aman, kalau ada.</p>` : `<div class="tbl-wrap" style="margin-top:10px"><table><thead><tr><th>Opsi</th>${Object.keys(m.weights).map(k => `<th>${{ cost: 'Biaya', health: 'Cocok dgn batas', rep: 'Reputasi', privacy: 'Privasi', speed: 'Kecepatan' }[k]} (${Math.round(m.weights[k] * 100)}%)</th>`).join('')}<th>Skor</th></tr></thead><tbody>${m.ok.map(r => `<tr><td><b>${esc(r.name)}</b></td>${Object.keys(m.weights).map(k => `<td class="num">${Math.round(r.factors[k] * 100)}</td>`).join('')}<td class="num"><b>${Math.round(r.score * 100)}</b>${r.zone === 'danger' && anySafe ? ' <span class="tiny muted">(ditaruh di bawah)</span>' : ''}</td></tr>`).join('')}</tbody></table></div>
-     <ul class="small" style="margin:10px 0 0;padding-left:18px"><li>Seimbang menggabungkan biaya, kecocokan dengan batas amanmu, reputasi, privasi, dan kecepatan.</li><li>Opsi zona Bahaya selalu di urutan bawah dan perlu konfirmasi.</li><li>Koperasi dan bank belum punya data ulasan publik, jadi reputasinya dinilai netral (70).</li>${isSaya(p) && !ctx.test ? `<li>Reputasi pindar dari sampel ulasan Google Play (rata-rata bintang dan % ulasan positif). Privasi dari sertifikasi ISO 27001/27701.</li><li>Kecepatan cair tidak dipublikasikan, jadi dinilai netral (50).</li>` : ''}<li>Tidak ada pemberi pinjaman yang membayar untuk urutan ini.</li></ul>`) : ''}
-    ${ctx.test || !S.cap.sample ? '' : `<div style="margin-top:10px">${aiBlock('pilah', 'Jelaskan pilihan ini dengan AI', `Data:\n${context()}\nKebutuhan ${rp(st.need)}, tertutup non-utang ${rp(lad.covered)}, dibandingkan pinjaman ${rp(amt)}.\nOpsi (urut): ${m.ok.map(r => `${r.rank}. ${r.name}: total dikembalikan ${rp(r.repay)}, cicilan ${rp(r.inst)} x ${r.months}, porsi cicilan ${pct(r.dsr)}, sisa/bln ${rp(r.left)}, zona ${ZONE[r.zone][0]}`).join('; ')}.\nTugas: jelaskan dengan bahasa sederhana urutan ini dan risiko tiap opsi. Jangan menyebut opsi berstatus Bahaya sebagai cocok.`)}</div>`}
+     <ul class="small" style="margin:10px 0 0;padding-left:18px"><li>Seimbang menggabungkan biaya, kecocokan dengan batas amanmu, reputasi, privasi, dan kecepatan.</li><li>Reputasi dari sampel ulasan Google Play (rata-rata bintang dan % ulasan positif). Privasi dari sertifikasi ISO 27001/27701.</li><li>Banyak pindar memakai tarif maksimum yang sama, jadi ulasan dan privasi ikut menentukan.</li><li>Kecepatan cair tidak dipublikasikan, jadi dinilai netral.</li><li>Opsi zona Bahaya selalu di urutan bawah.</li><li>Tidak ada pemberi pinjaman yang membayar untuk urutan ini.</li></ul>`) : ''}
+    ${!S.cap.sample ? '' : `<div style="margin-top:10px">${aiBlock('pilah', 'Jelaskan pilihan ini dengan AI', `Data:\n${context()}\nKebutuhan ${rp(st.need)}, tertutup non-utang ${rp(lad.covered)}, dibandingkan pinjaman ${rp(amt)}.\nOpsi (urut): ${m.ok.map(r => `${r.rank}. ${r.name}: total dikembalikan ${rp(r.repay)}, cicilan ${rp(r.inst)} x ${r.months}, porsi cicilan ${pct(r.dsr)}, sisa/bln ${rp(r.left)}, zona ${ZONE[r.zone][0]}`).join('; ')}.\nTugas: jelaskan dengan bahasa sederhana urutan ini dan risiko tiap opsi. Jangan menyebut opsi berstatus Bahaya sebagai cocok.`)}</div>`}
    </div>`;
 }
 function vPilah() {
   const p = P(), st = S.pilah;
   if (!MODES.some(x => x[0] === st.mode)) st.mode = 'seimbang';
-  const steps = [[0, 'Untuk apa'], [1, 'Batas aman'], [2, 'Tangga dana'], [3, 'Pilih pinjaman']];
-  if (st.step == null) st.step = 0;
-  return banner({ tone: 'amber', eyebrow: 'PILAH · SAAT BUTUH DANA', title: 'Pinjam secukupnya, dari yang tepat', sub: 'Empat langkah: untuk apa dananya, batas cicilan amanmu, tutup kebutuhan tanpa utang dulu, baru bandingkan pinjaman legal berdasarkan total biaya.', right: userChip() }) + `
-   <div class="row between"><div class="steps" role="group" aria-label="Langkah PILAH">${steps.map(([n, l]) => `<button class="${st.step === n ? 'on' : st.step > n ? 'done' : ''}" data-act="pilah-step" data-v="${n}" ${st.step === n ? 'aria-current="step"' : ''}><i aria-hidden="true">${st.step > n ? '✓' : n + 1}</i>${l}${st.step > n ? '<span class="sr"> (selesai)</span>' : ''}</button>`).join('')}</div><a class="small" href="#openspace">Cek legalitas pinjol</a></div>
-   ${readyStrip(p)}
-   ${st.step === 0 ? pilahStep0(p, st) : st.step === 3 && !pilahReady(p, st) ? '<div class="note amber" role="status" style="margin-bottom:12px">Lengkapi dulu tujuan dan kebutuhan dana sebelum membandingkan pinjaman.</div>' + pilahStep2(p, st, {}) : st.step === 1 ? pilahStep1(p, st, {}) : st.step === 2 ? pilahStep2(p, st, {}) : pilahStep3(p, st, {})}
-   ${st.picked ? pickedBanner(p, st) : ''}`;
+  if (st.step == null || (st.step > 0 && !planReady(st))) st.step = 0;
+  const steps = [[0, 'Rencana'], [1, 'Dampaknya'], [2, 'Pinjam lebih sedikit'], [3, 'Bandingkan pinjol']], ok = planReady(st) && !isJudi(st);
+  return banner({ tone: 'amber', eyebrow: 'PILAH · SAAT BUTUH DANA', title: 'Pinjam secukupnya, dari yang tepat', sub: 'Mulai dari rencanamu: untuk apa, berapa, dan berapa lama. Lalu lihat dampaknya, cara meminjam lebih sedikit, dan semua pindar berizin.', right: userChip() }) + `
+   <div class="row between"><div class="steps" role="group" aria-label="Langkah PILAH">${steps.map(([n, l]) => `<button class="${st.step === n ? 'on' : st.step > n ? 'done' : ''}" data-act="pilah-step" data-v="${n}" ${st.step === n ? 'aria-current="step"' : ''} ${n > 0 && !ok ? 'disabled' : ''}><i aria-hidden="true">${st.step > n ? '✓' : n + 1}</i>${l}${st.step > n ? '<span class="sr"> (selesai)</span>' : ''}</button>`).join('')}</div><a class="small" href="#openspace">Cek legalitas pinjol</a></div>
+   ${st.step === 0 ? pilahStep0(p, st) : st.step === 1 ? pilahStep1(p, st) : st.step === 2 ? pilahStep2(p, st) : pilahStep3(p, st)}
+   ${st.picked && st.step === 3 ? pickedBanner(p, st) : ''}`;
 }
 function pickedBanner(p, st) {
   const { m, amt } = pilahCalc(p, st); const r = m.ok.find(x => x.id === st.picked); if (!r) return '';
