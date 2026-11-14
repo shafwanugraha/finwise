@@ -1,19 +1,32 @@
 /* ================= KALKULATOR: loan calculator with live safety status (Wasapada-style, FinWise numbers) ================= */
 const CALC_TYPES = [['konsumtif', 'Konsumtif'], ['mikro', 'Produktif ≤ Rp50 jt'], ['umkm', 'Produktif > Rp50 jt']];
 function calcState() {
-  if (!S.calc) S.calc = { type: 'konsumtif', mode: 'ojk', amount: S.pilah?.need || 5000000, months: S.pilah?.months || 6, rate: null, unit: 'day', admin: null, lateOn: false, lateRate: null, lateDays: null, lender: null };
+  if (!S.calc) S.calc = { type: 'konsumtif', mode: 'real', amount: S.pilah?.need || 5000000, months: S.pilah?.months || 6, rate: null, unit: 'day', admin: null, lateOn: false, lateRate: null, lateDays: null, lender: null };
   return S.calc;
+}
+// the cheapest licensed lender in the FinWise database for this amount and tenor, priced at its published (RIPLAY) maximum
+function cheapestReal(months, purpose, amount) {
+  let best = null;
+  realProducts({ months, purpose }, amount).forEach(pr => {
+    if (!pr.real || pr.illegal || pr.unavailable || !(pr.rate > 0) || amount < pr.min || amount > pr.max || (pr.purpose && pr.purpose !== purpose)) return;
+    const L = FW.loan({ principal: amount, rate: pr.rate, unit: pr.unit, months, feePct: pr.feePct || 0, maxTotal: amount * pr.maxTotalPct });
+    if (!best || L.total < best.L.total) best = { pr, L };
+  });
+  return best;
 }
 function calcNumbers(c) {
   const purpose = c.type === 'konsumtif' ? 'konsumtif' : 'produktif';
   const amount = c.type === 'umkm' ? Math.max(c.amount, 50000001) : c.type === 'mikro' ? Math.min(c.amount, 50000000) : c.amount;
   const cap = FW.ojkCap(purpose, c.months, amount);
-  const rate = c.mode === 'ojk' ? cap : (c.rate || 0), unit = c.mode === 'ojk' ? 'day' : c.unit;
   const maxTotal = amount * Math.min(cap * c.months * 30, purpose === 'konsumtif' ? 1 : Infinity);
-  // OJK mode shows the legal maximum; a manual offer is shown as quoted (an offer above the cap is itself a warning sign)
-  const L = FW.loan({ principal: amount, rate, unit, months: c.months, feePct: c.mode === 'manual' ? (c.admin || 0) : 0, maxTotal: c.mode === 'ojk' ? maxTotal : undefined });
+  // the OJK maximum is the worst case a licensed lender may charge
+  const worst = FW.loan({ principal: amount, rate: cap, unit: 'day', months: c.months, maxTotal });
+  let L = worst, rate = cap, unit = 'day', src = null;
+  if (c.mode === 'real') { const b = cheapestReal(c.months, purpose, amount); if (b) { src = b.pr; L = b.L; rate = b.pr.rate; } }
+  // a manual offer is shown as quoted (an offer above the cap is itself a warning sign)
+  if (c.mode === 'manual') { rate = c.rate || 0; unit = c.unit; L = FW.loan({ principal: amount, rate, unit, months: c.months, feePct: c.admin || 0 }); }
   const daily = unit === 'day' ? rate : rate / 30, overCap = c.mode === 'manual' && daily > cap + 1e-9;
-  return { purpose, amount, cap, rate, unit, L, overCap };
+  return { purpose, amount, cap, rate, unit, L, overCap, src, worst, noReal: c.mode === 'real' && !src };
 }
 // cash-flow projection: money left each month while the loan runs
 function projectionChart(p, inst, months) {
@@ -39,20 +52,27 @@ function saferOptions(p, c, n) {
 function vKalkulator() {
   const c = calcState(), p = P(), blank = needsSetup(), N = calcNumbers(c), L = N.L;
   const z = blank ? null : FW.zoneOf(p, L.inst), h = FW.headroom(p);
-  const zi = z ? { safe: 0, stretch: 1, danger: 2 }[z.zone] : null;
+  const zi = z ? { safe: 0, stretch: 1, danger: 2 }[z.zone] : null, R = blank ? null : FW.readiness(p);
   const advice = blank ? 'Isi datamu dulu supaya FinWise bisa menilai apakah cicilan ini aman untukmu.'
+    : R.level === 0 ? `Kesiapan berutangmu: belum bisa berutang. ${R.reasons[0]} Hitungan ini hanya gambaran; yang lebih aman sekarang adalah rencana tanpa utang.`
     : z.zone === 'safe' ? `Cicilan ${rp(L.inst)} masih di bawah batas amanmu ${rp(h.ceiling)}. Rasio cicilanmu jadi ${pct(z.dsr, 0)}. Tetap bandingkan total biayanya di PILAH sebelum memilih pemberi pinjaman.`
     : z.zone === 'stretch' ? `Cicilan ini melewati batas amanmu ${rp(h.ceiling)} (rasio cicilan ${pct(z.dsr, 0)}). Masih bisa dibayar, tapi sisa uangmu tinggal ${rp(z.left)} per bulan. Pertimbangkan alternatif di bawah.`
     : `Cicilan ini membuat ${z.left < 0 ? `uangmu minus ${rp(-z.left)} per bulan` : `rasio cicilanmu ${pct(z.dsr, 0)}`}. Risiko telat bayar dan berutang lagi tinggi. Lihat alternatif yang lebih aman.`;
   const lateFee = c.lateOn && c.lateRate > 0 && c.lateDays > 0 ? Math.min(L.inst * c.lateRate * c.lateDays, N.amount) : null;
-  const opts = blank ? [] : saferOptions(p, c, N);
-  return banner({ tone: 'green', eyebrow: 'KALKULATOR PINJAMAN', title: 'Hitung dulu sebelum tanda tangan', sub: 'Geser jumlah dan tenor. Cicilan, total biaya, bunga sebenarnya, dan status aman langsung terlihat.', right: blank ? '<a class="btn amber" href="#mulai">Isi data untuk status pribadimu</a>' : userChip() }) + `
+  const opts = blank ? [] : saferOptions(p, c, N), safeAmt = opts.find(o => o.set && o.set.amount)?.set.amount;
+  const urgentOnly = R && R.level === 1 ? ' Kesiapanmu: hanya untuk darurat, jadi pinjam hanya untuk keperluan mendesak.' : '';
+  // what to do next depends on the readiness level first, then on the zone of this instalment
+  const cta = blank ? `<a class="btn" href="#pilah" data-act="calc-to-pilah">Cari pinjaman legal untuk ${rps(c.amount)}</a>`
+    : R.level === 0 ? `<a class="btn" href="#cek" data-act="goto-plan">Lihat rencana tanpa utang</a>${p.loans.length ? '<a class="btn ghost" href="#pulih">Atur utang yang ada di PULIH</a>' : ''}`
+    : `${z.zone !== 'safe' && safeAmt ? `<button class="btn" data-act="calc-set" data-v='{"amount":${safeAmt}}'>Pakai jumlah aman ${rps(safeAmt)}</button>` : ''}<a class="btn${z.zone !== 'safe' && safeAmt ? ' ghost' : ''}" href="#pilah" data-act="calc-to-pilah">Cari pinjaman legal untuk ${rps(c.amount)}</a>${z.zone !== 'safe' ? '<a class="btn ghost" href="#alt" data-act="focus" data-id="alt">Lihat opsi yang lebih aman</a>' : ''}`;
+  return banner({ tone: 'green', eyebrow: 'KALKULATOR PINJAMAN', title: 'Hitung dulu sebelum tanda tangan', sub: 'Geser jumlah dan tenor. Cicilan, total biaya, bunga sebenarnya, dan status aman langsung terlihat.', right: blank ? '<a class="btn amber" href="#mulai">Isi data untuk status pribadimu</a>' : userChip() }) + (blank ? '' : readyStrip(p)) + `
    <div class="grid g-side" style="align-items:start">
     <div class="stack">
      <div class="card stack">
       <div><div class="lab">Jenis pinjaman</div><div class="seg" role="group" aria-label="Jenis pinjaman" style="margin-top:6px">${CALC_TYPES.map(([k, l]) => `<button class="${c.type === k ? 'on' : ''}" aria-pressed="${c.type === k}" data-act="calc" data-f="type" data-v="${k}">${l}</button>`).join('')}</div>
        <p class="tiny muted" style="margin-top:6px">${term('Plafon OJK')}: ${c.type === 'konsumtif' ? 'maks 0,3%/hari untuk tenor ≤6 bulan, 0,2%/hari untuk >6 bulan' : c.type === 'mikro' ? 'maks 0,275%/hari untuk pinjaman usaha s.d. Rp50 jt' : 'maks 0,1%/hari untuk pinjaman usaha di atas Rp50 jt'}.</p></div>
-      <div><div class="lab">Cara menghitung bunga</div><div class="seg" role="group" aria-label="Cara menghitung bunga" style="margin-top:6px"><button class="${c.mode === 'ojk' ? 'on' : ''}" aria-pressed="${c.mode === 'ojk'}" data-act="calc" data-f="mode" data-v="ojk">Biaya maksimum yang diizinkan OJK</button><button class="${c.mode === 'manual' ? 'on' : ''}" aria-pressed="${c.mode === 'manual'}" data-act="calc" data-f="mode" data-v="manual">Dari penawaran yang kamu terima</button></div></div>
+      <div><div class="lab">Tarif yang dipakai</div><div class="seg" role="group" aria-label="Tarif yang dipakai" style="margin-top:6px">${[['real', 'Pindar berizin termurah'], ['ojk', 'Batas maksimum OJK'], ['manual', 'Dari penawaranmu']].map(([k, l]) => `<button class="${c.mode === k ? 'on' : ''}" aria-pressed="${c.mode === k}" data-act="calc" data-f="mode" data-v="${k}">${l}</button>`).join('')}</div>
+       <p class="tiny muted" style="margin-top:6px">${c.mode === 'real' ? (N.src ? `Tarif maksimum di ${term('RIPLAY')} ${esc(N.src.name)} (${esc(N.src.rateLabel)}${N.src.note ? ', ' + esc(N.src.note) : ''}), pindar berizin dengan total biaya termurah untuk jumlah dan tenor ini di database FinWise. Tarif yang kamu dapat bisa lebih rendah.` : 'Belum ada pindar berizin di database FinWise yang melayani jumlah dan tenor ini, jadi dihitung dengan batas maksimum OJK.') : c.mode === 'ojk' ? 'Skenario terburuk: biaya tertinggi yang boleh ditagih pindar berizin. Kebanyakan penawaran lebih murah dari ini.' : 'Isi bunga dan biaya admin persis seperti di penawaran atau RIPLAY yang kamu terima.'}</p></div>
       ${c.mode === 'manual' ? `<div class="grid g3"><label class="f">Bunga (%)<input class="in num" id="c-rate" inputmode="decimal" value="${c.rate == null ? '' : (c.rate * 100).toLocaleString('id-ID', { maximumFractionDigits: 3 })}" placeholder="mis. 0,3" data-k="calc.rate" data-t="pctn"></label><label class="f">Satuan<select class="in" id="c-unit" data-k="calc.unit" data-t="text"><option value="day" ${c.unit === 'day' ? 'selected' : ''}>% per hari</option><option value="month" ${c.unit === 'month' ? 'selected' : ''}>% per bulan (flat)</option></select></label><label class="f">Biaya admin (%)<input class="in num" id="c-admin" inputmode="decimal" value="${c.admin == null ? '' : (c.admin * 100).toLocaleString('id-ID', { maximumFractionDigits: 2 })}" placeholder="0" data-k="calc.admin" data-t="pctn"></label></div>
        ${c.lender ? `<p class="tiny muted">Diisi dari tarif maksimum ${esc(c.lender)} di RIPLAY.</p>` : ''}
        ${N.overCap ? `<div class="note danger small">Bunga ini di atas plafon OJK (${nf(N.cap * 100, 3)}%/hari). Pindar berizin tidak boleh menagih sebesar ini; cek legalitasnya di <a href="#openspace">Database Pinjol</a>.</div>` : ''}` : ''}
@@ -78,15 +98,15 @@ function vKalkulator() {
       <div class="stack small" style="gap:7px;margin-top:14px">
        <div class="row between"><span>Cicilan per bulan</span><b class="num">${rp(L.inst)}</b></div>
        <div class="row between"><span>Total bunga + biaya</span><b class="num">${rp(L.total)}</b></div>
-       <div class="row between"><span>Total dibayar</span><b class="num">${rp(L.repay + L.fee)}</b></div>
+       <div class="row between"><span>${term('Total dikembalikan')}</span><b class="num">${rp(L.repay + L.fee)}</b></div>
+       ${c.mode === 'real' && N.src ? `<div class="row between tiny muted"><span>Kalau dikenai batas maksimum OJK</span><span class="num">${rp(N.worst.repay + N.worst.fee)}</span></div>` : ''}
        <div class="row between"><span>${term('Bunga efektif')} per tahun</span><b class="num">${pct(L.ear, 0)}</b></div>
        ${z ? `<div class="row between"><span>${term('Porsi cicilan')}</span><b class="num">${pct(z.dsr, 1)}</b></div><div class="bar" aria-hidden="true"><i style="width:${Math.min(100, z.dsr / 0.6 * 100).toFixed(0)}%;background:var(--${z.zone})"></i></div>
        <div class="row between"><span>Sisa uang per bulan</span><b class="num" style="color:${z.left < 0 ? 'var(--danger)' : 'inherit'}">${rp(z.left, { plus: true })}</b></div>` : ''}
       </div>
-      <div class="note ${z ? { safe: 'safe', stretch: 'amber', danger: 'danger' }[z.zone] : ''} small" style="margin-top:12px"><b>Saran FinWise:</b> ${esc(advice)}</div>
+      <div class="note ${z ? { safe: 'safe', stretch: 'amber', danger: 'danger' }[z.zone] : ''} small" style="margin-top:12px"><b>Saran FinWise:</b> ${esc(advice + urgentOnly)}</div>
       <div class="stack" style="gap:8px;margin-top:12px">
-       <a class="btn" href="#pilah" data-act="calc-to-pilah">Cari pinjaman legal untuk ${rps(c.amount)}</a>
-       ${z && z.zone !== 'safe' ? '<a class="btn ghost" href="#alt" data-act="focus" data-id="alt">Lihat opsi yang lebih aman</a>' : ''}
+       ${cta}
       </div>
      </div>
     </div>

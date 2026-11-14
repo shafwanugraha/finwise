@@ -686,6 +686,9 @@ table.cmp td.best{background:var(--safe-tint)}
 .loan-ana > ul > li{border-top:1px solid var(--line);padding-top:12px}
 .loan-ana li ul{margin:6px 0;padding-left:18px}
 .z-grey{background:var(--soft);color:var(--muted)}
+/* PULIH: can't pay this month */
+.pay-msg{font-weight:400;min-height:190px;line-height:1.5;font-size:.9375rem;resize:vertical;white-space:pre-wrap}
+.protect{margin:8px 0 6px;padding-left:20px;display:flex;flex-direction:column;gap:4px}
 </style>
 </head>
 <body>
@@ -1504,10 +1507,12 @@ const TERMS = {
   'Total dikembalikan': 'Semua uang yang kamu bayar sampai lunas: pokok pinjaman ditambah bunga dan biaya.',
   'Batas cicilan aman': 'Cicilan baru per bulan yang masih aman untukmu. Diambil dari angka yang lebih kecil antara (30% pendapatan − cicilan lama) dan 70% sisa uangmu setelah tabungan rutin.',
   'Zona': 'Aman: cicilan masih dalam batas aman. Mepet: masih bisa dibayar tapi sisa uang tipis. Bahaya: porsi cicilan di atas 40% atau uangmu jadi minus.',
-  'Rasio likuiditas': 'Berapa bulan kebutuhan pokok bisa ditutup dengan tabungan yang bisa langsung dipakai. Patokan: minimal 3 bulan (6 bulan jika penghasilan tidak stabil).',
-  'Rasio tabungan': 'Porsi pendapatan yang benar-benar disisihkan untuk ditabung setiap bulan. Patokan: minimal 10%.',
+  'Rasio likuiditas': 'Berapa bulan seluruh pengeluaranmu (termasuk cicilan) bisa ditutup dengan tabungan yang bisa langsung dipakai. Patokan: minimal 3 bulan (6 bulan jika penghasilan tidak stabil).',
+  'Rasio pengeluaran': 'Bagian pendapatan yang habis untuk semua pengeluaran, kiriman keluarga, dan cicilan. Wajar ≤80%; 90% ke atas berarti hampir tidak ada sisa untuk menabung atau kejadian mendadak.',
+  'Jumlah kredit aktif': 'Banyaknya pinjaman yang masih kamu cicil. Makin banyak, makin mudah lupa tanggal dan makin besar risiko gali lubang tutup lubang. 4 atau lebih dianggap bahaya.',
+  'Rasio tabungan': 'Porsi pendapatan yang benar-benar disisihkan untuk ditabung setiap bulan. Patokan: minimal 10%, idealnya 20%.',
   'Rasio tempat tinggal': 'Porsi pendapatan untuk sewa/kos dan tagihan rumah. Patokan umum: maksimal 30%.',
-  'Rasio cicilan konsumtif': 'Porsi pendapatan untuk cicilan konsumtif seperti paylater, pinjol, dan kartu kredit. Patokan umum: maksimal 15%.',
+  'Rasio cicilan selain KPR': 'Porsi pendapatan untuk semua cicilan selain cicilan rumah (KPR): paylater, pinjol, kartu kredit, kredit motor/HP, KTA, dan lainnya. Aman ≤15%, bahaya 20% ke atas.',
   'Tanggungan keluarga': 'Porsi pendapatan yang dikirim untuk orang tua atau keluarga. Tidak ada patokan baku, tapi makin besar makin sempit ruang menabung.',
   'Daya tahan uang': 'Tanggal ketika uangmu diperkirakan habis dalam sebulan, dihitung dari jadwal uang masuk dan pengeluaran.',
   'Pokok': 'Kebutuhan yang tidak bisa ditunda: tempat tinggal, makan, transport, pulsa, pendidikan, kesehatan.',
@@ -1720,10 +1725,10 @@ function vMulai() {
     ${radios('stage', STAGES, 'Mana yang paling menggambarkan kamu sekarang?', p.stage)}
     ${radios('stability', STABILITY, 'Seberapa stabil penghasilanmu dari bulan ke bulan?', p.stability, 'Dipakai untuk menentukan target dana daruratmu (3 atau 6 bulan) dan seberapa hati-hati batas cicilanmu.')}
    </div>`;
-  if (k === 1) body = `<div class="card stack" style="max-width:900px"><h2 style="font-size:1.2rem">Uang yang masuk setiap bulan</h2><p class="small muted">Gaji, uang saku, hasil usaha, freelance, kiriman keluarga. Untuk pemasukan yang naik-turun, pakai rata-rata.</p>
+  if (k === 1) body = `<div class="card stack" style="max-width:900px"><h2 style="font-size:1.2rem">Uang yang masuk setiap bulan</h2><p class="small muted">Gaji, uang saku, hasil usaha, freelance, kiriman keluarga. Untuk pemasukan yang naik-turun, pakai rata-rata.</p>${p.stage === 'wirausaha' ? '<div class="note small">Untuk usaha, isi <b>laba bersih</b>: omzet dikurangi modal, bahan, dan biaya usaha. Kalau yang diisi omzet, semua batas aman jadi terlalu besar.</div>' : ''}
     ${p.incomes.map((r, i) => `<div class="wrow"><div class="grid g4" style="align-items:start">
       <label class="f">Sumber<input class="in" ${fAttr(`incomes.${i}.label`)} data-t="text" value="${esc(r.label)}" placeholder="mis. Gaji, uang saku"></label>
-      ${rpField(`incomes.${i}.amount`, r.amount, 'Jumlah per bulan')}
+      ${rpField(`incomes.${i}.amount`, r.amount, p.stage === 'wirausaha' ? 'Laba bersih per bulan (bukan omzet)' : 'Jumlah per bulan')}
       <label class="f">Tanggal masuk<input class="in" type="number" min="1" max="31" inputmode="numeric" ${fAttr(`incomes.${i}.payday`)} data-t="intn" value="${blankNum(r.payday)}" placeholder="1–31">${fErr(`incomes.${i}.payday`)}</label>
       ${radios(`incomes.${i}.type`, [['tetap', 'Tetap'], ['tidak tetap', 'Tidak tetap']], 'Jenis', r.type)}
      </div>${p.incomes.length > 1 ? `<button class="btn ghost sm" data-act="wiz-del" data-list="incomes" data-i="${i}">Hapus pemasukan ${i + 1}</button>` : ''}</div>`).join('')}
@@ -1854,19 +1859,21 @@ function analysisText(p, f, v, pr) {
   return parts;
 }
 // Household financial ratios (CEK, after Greninger et al. 1996 and the 50/30/20 guideline), each with formula, benchmark and status
-const CONSUMER_TYPES = ['paylater', 'pindar', 'kartu kredit', 'lainnya'];
 function ratios(p) {
   const f = facts(p), inc = f.inc || 1, out = [];
   const st = (v, ok, warn, higherIsBetter = false) => higherIsBetter ? (v >= ok ? 'safe' : v >= warn ? 'stretch' : 'danger') : (v <= ok ? 'safe' : v <= warn ? 'stretch' : 'danger');
   const house = f.total ? null : FW.sum(p.spending.filter(c => /tempat tinggal|sewa|kos/i.test(c.name)), c => c.amount);
-  const consumer = FW.sum(p.loans.filter(l => CONSUMER_TYPES.includes(l.type)), l => l.instalment);
+  // Cia's benchmark: every instalment except a home loan (KPR) counts here
+  const nonKpr = FW.sum(p.loans.filter(l => l.type !== 'kpr'), l => l.instalment), spendR = f.out / inc, n = p.loans.length;
+  out.push({ k: 'Total pengeluaran', t: 'Rasio pengeluaran', f: '(semua pengeluaran + keluarga + cicilan) ÷ pendapatan', v: spendR, show: pct(spendR, 0), bench: '≤ 80% wajar · ≥ 90% bahaya', s: st(spendR, 0.8, 0.9) });
   out.push({ k: 'Kebutuhan pokok + keluarga', t: 'Pokok', f: '(kebutuhan pokok + kirim keluarga) ÷ pendapatan', v: f.needR, show: pct(f.needR, 0), bench: '≤ 50%', s: st(f.needR, 0.5, 0.7), note: f.total ? 'Masih total pengeluaran (belum dirinci), jadi angka ini termasuk keinginan.' : '' });
   if (!f.total) out.push({ k: 'Keinginan / gaya hidup', t: 'Keinginan', f: 'belanja keinginan ÷ pendapatan', v: f.wantR, show: pct(f.wantR, 0), bench: '≤ 30%', s: st(f.wantR, 0.3, 0.4) });
   if (house != null && house > 0) out.push({ k: 'Tempat tinggal', t: 'Rasio tempat tinggal', f: 'sewa/kos + tagihan rumah ÷ pendapatan', v: house / inc, show: pct(house / inc, 0), bench: '≤ 30%', s: st(house / inc, 0.3, 0.4) });
-  out.push({ k: 'Tabungan rutin', t: 'Rasio tabungan', f: 'menabung per bulan ÷ pendapatan', v: f.saveR, show: pct(f.saveR, 0), bench: '≥ 10%', s: st(f.saveR, 0.1, 0.05, true) });
+  out.push({ k: 'Tabungan rutin', t: 'Rasio tabungan', f: 'menabung per bulan ÷ pendapatan', v: f.saveR, show: pct(f.saveR, 0), bench: 'minimal 10% · target 20%', s: st(f.saveR, 0.2, 0.1, true) });
   out.push({ k: 'Sisa uang', t: 'Sisa uang', f: 'sisa setelah semua pengeluaran ÷ pendapatan', v: f.surR, show: f.sur < 0 ? 'minus ' + pct(-f.surR, 0) : pct(f.surR, 0), bench: '≥ 20%', s: st(f.surR, 0.2, 0.1, true) });
   out.push({ k: 'Porsi cicilan', t: 'Porsi cicilan', f: 'semua cicilan ÷ pendapatan (istilah resmi: DSR)', v: f.dsr, show: pct(f.dsr, 0), bench: '≤ 30% aman · > 40% bahaya', s: st(f.dsr, 0.3, 0.4) });
-  out.push({ k: 'Cicilan konsumtif', t: 'Rasio cicilan konsumtif', f: 'cicilan paylater, pinjol, kartu kredit ÷ pendapatan', v: consumer / inc, show: pct(consumer / inc, 0), bench: '≤ 15%', s: st(consumer / inc, 0.15, 0.2) });
+  out.push({ k: 'Cicilan selain KPR', t: 'Rasio cicilan selain KPR', f: 'semua cicilan kecuali KPR ÷ pendapatan', v: nonKpr / inc, show: pct(nonKpr / inc, 0), bench: '≤ 15% aman · ≥ 20% bahaya', s: nonKpr / inc <= 0.15 ? 'safe' : nonKpr / inc < 0.2 ? 'stretch' : 'danger' });
+  out.push({ k: 'Kredit aktif', t: 'Jumlah kredit aktif', f: 'banyaknya pinjaman yang masih dicicil', v: n, show: n + ' kredit', bench: '≤ 2 · 4 atau lebih bahaya', s: n <= 2 ? 'safe' : n < 4 ? 'stretch' : 'danger' });
   out.push({ k: 'Dana darurat (likuiditas)', t: 'Rasio likuiditas', f: 'tabungan siap pakai ÷ total pengeluaran sebulan (termasuk cicilan)', v: f.efMonths, show: f.efMonths.toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' bulan', bench: `≥ ${f.efTarget} bulan`, s: st(f.efMonths, f.efTarget, 1, true) });
   if (f.fam > 0) out.push({ k: 'Tanggungan keluarga', t: 'Tanggungan keluarga', f: 'kirim keluarga ÷ pendapatan', v: f.fam / inc, show: pct(f.fam / inc, 0), bench: 'tanpa patokan baku', s: f.fam / inc > 0.2 ? 'stretch' : 'safe' });
   const run = FW.runway(p);
@@ -2064,19 +2071,32 @@ function vCek() {
 /* ================= KALKULATOR: loan calculator with live safety status (Wasapada-style, FinWise numbers) ================= */
 const CALC_TYPES = [['konsumtif', 'Konsumtif'], ['mikro', 'Produktif ≤ Rp50 jt'], ['umkm', 'Produktif > Rp50 jt']];
 function calcState() {
-  if (!S.calc) S.calc = { type: 'konsumtif', mode: 'ojk', amount: S.pilah?.need || 5000000, months: S.pilah?.months || 6, rate: null, unit: 'day', admin: null, lateOn: false, lateRate: null, lateDays: null, lender: null };
+  if (!S.calc) S.calc = { type: 'konsumtif', mode: 'real', amount: S.pilah?.need || 5000000, months: S.pilah?.months || 6, rate: null, unit: 'day', admin: null, lateOn: false, lateRate: null, lateDays: null, lender: null };
   return S.calc;
+}
+// the cheapest licensed lender in the FinWise database for this amount and tenor, priced at its published (RIPLAY) maximum
+function cheapestReal(months, purpose, amount) {
+  let best = null;
+  realProducts({ months, purpose }, amount).forEach(pr => {
+    if (!pr.real || pr.illegal || pr.unavailable || !(pr.rate > 0) || amount < pr.min || amount > pr.max || (pr.purpose && pr.purpose !== purpose)) return;
+    const L = FW.loan({ principal: amount, rate: pr.rate, unit: pr.unit, months, feePct: pr.feePct || 0, maxTotal: amount * pr.maxTotalPct });
+    if (!best || L.total < best.L.total) best = { pr, L };
+  });
+  return best;
 }
 function calcNumbers(c) {
   const purpose = c.type === 'konsumtif' ? 'konsumtif' : 'produktif';
   const amount = c.type === 'umkm' ? Math.max(c.amount, 50000001) : c.type === 'mikro' ? Math.min(c.amount, 50000000) : c.amount;
   const cap = FW.ojkCap(purpose, c.months, amount);
-  const rate = c.mode === 'ojk' ? cap : (c.rate || 0), unit = c.mode === 'ojk' ? 'day' : c.unit;
   const maxTotal = amount * Math.min(cap * c.months * 30, purpose === 'konsumtif' ? 1 : Infinity);
-  // OJK mode shows the legal maximum; a manual offer is shown as quoted (an offer above the cap is itself a warning sign)
-  const L = FW.loan({ principal: amount, rate, unit, months: c.months, feePct: c.mode === 'manual' ? (c.admin || 0) : 0, maxTotal: c.mode === 'ojk' ? maxTotal : undefined });
+  // the OJK maximum is the worst case a licensed lender may charge
+  const worst = FW.loan({ principal: amount, rate: cap, unit: 'day', months: c.months, maxTotal });
+  let L = worst, rate = cap, unit = 'day', src = null;
+  if (c.mode === 'real') { const b = cheapestReal(c.months, purpose, amount); if (b) { src = b.pr; L = b.L; rate = b.pr.rate; } }
+  // a manual offer is shown as quoted (an offer above the cap is itself a warning sign)
+  if (c.mode === 'manual') { rate = c.rate || 0; unit = c.unit; L = FW.loan({ principal: amount, rate, unit, months: c.months, feePct: c.admin || 0 }); }
   const daily = unit === 'day' ? rate : rate / 30, overCap = c.mode === 'manual' && daily > cap + 1e-9;
-  return { purpose, amount, cap, rate, unit, L, overCap };
+  return { purpose, amount, cap, rate, unit, L, overCap, src, worst, noReal: c.mode === 'real' && !src };
 }
 // cash-flow projection: money left each month while the loan runs
 function projectionChart(p, inst, months) {
@@ -2102,20 +2122,27 @@ function saferOptions(p, c, n) {
 function vKalkulator() {
   const c = calcState(), p = P(), blank = needsSetup(), N = calcNumbers(c), L = N.L;
   const z = blank ? null : FW.zoneOf(p, L.inst), h = FW.headroom(p);
-  const zi = z ? { safe: 0, stretch: 1, danger: 2 }[z.zone] : null;
+  const zi = z ? { safe: 0, stretch: 1, danger: 2 }[z.zone] : null, R = blank ? null : FW.readiness(p);
   const advice = blank ? 'Isi datamu dulu supaya FinWise bisa menilai apakah cicilan ini aman untukmu.'
+    : R.level === 0 ? `Kesiapan berutangmu: belum bisa berutang. ${R.reasons[0]} Hitungan ini hanya gambaran; yang lebih aman sekarang adalah rencana tanpa utang.`
     : z.zone === 'safe' ? `Cicilan ${rp(L.inst)} masih di bawah batas amanmu ${rp(h.ceiling)}. Rasio cicilanmu jadi ${pct(z.dsr, 0)}. Tetap bandingkan total biayanya di PILAH sebelum memilih pemberi pinjaman.`
     : z.zone === 'stretch' ? `Cicilan ini melewati batas amanmu ${rp(h.ceiling)} (rasio cicilan ${pct(z.dsr, 0)}). Masih bisa dibayar, tapi sisa uangmu tinggal ${rp(z.left)} per bulan. Pertimbangkan alternatif di bawah.`
     : `Cicilan ini membuat ${z.left < 0 ? `uangmu minus ${rp(-z.left)} per bulan` : `rasio cicilanmu ${pct(z.dsr, 0)}`}. Risiko telat bayar dan berutang lagi tinggi. Lihat alternatif yang lebih aman.`;
   const lateFee = c.lateOn && c.lateRate > 0 && c.lateDays > 0 ? Math.min(L.inst * c.lateRate * c.lateDays, N.amount) : null;
-  const opts = blank ? [] : saferOptions(p, c, N);
-  return banner({ tone: 'green', eyebrow: 'KALKULATOR PINJAMAN', title: 'Hitung dulu sebelum tanda tangan', sub: 'Geser jumlah dan tenor. Cicilan, total biaya, bunga sebenarnya, dan status aman langsung terlihat.', right: blank ? '<a class="btn amber" href="#mulai">Isi data untuk status pribadimu</a>' : userChip() }) + `
+  const opts = blank ? [] : saferOptions(p, c, N), safeAmt = opts.find(o => o.set && o.set.amount)?.set.amount;
+  const urgentOnly = R && R.level === 1 ? ' Kesiapanmu: hanya untuk darurat, jadi pinjam hanya untuk keperluan mendesak.' : '';
+  // what to do next depends on the readiness level first, then on the zone of this instalment
+  const cta = blank ? `<a class="btn" href="#pilah" data-act="calc-to-pilah">Cari pinjaman legal untuk ${rps(c.amount)}</a>`
+    : R.level === 0 ? `<a class="btn" href="#cek" data-act="goto-plan">Lihat rencana tanpa utang</a>${p.loans.length ? '<a class="btn ghost" href="#pulih">Atur utang yang ada di PULIH</a>' : ''}`
+    : `${z.zone !== 'safe' && safeAmt ? `<button class="btn" data-act="calc-set" data-v='{"amount":${safeAmt}}'>Pakai jumlah aman ${rps(safeAmt)}</button>` : ''}<a class="btn${z.zone !== 'safe' && safeAmt ? ' ghost' : ''}" href="#pilah" data-act="calc-to-pilah">Cari pinjaman legal untuk ${rps(c.amount)}</a>${z.zone !== 'safe' ? '<a class="btn ghost" href="#alt" data-act="focus" data-id="alt">Lihat opsi yang lebih aman</a>' : ''}`;
+  return banner({ tone: 'green', eyebrow: 'KALKULATOR PINJAMAN', title: 'Hitung dulu sebelum tanda tangan', sub: 'Geser jumlah dan tenor. Cicilan, total biaya, bunga sebenarnya, dan status aman langsung terlihat.', right: blank ? '<a class="btn amber" href="#mulai">Isi data untuk status pribadimu</a>' : userChip() }) + (blank ? '' : readyStrip(p)) + `
    <div class="grid g-side" style="align-items:start">
     <div class="stack">
      <div class="card stack">
       <div><div class="lab">Jenis pinjaman</div><div class="seg" role="group" aria-label="Jenis pinjaman" style="margin-top:6px">${CALC_TYPES.map(([k, l]) => `<button class="${c.type === k ? 'on' : ''}" aria-pressed="${c.type === k}" data-act="calc" data-f="type" data-v="${k}">${l}</button>`).join('')}</div>
        <p class="tiny muted" style="margin-top:6px">${term('Plafon OJK')}: ${c.type === 'konsumtif' ? 'maks 0,3%/hari untuk tenor ≤6 bulan, 0,2%/hari untuk >6 bulan' : c.type === 'mikro' ? 'maks 0,275%/hari untuk pinjaman usaha s.d. Rp50 jt' : 'maks 0,1%/hari untuk pinjaman usaha di atas Rp50 jt'}.</p></div>
-      <div><div class="lab">Cara menghitung bunga</div><div class="seg" role="group" aria-label="Cara menghitung bunga" style="margin-top:6px"><button class="${c.mode === 'ojk' ? 'on' : ''}" aria-pressed="${c.mode === 'ojk'}" data-act="calc" data-f="mode" data-v="ojk">Biaya maksimum yang diizinkan OJK</button><button class="${c.mode === 'manual' ? 'on' : ''}" aria-pressed="${c.mode === 'manual'}" data-act="calc" data-f="mode" data-v="manual">Dari penawaran yang kamu terima</button></div></div>
+      <div><div class="lab">Tarif yang dipakai</div><div class="seg" role="group" aria-label="Tarif yang dipakai" style="margin-top:6px">${[['real', 'Pindar berizin termurah'], ['ojk', 'Batas maksimum OJK'], ['manual', 'Dari penawaranmu']].map(([k, l]) => `<button class="${c.mode === k ? 'on' : ''}" aria-pressed="${c.mode === k}" data-act="calc" data-f="mode" data-v="${k}">${l}</button>`).join('')}</div>
+       <p class="tiny muted" style="margin-top:6px">${c.mode === 'real' ? (N.src ? `Tarif maksimum di ${term('RIPLAY')} ${esc(N.src.name)} (${esc(N.src.rateLabel)}${N.src.note ? ', ' + esc(N.src.note) : ''}), pindar berizin dengan total biaya termurah untuk jumlah dan tenor ini di database FinWise. Tarif yang kamu dapat bisa lebih rendah.` : 'Belum ada pindar berizin di database FinWise yang melayani jumlah dan tenor ini, jadi dihitung dengan batas maksimum OJK.') : c.mode === 'ojk' ? 'Skenario terburuk: biaya tertinggi yang boleh ditagih pindar berizin. Kebanyakan penawaran lebih murah dari ini.' : 'Isi bunga dan biaya admin persis seperti di penawaran atau RIPLAY yang kamu terima.'}</p></div>
       ${c.mode === 'manual' ? `<div class="grid g3"><label class="f">Bunga (%)<input class="in num" id="c-rate" inputmode="decimal" value="${c.rate == null ? '' : (c.rate * 100).toLocaleString('id-ID', { maximumFractionDigits: 3 })}" placeholder="mis. 0,3" data-k="calc.rate" data-t="pctn"></label><label class="f">Satuan<select class="in" id="c-unit" data-k="calc.unit" data-t="text"><option value="day" ${c.unit === 'day' ? 'selected' : ''}>% per hari</option><option value="month" ${c.unit === 'month' ? 'selected' : ''}>% per bulan (flat)</option></select></label><label class="f">Biaya admin (%)<input class="in num" id="c-admin" inputmode="decimal" value="${c.admin == null ? '' : (c.admin * 100).toLocaleString('id-ID', { maximumFractionDigits: 2 })}" placeholder="0" data-k="calc.admin" data-t="pctn"></label></div>
        ${c.lender ? `<p class="tiny muted">Diisi dari tarif maksimum ${esc(c.lender)} di RIPLAY.</p>` : ''}
        ${N.overCap ? `<div class="note danger small">Bunga ini di atas plafon OJK (${nf(N.cap * 100, 3)}%/hari). Pindar berizin tidak boleh menagih sebesar ini; cek legalitasnya di <a href="#openspace">Database Pinjol</a>.</div>` : ''}` : ''}
@@ -2141,15 +2168,15 @@ function vKalkulator() {
       <div class="stack small" style="gap:7px;margin-top:14px">
        <div class="row between"><span>Cicilan per bulan</span><b class="num">${rp(L.inst)}</b></div>
        <div class="row between"><span>Total bunga + biaya</span><b class="num">${rp(L.total)}</b></div>
-       <div class="row between"><span>Total dibayar</span><b class="num">${rp(L.repay + L.fee)}</b></div>
+       <div class="row between"><span>${term('Total dikembalikan')}</span><b class="num">${rp(L.repay + L.fee)}</b></div>
+       ${c.mode === 'real' && N.src ? `<div class="row between tiny muted"><span>Kalau dikenai batas maksimum OJK</span><span class="num">${rp(N.worst.repay + N.worst.fee)}</span></div>` : ''}
        <div class="row between"><span>${term('Bunga efektif')} per tahun</span><b class="num">${pct(L.ear, 0)}</b></div>
        ${z ? `<div class="row between"><span>${term('Porsi cicilan')}</span><b class="num">${pct(z.dsr, 1)}</b></div><div class="bar" aria-hidden="true"><i style="width:${Math.min(100, z.dsr / 0.6 * 100).toFixed(0)}%;background:var(--${z.zone})"></i></div>
        <div class="row between"><span>Sisa uang per bulan</span><b class="num" style="color:${z.left < 0 ? 'var(--danger)' : 'inherit'}">${rp(z.left, { plus: true })}</b></div>` : ''}
       </div>
-      <div class="note ${z ? { safe: 'safe', stretch: 'amber', danger: 'danger' }[z.zone] : ''} small" style="margin-top:12px"><b>Saran FinWise:</b> ${esc(advice)}</div>
+      <div class="note ${z ? { safe: 'safe', stretch: 'amber', danger: 'danger' }[z.zone] : ''} small" style="margin-top:12px"><b>Saran FinWise:</b> ${esc(advice + urgentOnly)}</div>
       <div class="stack" style="gap:8px;margin-top:12px">
-       <a class="btn" href="#pilah" data-act="calc-to-pilah">Cari pinjaman legal untuk ${rps(c.amount)}</a>
-       ${z && z.zone !== 'safe' ? '<a class="btn ghost" href="#alt" data-act="focus" data-id="alt">Lihat opsi yang lebih aman</a>' : ''}
+       ${cta}
       </div>
      </div>
     </div>
@@ -2456,6 +2483,30 @@ function letterText(p, l) {
   const r = l.restructure;
   return `Kepada Yth. Tim Layanan Nasabah\n\nPerihal: Permohonan restrukturisasi pinjaman\n\nSaya, ${displayName(p)}, peminjam pada fasilitas "${l.name}" dengan sisa pokok sekitar ${rp(l.outstanding)} dan cicilan ${rp(l.instalment)} per bulan (jatuh tempo setiap tanggal ${l.dueDay}).\n\n${p.incomes[0]?.range || p.stage === 'wirausaha' ? `Pendapatan usaha saya sedang tidak stabil (omzet bulanan berkisar ${p.incomes[0]?.range?.replace('Omzet ', '') || 'naik-turun'})` : 'Kondisi keuangan saya sedang tertekan'}, sehingga total cicilan saya saat ini mencapai ${pct(FW.headroom(p).dsrNow, 0)} dari pendapatan bersih. Agar tetap dapat membayar tepat waktu, saya mengajukan:\n\n1. Perpanjangan tenor menjadi ${r ? r.months : l.months + 6} bulan,\n2. Penyesuaian cicilan menjadi sekitar ${rp(r ? r.instalment : l.instalment * 0.6)} per bulan,\n3. Tanpa denda selama proses restrukturisasi.\n\nSaya melampirkan ringkasan arus kas 3 bulan terakhir dan rencana pembayaran. Saya berkomitmen membayar tepat waktu dan terbuka untuk berdiskusi.\n\nHormat saya,\n${displayName(p)}`;
 }
+// short, editable message to the lender for a month the user cannot pay in full (not a formal letter)
+function payMsg(p, l) {
+  if (!l) return '';
+  const sur = FW.surplus(p), r = l.restructure;
+  const can = r ? r.instalment : Math.max(50000, Math.floor((sur < 0 ? l.instalment + sur : l.instalment * 0.6) / 10000) * 10000);
+  const months = r ? r.months : Math.max(l.months + 1, Math.ceil(l.instalment * l.months / Math.max(can, 1)));
+  const who = p.nick ? `saya ${p.nick}` : 'saya [nama kamu]';
+  return `Halo, ${who}, peminjam ${l.name} dengan cicilan ${rp(l.instalment)} yang jatuh tempo setiap tanggal ${l.dueDay}.\n\nBulan ini pendapatan saya tidak cukup untuk membayar penuh. Saya tidak ingin menunggak, jadi saya ingin mengajukan keringanan:\n1. cicilan sekitar ${rp(can)} per bulan dengan tenor diperpanjang menjadi ${months} bulan, atau\n2. penundaan pembayaran 1 bulan tanpa denda.\n\nMohon info syarat dan dokumen yang perlu saya kirim. Terima kasih.`;
+}
+// which bill to protect first when the money is short: collateral, then what goes on SLIK (dearest first), then informal debts
+const SLIK_TYPES = ['kpr', 'bank', 'kartu kredit', 'multifinance', 'pindar', 'paylater'];
+function protectOrder(loans) {
+  const rank = l => l.type === 'kpr' || l.type === 'multifinance' ? 0 : SLIK_TYPES.includes(l.type) ? 1 : 2;
+  return [...loans].sort((a, b) => rank(a) - rank(b) || (b.rateMonthly || 0) - (a.rateMonthly || 0)).map(l => ({ l,
+    why: rank(l) === 0 ? (l.type === 'kpr' ? 'ada jaminan rumah; tunggakan panjang bisa berujung lelang' : 'kendaraan bisa ditarik kalau menunggak') + ', dan tercatat di SLIK'
+      : rank(l) === 1 ? `tercatat di SLIK; telat 1–90 hari sudah masuk Kol 2${l.rateMonthly ? `, biaya ±${nf(l.rateMonthly * 100, 1)}%/bulan${l.rateGuess ? ' (perkiraan)' : ''}` : ''}`
+      : 'umumnya tidak tercatat di SLIK; bicarakan jujur dan sepakati tanggal baru' }));
+}
+// a one-off calendar event to re-check FinWise next month, on the first payday
+function recheckLink(payday) {
+  const now = new Date(), d = new Date(now.getFullYear(), now.getMonth() + 1, Math.min(28, Math.max(1, payday || 1))), nx = new Date(d); nx.setDate(nx.getDate() + 1);
+  const f = x => `${x.getFullYear()}${String(x.getMonth() + 1).padStart(2, '0')}${String(x.getDate()).padStart(2, '0')}`;
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Cek ulang keuangan di FinWise')}&dates=${f(d)}/${f(nx)}&details=${encodeURIComponent('Perbarui Data saya (pemasukan, pengeluaran, cicilan) dan lihat apakah kesiapan berutangmu naik. ' + location.href.split('#')[0])}`;
+}
 function vPulih() {
   const base = P(), st = S.pulih, p = pulihProfile(base, st);
   const h = FW.headroom(p), out = FW.sum(p.loans, l => l.outstanding);
@@ -2477,8 +2528,11 @@ function vPulih() {
   const kol = { lancar: ['Kol 1 · Lancar', 'z-safe'], kosong: ['Belum ada riwayat', 'z-grey'], tidaktahu: ['Belum dicek', 'z-grey'], dpk: ['Kol 2 · Dalam perhatian khusus', 'z-stretch'], macet: ['Kol 5 · Macet', 'z-danger'] }[base.slik] || ['Belum dicek', 'z-grey'];
   const letterLoan = p.loans.find(l => l.id === st.letterLoan) || p.loans[0];
   const firstPay = Math.min(...p.incomes.map(i => i.payday || 1));
+  const msgLoan = base.loans.find(l => l.id === st.letterLoan) || base.loans[0];
+  if (msgLoan && st.msgFor !== msgLoan.id) { st.msg = null; st.msgFor = msgLoan.id; }
+  const msg = st.msg != null ? st.msg : payMsg(base, msgLoan);
   return banner({ tone: 'pulih', eyebrow: 'PULIH · SETELAH BERUTANG', title: 'Bayar tepat waktu, keluar dari utang', sub: 'Semua cicilan di satu tempat, uang yang perlu disisihkan, dan urutan pelunasan yang paling hemat.', right: userChip() })
-  + secNav([['p1', 'Ringkasan utang'], ['p2', 'Jadwal bayar'], ['p3', 'Urutan pelunasan'], ['p4', 'Pinjam lagi?'], ['p5', 'Riwayat kredit']]) + `
+  + secNav([['p1', 'Ringkasan utang'], ['p2', 'Jadwal bayar'], ['p3', 'Tidak sanggup bayar?'], ['p4', 'Urutan pelunasan'], ['p5', 'Pinjam lagi?'], ['p6', 'Riwayat kredit']]) + `
   <section class="sec">${secHead(1, 'p1', 'Ringkasan utangmu', 'Semua cicilan aktif dalam satu angka.')}
    <div class="panel"><div class="grid g4">
     <div class="kpi"><div class="k">Total sisa pembayaran</div><div class="v">${rp(out)}</div><div class="s">${p.loans.length} pinjaman</div></div>
@@ -2496,7 +2550,24 @@ function vPulih() {
       </tbody></table></div>
       ${p.loans.length ? `<div class="note amber" style="margin-top:12px">Saat uang masuk tanggal <b>${firstPay}</b>, langsung kunci <b>${rp(h.ex)}</b> di kantong terpisah untuk ${p.loans.length} cicilan bulan ini. Sisanya, ${rp(h.inc - h.ex)}, baru dipakai untuk kebutuhan.</div>` : ''}
      </div></section>
-  <section class="sec">${secHead(3, 'p3', one ? 'Lunasi lebih cepat' : 'Urutan pelunasan', one ? 'Kalau ada uang lebih, berapa bulan lebih cepat utangmu lunas.' : 'Mana yang dilunasi dulu kalau ada uang lebih.')}
+  <section class="sec">${secHead(3, 'p3', 'Tidak sanggup bayar bulan ini?', 'Jangan menghilang. Langkah ini dilakukan sebelum tanggal jatuh tempo.')}
+     <div class="panel">${!base.loans.length ? '<p class="small muted">Kamu tidak punya cicilan aktif. Kalau nanti punya dan sedang sulit membayar, langkahnya ada di sini.</p>' : `
+      ${h.sur < 0 ? `<div class="note danger small" style="margin-bottom:12px">Sisa uangmu minus ${rp(-h.sur)} per bulan, jadi bagian ini kemungkinan kamu perlukan.</div>` : ''}
+      <ol class="nd-steps">
+       <li><b>Hubungi pemberi pinjaman sebelum jatuh tempo.</b> Pakai kanal resmi di aplikasi atau situsnya, bukan nomor dari orang yang menghubungimu. Pemberi pinjaman lebih mudah memberi keringanan sebelum kamu telat.</li>
+       <li><b>Minta keringanan (${term('Restrukturisasi', 'restrukturisasi')}).</b> Ubah pesan di bawah sesuai keadaanmu, lalu kirim lewat chat atau email layanan pelanggan.
+        ${base.loans.length > 1 ? `<label class="f" style="margin-top:10px;max-width:360px">Untuk pinjaman<select class="in" id="msg-loan" data-k="pulih.letterLoan" data-t="text">${base.loans.map(l => `<option value="${esc(l.id)}" ${l.id === msgLoan.id ? 'selected' : ''}>${esc(l.name)} · ${rps(l.instalment)}/bln</option>`).join('')}</select></label>` : ''}
+        <label class="f" style="margin-top:10px">Pesan untuk ${esc(msgLoan.name)}<textarea class="in pay-msg" id="pay-msg" rows="9" data-k="pulih.msg" data-t="text">${esc(msg)}</textarea></label>
+        <div class="row" style="margin-top:8px"><button class="btn sm" data-act="copy" data-src="pay-msg">Salin pesan</button>${st.msg != null ? '<button class="btn ghost sm" data-act="pulih-msg-reset">Kembalikan pesan awal</button>' : ''}</div></li>
+       ${base.loans.length > 1 ? `<li><b>Kalau uangnya tetap kurang, tentukan yang dibayar dulu.</b> Kebutuhan pokok (makan, tempat tinggal, transportasi kerja) tetap nomor satu. Lalu:
+        <ol class="small protect">${protectOrder(base.loans).map(({ l, why }) => `<li><b>${esc(l.name)}</b> ${rps(l.instalment)}: ${esc(why)}</li>`).join('')}</ol>
+        <p class="tiny muted">Bayar sebagian hanya setelah disepakati; tanpa kesepakatan, cicilan tetap dihitung telat.</p></li>` : ''}
+       <li><b>Kenali hakmu saat ditagih.</b> Menurut POJK 22/2023 Pasal 62, penagihan hanya boleh hari Senin–Sabtu di luar hari libur nasional, pukul 08.00–20.00 waktu setempat. Penagih dilarang mengancam, memakai kekerasan, mempermalukan, atau menghubungi orang selain kamu, termasuk keluarga dan kontak di HP-mu.</li>
+       <li><b>Laporkan kalau aturan itu dilanggar.</b> Kontak OJK 157: telepon 157, WhatsApp 081-157-157-157, atau email konsumen@ojk.go.id. Simpan tangkapan layar pesan dan catatan panggilan sebagai bukti.</li>
+      </ol>
+      <p class="small" style="margin-top:12px"><a href="${recheckLink(firstPay)}" target="_blank" rel="noopener noreferrer">+ Pengingat cek ulang bulan depan di Google Calendar<span class="sr"> (tab baru)</span></a></p>`}
+     </div></section>
+  <section class="sec">${secHead(4, 'p4', one ? 'Lunasi lebih cepat' : 'Urutan pelunasan', one ? 'Kalau ada uang lebih, berapa bulan lebih cepat utangmu lunas.' : 'Mana yang dilunasi dulu kalau ada uang lebih.')}
      ${!p.loans.length ? '<div class="panel"><p class="small muted">Kamu tidak punya cicilan aktif, jadi tidak ada yang perlu dilunasi. Pertahankan, dan sebelum berutang mulai dari CEK.</p></div>' : `<div class="panel"><div class="row between"><p class="small">Punya uang ekstra untuk melunasi lebih cepat? Isi jumlahnya.</p><label class="f" style="flex-direction:row;align-items:center;gap:8px">Dana ekstra/bln <span style="width:150px">${rpInput('x-extra', st.extra, 'data-k="pulih.extra" data-t="rpn" placeholder="0"')}</span></label></div>
       ${one ? `<div class="grid g2" style="margin-top:12px"><div class="kpi"><div class="k">Lunas dalam</div><div class="v">${solo.months} bulan</div><div class="s">${st.extra > 0 ? `${Math.max(0, p.loans[0].months - solo.months)} bulan lebih cepat dari jadwal (${p.loans[0].months} bulan)` : 'sesuai jadwal; isi dana ekstra untuk mempercepat'}</div></div>
         <div class="kpi"><div class="k">Bunga</div><div class="v">${solo.interestKnown ? rps(solo.interest) : 'sudah di cicilan'}</div><div class="s">${solo.interestKnown ? 'perkiraan sisa bunga' : 'tanya pemberi pinjaman apakah pelunasan lebih cepat mengurangi bunga'}</div></div></div>`
@@ -2507,7 +2578,7 @@ function vPulih() {
       </div>
       <p class="tiny muted" style="margin-top:8px">Cicilan yang sudah lunas otomatis dialihkan ke utang berikutnya. ${av.interestKnown ? `Selisih bunga kedua cara ${rp(Math.abs(av.interest - sn.interest))}.` : 'Bunga baru dihitung untuk utang yang bunganya kamu isi di Data saya; urutan "hemat bunga" memakai perkiraan bunga per jenis utang.'}</p>`}
      </div>`}</section>
-  <section class="sec">${secHead(4, 'p4', 'Ditawari pinjaman untuk menutup cicilan?', 'Cek dulu dampaknya sebelum “gali lubang tutup lubang”.')}
+  <section class="sec">${secHead(5, 'p5', 'Ditawari pinjaman untuk menutup cicilan?', 'Cek dulu dampaknya sebelum “gali lubang tutup lubang”.')}
      <div class="panel" style="border-left:5px solid var(--danger)">
       <div class="grid g2" style="margin-top:10px">
        <label class="f">Jumlah pinjaman baru${rpInput('t-amount', T.amount, 'data-k="pulih.temp.amount" data-t="rpn" placeholder="mis. 5.000.000"')}</label>
@@ -2532,7 +2603,7 @@ function vPulih() {
         ${steps.s3 !== null ? `<tr><td>+ paylater lunas (bulan ke-4)</td><td class="num" style="color:var(--safe)"><b>${rp(steps.s3, { plus: true })}</b>/bln · cicilan ${rps(steps.inst3)}</td></tr>` : ''}
        </tbody></table></div>` : ''}
      </div></section>
-  <section class="sec">${secHead(5, 'p5', 'Riwayat kreditmu', 'Catatan di SLIK OJK menentukan apakah kamu bisa dapat pinjaman murah nanti.')}
+  <section class="sec">${secHead(6, 'p6', 'Riwayat kreditmu', 'Catatan di SLIK OJK menentukan apakah kamu bisa dapat pinjaman murah nanti.')}
      <div class="panel"><h3>Status ${term('SLIK')} OJK</h3>
       <div class="row" style="margin-top:8px"><span class="pill ${kol[1]}">${kol[0]}</span></div>
       <ul class="small" style="margin:10px 0 0;padding-left:18px"><li>Cek riwayatmu gratis lewat layanan iDebKu OJK.</li><li>Kolektibilitas dihitung dari keterlambatan: 1–90 hari terlambat masuk Kol 2, lebih dari 90 hari mulai dianggap bermasalah.</li><li>Bayar tepat waktu setiap bulan adalah satu-satunya cara memperbaiki catatan; pinjaman berbunga murah seperti KUR umumnya mensyaratkan riwayat lancar.</li></ul>
@@ -3222,8 +3293,9 @@ const ACT = {
   cmp: el => { const id = el.dataset.id, c = S.os.cmp; if (c.includes(id)) S.os.cmp = c.filter(x => x !== id); else { if (c.length >= 3) toast('Maksimal 3 pinjol; yang pertama dikeluarkan'); S.os.cmp = [...c, id].slice(-3); announce(`${licById(id)?.name} masuk perbandingan`); } store.set('cmp', S.os.cmp); render(); },
   'il-more': () => { S.os.ilN += 60; render(); },
   calc: el => { const c = calcState(); c[el.dataset.f] = el.dataset.v; if (el.dataset.f === 'type' && el.dataset.v === 'umkm' && c.amount <= 50000000) c.amount = 100000000; if (el.dataset.f === 'type' && el.dataset.v !== 'umkm' && c.amount > 50000000) c.amount = 50000000; render(); },
+  'pulih-msg-reset': () => { S.pulih.msg = null; render(); announce('Pesan dikembalikan ke versi awal'); setTimeout(() => document.getElementById('pay-msg')?.focus(), 60); },
   'calc-set': el => { Object.assign(calcState(), JSON.parse(el.dataset.v)); render(); window.scrollTo({ top: 0 }); announce('Kalkulator diperbarui'); },
-  'calc-to-pilah': () => { const c = calcState(); Object.assign(S.pilah, { need: c.amount, months: c.months, purpose: c.type === 'konsumtif' ? 'konsumtif' : 'produktif', step: 2 }); },
+  'calc-to-pilah': () => { const c = calcState(); Object.assign(S.pilah, { need: c.amount, months: c.months, purpose: c.type === 'konsumtif' ? 'konsumtif' : 'produktif', cap: null, picked: null, step: S.pilah.cat ? 2 : 0 }); },
   'calc-lender': el => { const l = licById(el.dataset.id), d = l?.d, ri = d && rateInfo(d); if (!ri || ri.daily == null) return; Object.assign(calcState(), { mode: 'manual', rate: ri.daily, unit: 'day', admin: d.adminPct != null && d.adminUnit !== 'month' ? d.adminPct / 100 : null, lender: l.name, type: d.purpose === 'produktif' ? 'mikro' : 'konsumtif' }); },
   print: () => window.print(),
   glossary: el => { S.drawer = { tab: 'kamus', term: el.dataset.v || null, q: '' }; render(); },

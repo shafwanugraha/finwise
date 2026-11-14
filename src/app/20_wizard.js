@@ -84,10 +84,10 @@ function vMulai() {
     ${radios('stage', STAGES, 'Mana yang paling menggambarkan kamu sekarang?', p.stage)}
     ${radios('stability', STABILITY, 'Seberapa stabil penghasilanmu dari bulan ke bulan?', p.stability, 'Dipakai untuk menentukan target dana daruratmu (3 atau 6 bulan) dan seberapa hati-hati batas cicilanmu.')}
    </div>`;
-  if (k === 1) body = `<div class="card stack" style="max-width:900px"><h2 style="font-size:1.2rem">Uang yang masuk setiap bulan</h2><p class="small muted">Gaji, uang saku, hasil usaha, freelance, kiriman keluarga. Untuk pemasukan yang naik-turun, pakai rata-rata.</p>
+  if (k === 1) body = `<div class="card stack" style="max-width:900px"><h2 style="font-size:1.2rem">Uang yang masuk setiap bulan</h2><p class="small muted">Gaji, uang saku, hasil usaha, freelance, kiriman keluarga. Untuk pemasukan yang naik-turun, pakai rata-rata.</p>${p.stage === 'wirausaha' ? '<div class="note small">Untuk usaha, isi <b>laba bersih</b>: omzet dikurangi modal, bahan, dan biaya usaha. Kalau yang diisi omzet, semua batas aman jadi terlalu besar.</div>' : ''}
     ${p.incomes.map((r, i) => `<div class="wrow"><div class="grid g4" style="align-items:start">
       <label class="f">Sumber<input class="in" ${fAttr(`incomes.${i}.label`)} data-t="text" value="${esc(r.label)}" placeholder="mis. Gaji, uang saku"></label>
-      ${rpField(`incomes.${i}.amount`, r.amount, 'Jumlah per bulan')}
+      ${rpField(`incomes.${i}.amount`, r.amount, p.stage === 'wirausaha' ? 'Laba bersih per bulan (bukan omzet)' : 'Jumlah per bulan')}
       <label class="f">Tanggal masuk<input class="in" type="number" min="1" max="31" inputmode="numeric" ${fAttr(`incomes.${i}.payday`)} data-t="intn" value="${blankNum(r.payday)}" placeholder="1–31">${fErr(`incomes.${i}.payday`)}</label>
       ${radios(`incomes.${i}.type`, [['tetap', 'Tetap'], ['tidak tetap', 'Tidak tetap']], 'Jenis', r.type)}
      </div>${p.incomes.length > 1 ? `<button class="btn ghost sm" data-act="wiz-del" data-list="incomes" data-i="${i}">Hapus pemasukan ${i + 1}</button>` : ''}</div>`).join('')}

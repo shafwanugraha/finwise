@@ -676,3 +676,6 @@ table.cmp td.best{background:var(--safe-tint)}
 .loan-ana > ul > li{border-top:1px solid var(--line);padding-top:12px}
 .loan-ana li ul{margin:6px 0;padding-left:18px}
 .z-grey{background:var(--soft);color:var(--muted)}
+/* PULIH: can't pay this month */
+.pay-msg{font-weight:400;min-height:190px;line-height:1.5;font-size:.9375rem;resize:vertical;white-space:pre-wrap}
+.protect{margin:8px 0 6px;padding-left:20px;display:flex;flex-direction:column;gap:4px}

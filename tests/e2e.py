@@ -76,6 +76,14 @@ async def acceptance(pg):
     await go(pg, 'pulih')
     t = await pg.evaluate('document.body.innerText')
     check('PULIH: one loan, no phantom interest (lunas 6 bulan)', 'Lunas dalam\n6 bulan' in t or 'Lunas dalam 6 bulan' in t.replace('\n', ' '))
+    # P1c: can't-pay section, Kalkulator by level, Cia's ratios
+    check('PULIH: tidak sanggup bayar with editable message', 'Tidak sanggup bayar bulan ini?' in t and 'POJK 22/2023' in t and 'Draf surat' not in t and 'Paylater' in await pg.input_value('#pay-msg'))
+    await go(pg, 'kalkulator'); t = await pg.evaluate('document.body.innerText')
+    check('Kalkulator B: real rate by default, CTA = rencana tanpa utang', await pg.get_attribute('[data-act="calc"][data-v="real"]', 'aria-pressed') == 'true' and 'Lihat rencana tanpa utang' in t and 'Belum bisa berutang' in t)
+    await _setp(pg, A); await go(pg, 'kalkulator'); t = await pg.evaluate('document.body.innerText')
+    check('Kalkulator A: CTA offers the safe amount', 'Pakai jumlah aman' in t and 'Hanya untuk darurat' in t)
+    await go(pg, 'cek'); t = await pg.evaluate("[...document.querySelectorAll('.ratios .r-name')].map(x => x.innerText).join('|')")
+    check('CEK: Cia ratios present', all(k in t for k in ['Total pengeluaran', 'Cicilan selain KPR', 'Kredit aktif']))
     print('acceptance:', 'ALL PASS' if ok else 'FAILURES')
 async def main():
     async with async_playwright() as p:
@@ -104,7 +112,7 @@ async def main():
         await go(pg, 'pilah'); await pg.screenshot(path=OUT + 'pilah.png', full_page=True); await axe(pg, 'pilah')
         await go(pg, 'pulih'); await pg.screenshot(path=OUT + 'pulih.png', full_page=True); await axe(pg, 'pulih')
         print('letter gone:', await pg.locator('text=Draf surat').count() == 0)
-        await go(pg, 'kalkulator'); await pg.screenshot(path=OUT + 'kalk.png', full_page=True)
+        await go(pg, 'kalkulator'); await pg.screenshot(path=OUT + 'kalk.png', full_page=True); await axe(pg, 'kalkulator')
         await go(pg, 'openspace'); await pg.screenshot(path=OUT + 'os.png', full_page=True)
         await go(pg, 'main'); await pg.screenshot(path=OUT + 'game.png'); print('game title:', await pg.inner_text('main h1'))
         await go(pg, 'uji'); print('uji ->', await pg.evaluate('location.hash'))

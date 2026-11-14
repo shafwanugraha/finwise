@@ -62,19 +62,21 @@ function analysisText(p, f, v, pr) {
   return parts;
 }
 // Household financial ratios (CEK, after Greninger et al. 1996 and the 50/30/20 guideline), each with formula, benchmark and status
-const CONSUMER_TYPES = ['paylater', 'pindar', 'kartu kredit', 'lainnya'];
 function ratios(p) {
   const f = facts(p), inc = f.inc || 1, out = [];
   const st = (v, ok, warn, higherIsBetter = false) => higherIsBetter ? (v >= ok ? 'safe' : v >= warn ? 'stretch' : 'danger') : (v <= ok ? 'safe' : v <= warn ? 'stretch' : 'danger');
   const house = f.total ? null : FW.sum(p.spending.filter(c => /tempat tinggal|sewa|kos/i.test(c.name)), c => c.amount);
-  const consumer = FW.sum(p.loans.filter(l => CONSUMER_TYPES.includes(l.type)), l => l.instalment);
+  // Cia's benchmark: every instalment except a home loan (KPR) counts here
+  const nonKpr = FW.sum(p.loans.filter(l => l.type !== 'kpr'), l => l.instalment), spendR = f.out / inc, n = p.loans.length;
+  out.push({ k: 'Total pengeluaran', t: 'Rasio pengeluaran', f: '(semua pengeluaran + keluarga + cicilan) ÷ pendapatan', v: spendR, show: pct(spendR, 0), bench: '≤ 80% wajar · ≥ 90% bahaya', s: st(spendR, 0.8, 0.9) });
   out.push({ k: 'Kebutuhan pokok + keluarga', t: 'Pokok', f: '(kebutuhan pokok + kirim keluarga) ÷ pendapatan', v: f.needR, show: pct(f.needR, 0), bench: '≤ 50%', s: st(f.needR, 0.5, 0.7), note: f.total ? 'Masih total pengeluaran (belum dirinci), jadi angka ini termasuk keinginan.' : '' });
   if (!f.total) out.push({ k: 'Keinginan / gaya hidup', t: 'Keinginan', f: 'belanja keinginan ÷ pendapatan', v: f.wantR, show: pct(f.wantR, 0), bench: '≤ 30%', s: st(f.wantR, 0.3, 0.4) });
   if (house != null && house > 0) out.push({ k: 'Tempat tinggal', t: 'Rasio tempat tinggal', f: 'sewa/kos + tagihan rumah ÷ pendapatan', v: house / inc, show: pct(house / inc, 0), bench: '≤ 30%', s: st(house / inc, 0.3, 0.4) });
-  out.push({ k: 'Tabungan rutin', t: 'Rasio tabungan', f: 'menabung per bulan ÷ pendapatan', v: f.saveR, show: pct(f.saveR, 0), bench: '≥ 10%', s: st(f.saveR, 0.1, 0.05, true) });
+  out.push({ k: 'Tabungan rutin', t: 'Rasio tabungan', f: 'menabung per bulan ÷ pendapatan', v: f.saveR, show: pct(f.saveR, 0), bench: 'minimal 10% · target 20%', s: st(f.saveR, 0.2, 0.1, true) });
   out.push({ k: 'Sisa uang', t: 'Sisa uang', f: 'sisa setelah semua pengeluaran ÷ pendapatan', v: f.surR, show: f.sur < 0 ? 'minus ' + pct(-f.surR, 0) : pct(f.surR, 0), bench: '≥ 20%', s: st(f.surR, 0.2, 0.1, true) });
   out.push({ k: 'Porsi cicilan', t: 'Porsi cicilan', f: 'semua cicilan ÷ pendapatan (istilah resmi: DSR)', v: f.dsr, show: pct(f.dsr, 0), bench: '≤ 30% aman · > 40% bahaya', s: st(f.dsr, 0.3, 0.4) });
-  out.push({ k: 'Cicilan konsumtif', t: 'Rasio cicilan konsumtif', f: 'cicilan paylater, pinjol, kartu kredit ÷ pendapatan', v: consumer / inc, show: pct(consumer / inc, 0), bench: '≤ 15%', s: st(consumer / inc, 0.15, 0.2) });
+  out.push({ k: 'Cicilan selain KPR', t: 'Rasio cicilan selain KPR', f: 'semua cicilan kecuali KPR ÷ pendapatan', v: nonKpr / inc, show: pct(nonKpr / inc, 0), bench: '≤ 15% aman · ≥ 20% bahaya', s: nonKpr / inc <= 0.15 ? 'safe' : nonKpr / inc < 0.2 ? 'stretch' : 'danger' });
+  out.push({ k: 'Kredit aktif', t: 'Jumlah kredit aktif', f: 'banyaknya pinjaman yang masih dicicil', v: n, show: n + ' kredit', bench: '≤ 2 · 4 atau lebih bahaya', s: n <= 2 ? 'safe' : n < 4 ? 'stretch' : 'danger' });
   out.push({ k: 'Dana darurat (likuiditas)', t: 'Rasio likuiditas', f: 'tabungan siap pakai ÷ total pengeluaran sebulan (termasuk cicilan)', v: f.efMonths, show: f.efMonths.toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' bulan', bench: `≥ ${f.efTarget} bulan`, s: st(f.efMonths, f.efTarget, 1, true) });
   if (f.fam > 0) out.push({ k: 'Tanggungan keluarga', t: 'Tanggungan keluarga', f: 'kirim keluarga ÷ pendapatan', v: f.fam / inc, show: pct(f.fam / inc, 0), bench: 'tanpa patokan baku', s: f.fam / inc > 0.2 ? 'stretch' : 'safe' });
   const run = FW.runway(p);
