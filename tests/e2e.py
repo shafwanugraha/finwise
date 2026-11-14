@@ -39,10 +39,14 @@ def _items(needs, wants):
     return [{'id': 's0', 'name': 'Kebutuhan pokok', 'kind': 'need', 'amount': needs, 'day': None}, {'id': 's5', 'name': 'Keinginan', 'kind': 'want', 'amount': wants, 'day': None}]
 async def _setp(pg, prof):
     await pg.evaluate("p => { localStorage.setItem('finwise:saya', JSON.stringify(p)); location.hash = '#home'; }", prof); await pg.reload(); await pg.wait_for_timeout(300)
-async def _pilah3(pg, need):
-    await go(pg, 'pilah'); await pg.locator('[data-act="pilah-step"][data-v="2"]').first.click(); await pg.wait_for_timeout(150)
-    await pg.fill('#n-amount', need); await pg.press('#n-amount', 'Tab'); await pg.select_option('#n-hours', '168'); await pg.select_option('#n-purpose', 'konsumtif'); await pg.select_option('#n-months', '6'); await pg.wait_for_timeout(150)
+async def _pilah3(pg, need, cat='pokok', urg='minggu', ack=False):
+    await go(pg, 'pilah'); await pg.locator('[data-act="pilah-step"][data-v="0"]').first.click(); await pg.wait_for_timeout(120)
+    await pg.click(f'[data-act="pilah-cat"][data-v="{cat}"]'); await pg.click(f'[data-act="pilah-urg"][data-v="{urg}"]'); await pg.wait_for_timeout(120)
+    await pg.locator('[data-act="pilah-step"][data-v="2"]').first.click(); await pg.wait_for_timeout(150)
+    await pg.fill('#n-amount', need); await pg.press('#n-amount', 'Tab'); await pg.select_option('#n-months', '6'); await pg.wait_for_timeout(150)
     await pg.locator('[data-act="pilah-step"][data-v="3"]').last.click(); await pg.wait_for_timeout(300)
+    if ack and await pg.locator('[data-act-change="pilah-ackbox"]').count():
+        await pg.check('[data-act-change="pilah-ackbox"]'); await pg.wait_for_timeout(120); await pg.click('[data-act="pilah-ack"]'); await pg.wait_for_timeout(300)
 async def acceptance(pg):
     import copy, json
     base = json.loads(await pg.evaluate("localStorage.getItem('finwise:saya')"))
@@ -58,10 +62,17 @@ async def acceptance(pg):
     amts = await pg.evaluate("[...document.querySelectorAll('.rc-amts dd')].map(d => +d.innerText.replace(/[^0-9]/g, ''))")
     check(f'A: max safe 6 bln Rp380-390 rb ({amts[1] if len(amts) > 1 else None})', len(amts) == 3 and 370000 <= amts[1] <= 390000)
     await _pilah3(pg, '3000000'); t = await pg.evaluate('document.body.innerText')
-    check('A: danger copy (no "paling cocok" / "Ajukan tepat", has "paling sedikit merugikan")', 'paling cocok' not in t and 'Ajukan tepat' not in t and 'paling sedikit merugikan' in t)
+    head = await pg.inner_text('h3:has-text("Pinjaman legal untuk")'); amt = int(''.join(c for c in head if c.isdigit()) or 0)
+    check(f'A: amount capped at the safe amount ({amt}) with the split shown', 0 < amt <= 390000 and 'Kamu memakai jumlah aman' in t)
     await _setp(pg, B); await go(pg, 'cek')
     check('B: Belum bisa berutang', (await pg.inner_text('.rc-level')).strip() == 'Belum bisa berutang')
     check('B: health status Rentan', 'Rentan' in await pg.inner_text('.hero-sum .ring'))
+    await _pilah3(pg, '2000000', cat='gaya'); t = await pg.evaluate('document.body.innerText')
+    check('B + gaya hidup: no loan list, rencana tanpa utang', 'RENCANA TANPA UTANG' in t and await pg.locator('.top3').count() == 0)
+    await _pilah3(pg, '2000000', cat='kesehatan', urg='hari'); t = await pg.evaluate('document.body.innerText')
+    check('B + kesehatan mendesak: acknowledgement before the list', 'MODE DARURAT' in t and await pg.locator('.top3').count() == 0)
+    await pg.check('[data-act-change="pilah-ackbox"]'); await pg.wait_for_timeout(120); await pg.click('[data-act="pilah-ack"]'); await pg.wait_for_timeout(300); t = await pg.evaluate('document.body.innerText')
+    check('B emergency list: least-harmful copy only', 'paling cocok' not in t and 'Ajukan tepat' not in t and 'paling sedikit merugikan' in t and await pg.locator('.top3').count() == 1)
     await go(pg, 'pulih')
     t = await pg.evaluate('document.body.innerText')
     check('PULIH: one loan, no phantom interest (lunas 6 bulan)', 'Lunas dalam\n6 bulan' in t or 'Lunas dalam 6 bulan' in t.replace('\n', ' '))

@@ -658,3 +658,12 @@ table.cmp td.best{background:var(--safe-tint)}
 .facts.f2 .v{margin-top:4px}
 .why1.danger{border-color:var(--danger)}
 @media (max-width:480px){.rc-amts{grid-template-columns:minmax(0,1fr);gap:6px}.rc-amts div{flex-direction:row-reverse;justify-content:space-between;align-items:baseline}.rc-main,.rc-max{padding:18px}}
+
+/* PILAH step 0 and the no-debt plan */
+.purp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.purp button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1.5px solid var(--line);background:var(--card);border-radius:14px;padding:10px 12px;cursor:pointer;color:var(--ink)}
+.purp button:hover{border-color:var(--amber-strong)}
+.purp button.on{border-color:var(--amber);background:var(--amber-tint)}
+@media (max-width:480px){.purp{grid-template-columns:minmax(0,1fr)}}
+.nd-steps{margin:12px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:10px}
+.nodebt{border-color:var(--green)}

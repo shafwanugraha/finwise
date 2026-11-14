@@ -58,7 +58,7 @@ function resetStageState() {
   const p = P();
   if (isSaya(p)) {
     S.cek = { applied: false, off: {}, extraIn: null, offer: { amount: null, rate: null, unit: 'month', months: null }, goal: { label: '', amount: null } };
-    S.pilah = { step: 1, needLabel: '', need: null, hours: null, useSavings: null, family: null, purpose: null, months: null, mode: 'seimbang', picked: null, why: false, showOut: false };
+    S.pilah = { step: 0, cat: null, urg: null, needLabel: '', need: null, hours: null, useSavings: null, family: null, purpose: null, months: null, mode: 'seimbang', picked: null, why: false, showOut: false };
     S.pulih = { extra: null, method: 'avalanche', restructure: false, split: false, temp: { label: 'Pinjaman baru untuk menutup cicilan', amount: null, rate: null, unit: 'day', months: null }, letterLoan: (p.loans[0] || {}).id };
     return;
   }
