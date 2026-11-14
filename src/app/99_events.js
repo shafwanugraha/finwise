@@ -148,6 +148,7 @@ const ACT = {
   'cek-applied': el => { S.cek.applied = el.dataset.v === '1'; render(); },
   'pilah-step': el => { S.pilah.step = +el.dataset.v; render(); window.scrollTo({ top: 0 }); },
   mode: el => { (el.dataset.scope === 't' ? S.test.st : S.pilah).mode = el.dataset.v; render(); },
+  'slik-set': el => { const p = S.profiles.saya; p.slik = el.dataset.v; persist(); toast('Hasil SLIK dicatat. Skor dan kesiapan berutang diperbarui.'); render(); },
   'pilah-cat': el => { const st = S.pilah; st.cat = el.dataset.v; st.purpose = st.cat === 'usaha' ? 'produktif' : 'konsumtif'; st.cap = undefined; st.ack = false; st.ackBox = false; render(); announce('Tujuan: ' + purposeName(st.cat)); },
   'pilah-urg': el => { const st = S.pilah, u = URGENCY.find(x => x[0] === el.dataset.v); st.urg = u[0]; st.hours = u[2]; st.cap = undefined; st.ack = false; render(); announce('Urgensi: ' + u[1]); },
   'pilah-ack': () => { if (!S.pilah.ackBox) return; S.pilah.ack = true; render(); },
@@ -219,6 +220,9 @@ const CHG = {
   ack: el => { S.overlay.ack = el.checked; render(); },
   quiz: el => { S.test[el.dataset.set][+el.dataset.i] = +el.value; render(); },
   't-field': el => { const t = S.test; const f = el.dataset.f; if (f === 'consent') t.consent = el.checked; else if (f === 'comment') t.feedback.comment = el.value; else t[f] = el.value; render(); },
+  'todo-done': el => { const p = S.profiles.saya, id = el.dataset.id; p.done = p.done || {}; p.done[id] = el.checked;
+    if (id === 'bpjs' && el.checked) { p.insurance = true; toast('BPJS dicatat. Skor kondisi keuangan diperbarui.'); }
+    persist(); render(); if (id === 'slik' && el.checked) announce('Pilih hasil cek SLIK-mu'); },
   'pilah-ackbox': el => { S.pilah.ackBox = el.checked; queueRender(); },
   'plan-toggle': el => { S.cek.off = S.cek.off || {}; S.cek.off[el.dataset.id] = !el.checked; queueRender(); },
   'calc-late': el => { calcState().lateOn = el.checked; render(); },

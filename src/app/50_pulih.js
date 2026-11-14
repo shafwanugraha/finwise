@@ -48,7 +48,9 @@ function vPulih() {
     <div class="kpi"><div class="k">Cicilan per bulan</div><div class="v">${rp(h.ex)}</div><div class="s">${st.restructure ? 'setelah restrukturisasi' : 'saat ini'}</div></div>
     <div class="kpi"><div class="k">${term('Porsi cicilan')}</div><div class="v" style="color:${h.dsrNow > 0.4 ? 'var(--danger)' : h.dsrNow > 0.3 ? 'var(--stretch)' : 'var(--safe)'}">${pct(h.dsrNow)}</div><div class="s">batas sehat 30%</div></div>
     <div class="kpi"><div class="k">${term('Sisa uang')}</div><div class="v" style="color:${h.sur < 0 ? 'var(--danger)' : 'var(--safe)'}">${rp(h.sur, { plus: true })}</div><div class="s">setelah semua cicilan</div></div>
-   </div></div></section>
+   </div>
+   ${p.loans.length ? `<div class="loan-ana"><h3>Analisis pinjaman</h3><p class="tiny muted">Dinilai dari tujuan pinjaman, bunganya, dan porsinya dari pendapatanmu.</p><ul>${p.loans.map(l => { const v = loanVerdict(p, l); return `<li><div class="row between" style="flex-wrap:nowrap;align-items:flex-start"><div><b>${esc(l.name)}</b><div class="tiny muted">${esc(LOAN_TYPES.find(t => t[0] === l.type)?.[1] || l.type)} · untuk ${esc(l.purpose && l.purpose !== 'lainnya' ? purposeName(l.purpose).toLowerCase() : 'belum diisi')} · ${rp(l.instalment)}/bulan</div></div><span class="pill z-${v.tone}">${v.label}</span></div><ul class="small">${v.why.map(x => `<li>${esc(x)}</li>`).join('')}</ul><p class="small"><b>${esc(v.act)}</b>${v.v === 'unk' ? ' <a href="#mulai" data-act="wiz-edit" data-v="3">Isi tujuan</a>' : ''}</p></li>`; }).join('')}</ul></div>` : ''}
+   </div></section>
   <section class="sec">${secHead(2, 'p2', 'Jadwal bayar & uang yang disisihkan', 'Kapan tiap cicilan jatuh tempo, dan berapa yang harus dikunci saat gajian.')}
      <div class="panel">
       ${monthStrip([...p.incomes.map(i => ({ day: i.payday || 1, label: 'Uang masuk', color: 'var(--safe)' })), ...loansSorted.map(l => ({ day: l.dueDay, label: rps(l.instalment), color: 'var(--amber)' }))])}

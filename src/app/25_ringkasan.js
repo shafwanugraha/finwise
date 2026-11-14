@@ -40,8 +40,12 @@ function priorities(p, f) {
   if (!f.total && f.wantR > 0.3 && cut > 0) out.push({ w: 70, tone: 'stretch', title: `Batasi keinginan, hemat ${rp(cut)} per bulan`, text: capped.spending.filter(c => c.cap != null && c.amount > c.cap).slice(0, 3).map(c => `${c.name} ${rps(c.amount)} → ${rps(c.cap)}`).join(' · '), href: '#cek', cta: 'Lihat rencana' });
   if (!f.total && f.needR > 0.5 && biggest.length) out.push({ w: 65, tone: 'stretch', title: `Kebutuhan pokok ${pct(f.needR, 0)} dari pendapatan`, text: `Pedomannya ≤50%. Pos terbesar: ${biggest.slice(0, 2).map(c => `${c.name} ${rps(c.amount)} (${pct(c.amount / f.inc, 0)})`).join(', ')}. Hemat 10% di dua pos ini = ${rp(Math.round(FW.sum(biggest.slice(0, 2), c => c.amount) * 0.1 / 1000) * 1000)} per bulan.`, href: '#cek', cta: 'Lihat rencana' });
   const efGap = Math.max(0, f.efTarget * f.out - (p.emergencyFund || 0));
-  if (efGap > 0) { const per = Math.max(0, f.sur), mo = per > 0 ? Math.ceil(efGap / per) : null; out.push({ w: f.efMonths < 1 ? 80 : 55, tone: f.efMonths < 1 ? 'stretch' : 'safe', title: `Bangun dana darurat ${rp(f.efTarget * f.out)}`, text: `Target ${f.efTarget} bulan pengeluaran${f.unstable ? ' (6 bulan karena penghasilanmu naik-turun)' : ''}. Kurang ${rp(efGap)}.${mo ? ` Jika sisa ${rp(per)} disisihkan tiap gajian, tercapai dalam ±${mo} bulan.` : ' Tambah sisa uang dulu agar bisa mulai menabung.'}`, href: '#cek', cta: 'Rencanakan di CEK' }); }
-  if (f.sur > 0 && f.saveR < 0.1) out.push({ w: 50, tone: 'safe', title: `Sisihkan otomatis ${rp(Math.min(f.sur, Math.round(0.1 * f.inc / 10000) * 10000))} tiap gajian`, text: 'Pindahkan ke rekening terpisah di hari gajian, sebelum uang terpakai. Ini menaikkan dua indikator skor kesehatanmu sekaligus.', href: '#cek', cta: 'Lihat dampaknya' });
+  // milestones instead of one far-away target: Rp500 rb first, then 1 month, then the full target
+  if (efGap > 0) { const ef = p.emergencyFund || 0, goal = [500000, f.out, f.efTarget * f.out].find(x => x > ef), gap = goal - ef;
+    const per = Math.max(0, f.sur, isSaya(p) ? FW.surplus(applyPlan(autoCaps(p))) : 0), mo = per > 0 ? Math.ceil(gap / per) : null;
+    const name = goal === 500000 ? 'Mulai dana darurat: Rp500 rb dulu' : goal === f.out ? `Dana darurat 1 bulan pengeluaran: ${rp(f.out)}` : `Dana darurat ${f.efTarget} bulan: ${rp(goal)}`;
+    out.push({ w: f.efMonths < 1 ? 80 : 55, tone: f.efMonths < 1 ? 'stretch' : 'safe', title: name, text: `Kurang ${rp(gap)}. ${mo ? (mo <= 24 ? `Dengan menyisihkan ${rp(per)} per bulan${per > Math.max(0, f.sur) ? ' (setelah rencana hemat)' : ''}, tercapai ±${mo} bulan.` : 'Dengan sisa sekarang butuh lebih dari 2 tahun; naikkan dulu sisa uang lewat rencana hemat.') : 'Tambah sisa uang dulu agar bisa mulai menabung.'} Target akhir ${f.efTarget} bulan pengeluaran (${rp(f.efTarget * f.out)})${f.unstable ? ', karena penghasilanmu naik-turun' : ''}.`, href: '#cek', cta: 'Rencanakan di CEK' }); }
+  if (f.sur > 0 && f.saveR < 0.1 && efGap <= 0) out.push({ w: 50, tone: 'safe', title: `Sisihkan otomatis ${rp(Math.min(f.sur, Math.round(0.1 * f.inc / 10000) * 10000))} tiap gajian`, text: 'Pindahkan ke rekening terpisah di hari gajian, sebelum uang terpakai. Ini menaikkan dua indikator skor kesehatanmu sekaligus.', href: '#cek', cta: 'Lihat dampaknya' });
   if (p.pinjolExp === 'masalah' || p.slik === 'dpk' || p.slik === 'macet') out.push({ w: 75, tone: 'stretch', title: 'Pulihkan riwayat kreditmu dulu', text: 'Riwayat telat bayar membuat pinjaman murah (bank, KUR) sulit didapat. Bayar tepat waktu 3 bulan berturut-turut dan cek SLIK di iDebKu.', href: '#pulih', cta: 'Lihat PULIH' });
   if (p.slik === 'tidaktahu') out.push({ w: 30, tone: 'safe', title: 'Cek SLIK gratis di iDebKu OJK', text: 'Kamu jadi tahu catatan kreditmu sebelum mengajukan pinjaman apa pun.', href: '#pulih', cta: 'Cara mengecek' });
   if (p.insurance === false) out.push({ w: 40, tone: 'stretch', title: 'Daftar BPJS Kesehatan', text: 'Biaya rumah sakit adalah alasan paling umum orang terpaksa meminjam mendadak.', href: '#cek', cta: 'Lihat skor' });
@@ -76,4 +80,34 @@ function ratios(p) {
   const run = FW.runway(p);
   out.push({ k: 'Daya tahan uang', t: 'Daya tahan uang', f: 'kapan saldo habis dalam satu siklus gajian', v: run ? run.day / 30 : 1, show: run ? `habis tgl ${run.date}` : 'cukup sebulan', bench: 'cukup sampai gajian berikutnya', s: run ? 'danger' : 'safe' });
   return out;
+}
+
+/* ---------- per-loan analysis: is this loan a wise one, given what it is for? ---------- */
+const VERDICT = { good: ['Bijak', 'safe'], mid: ['Pertimbangkan lagi', 'stretch'], bad: ['Tidak disarankan', 'danger'], unk: ['Belum bisa dinilai', 'grey'] };
+function loanVerdict(p, l) {
+  const inc = FW.income(p) || 1, share = l.instalment / inc, rate = l.rateMonthly || 0, R = FW.readiness(p);
+  const costly = rate >= 0.02 || ['pindar', 'paylater'].includes(l.type), k = l.purpose && l.purpose !== 'lainnya' ? l.purpose : null, why = [];
+  const rateTxt = `±${(rate * 100).toLocaleString('id-ID', { maximumFractionDigits: 1 })}% per bulan${l.rateGuess ? ' (perkiraan)' : ''}`;
+  let v;
+  if (!k) { v = 'unk'; why.push('Tujuan pinjaman belum diisi. Isi di Data saya supaya FinWise bisa menilai apakah pinjaman ini bijak.'); }
+  else if (k === 'utang') { v = 'bad'; why.push('Meminjam untuk membayar utang lain biasanya hanya memindahkan masalah ke bulan depan.'); }
+  else if (k === 'gaya') { v = costly || R.level <= 1 ? 'bad' : 'mid'; why.push(costly ? `Barang atau gaya hidup dibiayai pinjaman berbunga ${rateTxt}; menabung dulu jauh lebih murah.` : 'Untuk barang atau gaya hidup, menabung dulu hampir selalu lebih murah daripada bunga.'); }
+  else if (k === 'usaha') { v = costly ? 'mid' : 'good'; why.push(costly ? `Untuk usaha, pastikan keuntungannya lebih besar dari bunga ${rateTxt}.` : 'Pinjaman produktif bisa bijak selama usahanya menghasilkan lebih dari biaya pinjamannya.'); }
+  else { v = costly ? 'mid' : 'good'; why.push(costly ? `Tujuannya penting (${purposeName(k).toLowerCase()}), tapi bunganya tinggi: ${rateTxt}. Lain kali coba tangga dana dulu.` : `Tujuannya penting (${purposeName(k).toLowerCase()}) dan biayanya wajar.`); }
+  if (share > 0.15) { why.push(`Cicilan ini sendiri ${pct(share, 0)} dari pendapatanmu.`); if (v === 'good') v = 'mid'; }
+  const act = { good: 'Pertahankan: bayar tepat waktu setiap bulan.', mid: 'Jangan tambah pinjaman sejenis sampai yang ini lunas.', bad: 'Jadikan prioritas pelunasan, dan jangan ulangi untuk tujuan yang sama.', unk: 'Lengkapi tujuannya di Data saya.' }[v];
+  return { v, label: VERDICT[v][0], tone: VERDICT[v][1], why, act };
+}
+// the smallest changes that move the readiness verdict, each tied to an existing plan action
+function levers(p) {
+  if (!isSaya(p)) return [];
+  const base = autoCaps(p), R0 = FW.readiness(p), out = [];
+  planActions(base).filter(a => a.apply && ['caps', 'needs', 'income'].includes(a.id) && (a.id !== 'income' || S.cek.extraIn > 0)).forEach(a => {
+    const q = clone(base); a.apply(q); const R1 = FW.readiness(q), d = FW.surplus(q) - FW.surplus(p);
+    if (d > 0) out.push({ t: a.title, txt: `sisa uang +${rps(d)} per bulan → ${R1.max[6] > 0 ? `pinjaman maksimal aman ${rps(R1.max[6])}` : `sisa uangmu jadi ${rp(FW.surplus(q), { plus: true })}`}${R1.level > R0.level ? `, naik ke "${READY[R1.level].name}"` : ''}`, up: R1.level > R0.level });
+  });
+  const ending = [...p.loans].filter(l => l.months <= 12).sort((a, b) => a.months - b.months)[0];
+  if (ending) { const q = clone(p); q.loans = q.loans.filter(l => l.id !== ending.id); const R1 = FW.readiness(q); out.push({ t: `${ending.name} lunas dalam ${ending.months} bulan`, txt: `cicilan ${rps(ending.instalment)} jadi sisa uang${R1.level > R0.level ? `, naik ke "${READY[R1.level].name}"` : ''}`, up: R1.level > R0.level }); }
+  if (R0.efM < 1 && R0.level >= 1) { const f = facts(p), gap = Math.max(0, f.out - (p.emergencyFund || 0)), per = Math.max(f.sur, FW.surplus(applyPlan(base))); out.push({ t: 'Dana darurat 1 bulan pengeluaran', txt: `kurang ${rps(gap)}${per > 0 ? `; dengan ${rps(per)} per bulan tercapai ±${Math.ceil(gap / per)} bulan` : ''}`, up: true }); }
+  return out.sort((a, b) => b.up - a.up).slice(0, 3);
 }

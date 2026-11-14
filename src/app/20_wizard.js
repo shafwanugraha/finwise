@@ -1,6 +1,6 @@
 /* ================= ONBOARDING: "Data saya" from scratch ================= */
 const WSTEPS = ['Tentang kamu', 'Pemasukan', 'Pengeluaran', 'Utang', 'Tabungan & riwayat'];
-const LOAN_TYPES = [['paylater', 'Paylater', 0.026], ['pindar', 'Pindar / pinjol', 0.09], ['kartu kredit', 'Kartu kredit', 0.0175], ['multifinance', 'Kredit motor/HP (multifinance)', 0.016], ['bank', 'Bank / KTA', 0.012], ['koperasi', 'Koperasi', 0.01], ['keluarga', 'Keluarga / teman', 0], ['lainnya', 'Lainnya', 0.02]];
+const LOAN_TYPES = [['paylater', 'Paylater', 0.026], ['kpr', 'KPR / cicilan rumah', 0.008], ['pindar', 'Pindar / pinjol', 0.09], ['kartu kredit', 'Kartu kredit', 0.0175], ['multifinance', 'Kredit motor/HP (multifinance)', 0.016], ['bank', 'Bank / KTA', 0.012], ['koperasi', 'Koperasi', 0.01], ['keluarga', 'Keluarga / teman', 0], ['lainnya', 'Lainnya', 0.02]];
 const fid = path => 'sy-' + path.replace(/\./g, '-');
 const fErr = path => S.wiz.errors[path] ? `<span class="ferr" id="${fid(path)}-err">${esc(S.wiz.errors[path])}</span>` : '';
 const fAttr = path => `id="${fid(path)}" data-sy="${path}"${S.wiz.errors[path] ? ` aria-invalid="true" aria-describedby="${fid(path)}-err"` : ''}`;
@@ -121,6 +121,7 @@ function vMulai() {
       ${rpField(`loans.${i}.instalment`, l.instalment, 'Cicilan per bulan')}
       <label class="f">Tanggal jatuh tempo<input class="in" type="number" min="1" max="31" inputmode="numeric" ${fAttr(`loans.${i}.dueDay`)} data-t="intn" value="${blankNum(l.dueDay)}" placeholder="1–31">${fErr(`loans.${i}.dueDay`)}</label>
       <label class="f">Sisa berapa bulan<input class="in" type="number" min="1" max="360" inputmode="numeric" ${fAttr(`loans.${i}.months`)} data-t="intn" value="${blankNum(l.months)}" placeholder="mis. 6">${fErr(`loans.${i}.months`)}</label>
+      <label class="f">Untuk apa pinjaman ini? <span class="tiny muted">(opsional)</span><select class="in" ${fAttr(`loans.${i}.purpose`)} data-t="text">${l.purpose ? '' : '<option value="" selected>Pilih</option>'}${[...PURPOSES.map(x => [x[0], x[1]]), ['lainnya', 'Lainnya / tidak ingat']].map(t => `<option value="${t[0]}" ${l.purpose === t[0] ? 'selected' : ''}>${t[1]}</option>`).join('')}</select></label>
       <label class="f">Bunga per bulan, % <span class="tiny muted">(opsional)</span><input class="in" inputmode="decimal" ${fAttr(`loans.${i}.rateIn`)} data-t="pctn" value="${l.rateIn == null ? '' : (l.rateIn * 100).toLocaleString('id-ID', { maximumFractionDigits: 3 })}" placeholder="tidak tahu? kosongkan"></label>
      </div><button class="btn ghost sm" data-act="wiz-del" data-list="loans" data-i="${i}">Hapus utang ${i + 1}</button></div>`).join('')}
      <div><button class="btn ghost sm" data-act="wiz-add" data-list="loans">+ Tambah utang</button></div>

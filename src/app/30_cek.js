@@ -32,8 +32,9 @@ function planCard(base, acts, after) {
   return `<div class="card plan" id="plan"><p class="tiny muted">Centang atau matikan langkahnya; angka di kanan langsung dihitung ulang.</p>
    <div class="grid g-side" style="margin-top:12px">
     <ul class="acts">${acts.map(a => `<li class="${a.todo ? 'todo' : ''}">
-      ${a.todo ? '<span class="dot" aria-hidden="true">○</span>' : `<input type="checkbox" id="pa-${a.id}" data-act-change="plan-toggle" data-id="${a.id}" ${S.cek.off?.[a.id] ? '' : 'checked'}>`}
-      <div style="min-width:0"><label ${a.todo ? '' : `for="pa-${a.id}"`}><b>${esc(a.title)}</b>${a.todo ? ' <span class="tag">tugas</span>' : ''}</label><div class="tiny muted">${esc(a.desc)}</div>
+      ${a.todo ? `<input type="checkbox" id="pa-${a.id}" data-act-change="todo-done" data-id="${a.id}" ${base.done?.[a.id] ? 'checked' : ''}>` : `<input type="checkbox" id="pa-${a.id}" data-act-change="plan-toggle" data-id="${a.id}" ${S.cek.off?.[a.id] ? '' : 'checked'}>`}
+      <div style="min-width:0"><label for="pa-${a.id}"><b>${esc(a.title)}</b>${a.todo ? ` <span class="tag">${base.done?.[a.id] ? 'selesai' : 'tugas'}</span>` : ''}</label><div class="tiny muted">${esc(a.desc)}</div>
+       ${a.id === 'slik' && base.done?.slik ? `<div class="row" role="group" aria-label="Hasil cek SLIK" style="gap:6px;margin-top:6px"><span class="tiny"><b>Hasilnya?</b></span>${[['lancar', 'Lancar'], ['kosong', 'Belum ada riwayat'], ['dpk', 'Pernah telat'], ['macet', 'Macet']].map(([k, l]) => `<button class="chip" data-act="slik-set" data-v="${k}">${l}</button>`).join('')}</div>` : ''}
        ${a.input ? `<div style="max-width:220px;margin-top:6px">${rpInput('pa-extra', S.cek.extraIn, 'data-k="cek.extraIn" data-t="rpn" placeholder="mis. 500.000" aria-label="Target pemasukan tambahan per bulan"')}</div>` : ''}
        ${a.rows?.length ? `<div class="tiny" style="margin-top:4px">${a.rows.map(r => `${esc(r.name)}: ${r.from ? `<s>${rps(r.from)}</s> → ` : '+'}<b>${rps(r.to)}</b>`).join(' · ')}</div>` : ''}
        ${a.href ? `<a class="tiny" href="${a.href}" ${a.act ? `data-act="${a.act}" data-v="${a.v}" ${a.mode ? `data-mode="${a.mode}"` : ''}` : ''}>${esc(a.cta || 'Buka')} →</a>` : ''}</div></li>`).join('')}</ul>
@@ -79,6 +80,7 @@ function vCek() {
       <h3 class="rc-level">${RD.name}</h3>
       <ul class="rc-why">${R.reasons.slice(0, 3).map(x => `<li>${esc(x)}</li>`).join('')}</ul>
       <p class="rc-next">${esc(readyNext(R))}</p>
+      ${R.level < 3 ? (lv => lv.length ? `<div class="levers"><div class="lab">Jalan naik level</div><ul>${lv.map(x => `<li><b>${esc(x.t)}</b>: ${esc(x.txt)}</li>`).join('')}</ul></div>` : '')(levers(p)) : ''}
       <div class="row" style="margin-top:12px">${R.level === 0 ? '<button class="btn" data-act="goto-sec" data-id="s4">Lihat rencana tanpa utang</button><a class="btn ghost" href="#pulih">Atur cicilan di PULIH</a>' : '<a class="btn" href="#pilah">Cari pinjaman di PILAH</a><button class="btn ghost" data-act="goto-sec" data-id="s4">Lihat rencana</button>'}</div>
      </div>
      <div class="rc-max">

@@ -677,6 +677,15 @@ table.cmp td.best{background:var(--safe-tint)}
 @media (max-width:480px){.purp{grid-template-columns:minmax(0,1fr)}}
 .nd-steps{margin:12px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:10px}
 .nodebt{border-color:var(--green)}
+
+/* levers, loan analysis */
+.levers{margin-top:14px;padding-top:12px;border-top:1px dashed var(--lv)}
+.levers ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:.875rem}
+.loan-ana{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 20px}
+.loan-ana > ul{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:12px}
+.loan-ana > ul > li{border-top:1px solid var(--line);padding-top:12px}
+.loan-ana li ul{margin:6px 0;padding-left:18px}
+.z-grey{background:var(--soft);color:var(--muted)}
 </style>
 </head>
 <body>
@@ -1627,7 +1636,7 @@ function vHome() {
 }
 /* ================= ONBOARDING: "Data saya" from scratch ================= */
 const WSTEPS = ['Tentang kamu', 'Pemasukan', 'Pengeluaran', 'Utang', 'Tabungan & riwayat'];
-const LOAN_TYPES = [['paylater', 'Paylater', 0.026], ['pindar', 'Pindar / pinjol', 0.09], ['kartu kredit', 'Kartu kredit', 0.0175], ['multifinance', 'Kredit motor/HP (multifinance)', 0.016], ['bank', 'Bank / KTA', 0.012], ['koperasi', 'Koperasi', 0.01], ['keluarga', 'Keluarga / teman', 0], ['lainnya', 'Lainnya', 0.02]];
+const LOAN_TYPES = [['paylater', 'Paylater', 0.026], ['kpr', 'KPR / cicilan rumah', 0.008], ['pindar', 'Pindar / pinjol', 0.09], ['kartu kredit', 'Kartu kredit', 0.0175], ['multifinance', 'Kredit motor/HP (multifinance)', 0.016], ['bank', 'Bank / KTA', 0.012], ['koperasi', 'Koperasi', 0.01], ['keluarga', 'Keluarga / teman', 0], ['lainnya', 'Lainnya', 0.02]];
 const fid = path => 'sy-' + path.replace(/\./g, '-');
 const fErr = path => S.wiz.errors[path] ? `<span class="ferr" id="${fid(path)}-err">${esc(S.wiz.errors[path])}</span>` : '';
 const fAttr = path => `id="${fid(path)}" data-sy="${path}"${S.wiz.errors[path] ? ` aria-invalid="true" aria-describedby="${fid(path)}-err"` : ''}`;
@@ -1748,6 +1757,7 @@ function vMulai() {
       ${rpField(`loans.${i}.instalment`, l.instalment, 'Cicilan per bulan')}
       <label class="f">Tanggal jatuh tempo<input class="in" type="number" min="1" max="31" inputmode="numeric" ${fAttr(`loans.${i}.dueDay`)} data-t="intn" value="${blankNum(l.dueDay)}" placeholder="1–31">${fErr(`loans.${i}.dueDay`)}</label>
       <label class="f">Sisa berapa bulan<input class="in" type="number" min="1" max="360" inputmode="numeric" ${fAttr(`loans.${i}.months`)} data-t="intn" value="${blankNum(l.months)}" placeholder="mis. 6">${fErr(`loans.${i}.months`)}</label>
+      <label class="f">Untuk apa pinjaman ini? <span class="tiny muted">(opsional)</span><select class="in" ${fAttr(`loans.${i}.purpose`)} data-t="text">${l.purpose ? '' : '<option value="" selected>Pilih</option>'}${[...PURPOSES.map(x => [x[0], x[1]]), ['lainnya', 'Lainnya / tidak ingat']].map(t => `<option value="${t[0]}" ${l.purpose === t[0] ? 'selected' : ''}>${t[1]}</option>`).join('')}</select></label>
       <label class="f">Bunga per bulan, % <span class="tiny muted">(opsional)</span><input class="in" inputmode="decimal" ${fAttr(`loans.${i}.rateIn`)} data-t="pctn" value="${l.rateIn == null ? '' : (l.rateIn * 100).toLocaleString('id-ID', { maximumFractionDigits: 3 })}" placeholder="tidak tahu? kosongkan"></label>
      </div><button class="btn ghost sm" data-act="wiz-del" data-list="loans" data-i="${i}">Hapus utang ${i + 1}</button></div>`).join('')}
      <div><button class="btn ghost sm" data-act="wiz-add" data-list="loans">+ Tambah utang</button></div>
@@ -1822,8 +1832,12 @@ function priorities(p, f) {
   if (!f.total && f.wantR > 0.3 && cut > 0) out.push({ w: 70, tone: 'stretch', title: `Batasi keinginan, hemat ${rp(cut)} per bulan`, text: capped.spending.filter(c => c.cap != null && c.amount > c.cap).slice(0, 3).map(c => `${c.name} ${rps(c.amount)} → ${rps(c.cap)}`).join(' · '), href: '#cek', cta: 'Lihat rencana' });
   if (!f.total && f.needR > 0.5 && biggest.length) out.push({ w: 65, tone: 'stretch', title: `Kebutuhan pokok ${pct(f.needR, 0)} dari pendapatan`, text: `Pedomannya ≤50%. Pos terbesar: ${biggest.slice(0, 2).map(c => `${c.name} ${rps(c.amount)} (${pct(c.amount / f.inc, 0)})`).join(', ')}. Hemat 10% di dua pos ini = ${rp(Math.round(FW.sum(biggest.slice(0, 2), c => c.amount) * 0.1 / 1000) * 1000)} per bulan.`, href: '#cek', cta: 'Lihat rencana' });
   const efGap = Math.max(0, f.efTarget * f.out - (p.emergencyFund || 0));
-  if (efGap > 0) { const per = Math.max(0, f.sur), mo = per > 0 ? Math.ceil(efGap / per) : null; out.push({ w: f.efMonths < 1 ? 80 : 55, tone: f.efMonths < 1 ? 'stretch' : 'safe', title: `Bangun dana darurat ${rp(f.efTarget * f.out)}`, text: `Target ${f.efTarget} bulan pengeluaran${f.unstable ? ' (6 bulan karena penghasilanmu naik-turun)' : ''}. Kurang ${rp(efGap)}.${mo ? ` Jika sisa ${rp(per)} disisihkan tiap gajian, tercapai dalam ±${mo} bulan.` : ' Tambah sisa uang dulu agar bisa mulai menabung.'}`, href: '#cek', cta: 'Rencanakan di CEK' }); }
-  if (f.sur > 0 && f.saveR < 0.1) out.push({ w: 50, tone: 'safe', title: `Sisihkan otomatis ${rp(Math.min(f.sur, Math.round(0.1 * f.inc / 10000) * 10000))} tiap gajian`, text: 'Pindahkan ke rekening terpisah di hari gajian, sebelum uang terpakai. Ini menaikkan dua indikator skor kesehatanmu sekaligus.', href: '#cek', cta: 'Lihat dampaknya' });
+  // milestones instead of one far-away target: Rp500 rb first, then 1 month, then the full target
+  if (efGap > 0) { const ef = p.emergencyFund || 0, goal = [500000, f.out, f.efTarget * f.out].find(x => x > ef), gap = goal - ef;
+    const per = Math.max(0, f.sur, isSaya(p) ? FW.surplus(applyPlan(autoCaps(p))) : 0), mo = per > 0 ? Math.ceil(gap / per) : null;
+    const name = goal === 500000 ? 'Mulai dana darurat: Rp500 rb dulu' : goal === f.out ? `Dana darurat 1 bulan pengeluaran: ${rp(f.out)}` : `Dana darurat ${f.efTarget} bulan: ${rp(goal)}`;
+    out.push({ w: f.efMonths < 1 ? 80 : 55, tone: f.efMonths < 1 ? 'stretch' : 'safe', title: name, text: `Kurang ${rp(gap)}. ${mo ? (mo <= 24 ? `Dengan menyisihkan ${rp(per)} per bulan${per > Math.max(0, f.sur) ? ' (setelah rencana hemat)' : ''}, tercapai ±${mo} bulan.` : 'Dengan sisa sekarang butuh lebih dari 2 tahun; naikkan dulu sisa uang lewat rencana hemat.') : 'Tambah sisa uang dulu agar bisa mulai menabung.'} Target akhir ${f.efTarget} bulan pengeluaran (${rp(f.efTarget * f.out)})${f.unstable ? ', karena penghasilanmu naik-turun' : ''}.`, href: '#cek', cta: 'Rencanakan di CEK' }); }
+  if (f.sur > 0 && f.saveR < 0.1 && efGap <= 0) out.push({ w: 50, tone: 'safe', title: `Sisihkan otomatis ${rp(Math.min(f.sur, Math.round(0.1 * f.inc / 10000) * 10000))} tiap gajian`, text: 'Pindahkan ke rekening terpisah di hari gajian, sebelum uang terpakai. Ini menaikkan dua indikator skor kesehatanmu sekaligus.', href: '#cek', cta: 'Lihat dampaknya' });
   if (p.pinjolExp === 'masalah' || p.slik === 'dpk' || p.slik === 'macet') out.push({ w: 75, tone: 'stretch', title: 'Pulihkan riwayat kreditmu dulu', text: 'Riwayat telat bayar membuat pinjaman murah (bank, KUR) sulit didapat. Bayar tepat waktu 3 bulan berturut-turut dan cek SLIK di iDebKu.', href: '#pulih', cta: 'Lihat PULIH' });
   if (p.slik === 'tidaktahu') out.push({ w: 30, tone: 'safe', title: 'Cek SLIK gratis di iDebKu OJK', text: 'Kamu jadi tahu catatan kreditmu sebelum mengajukan pinjaman apa pun.', href: '#pulih', cta: 'Cara mengecek' });
   if (p.insurance === false) out.push({ w: 40, tone: 'stretch', title: 'Daftar BPJS Kesehatan', text: 'Biaya rumah sakit adalah alasan paling umum orang terpaksa meminjam mendadak.', href: '#cek', cta: 'Lihat skor' });
@@ -1859,6 +1873,36 @@ function ratios(p) {
   out.push({ k: 'Daya tahan uang', t: 'Daya tahan uang', f: 'kapan saldo habis dalam satu siklus gajian', v: run ? run.day / 30 : 1, show: run ? `habis tgl ${run.date}` : 'cukup sebulan', bench: 'cukup sampai gajian berikutnya', s: run ? 'danger' : 'safe' });
   return out;
 }
+
+/* ---------- per-loan analysis: is this loan a wise one, given what it is for? ---------- */
+const VERDICT = { good: ['Bijak', 'safe'], mid: ['Pertimbangkan lagi', 'stretch'], bad: ['Tidak disarankan', 'danger'], unk: ['Belum bisa dinilai', 'grey'] };
+function loanVerdict(p, l) {
+  const inc = FW.income(p) || 1, share = l.instalment / inc, rate = l.rateMonthly || 0, R = FW.readiness(p);
+  const costly = rate >= 0.02 || ['pindar', 'paylater'].includes(l.type), k = l.purpose && l.purpose !== 'lainnya' ? l.purpose : null, why = [];
+  const rateTxt = `±${(rate * 100).toLocaleString('id-ID', { maximumFractionDigits: 1 })}% per bulan${l.rateGuess ? ' (perkiraan)' : ''}`;
+  let v;
+  if (!k) { v = 'unk'; why.push('Tujuan pinjaman belum diisi. Isi di Data saya supaya FinWise bisa menilai apakah pinjaman ini bijak.'); }
+  else if (k === 'utang') { v = 'bad'; why.push('Meminjam untuk membayar utang lain biasanya hanya memindahkan masalah ke bulan depan.'); }
+  else if (k === 'gaya') { v = costly || R.level <= 1 ? 'bad' : 'mid'; why.push(costly ? `Barang atau gaya hidup dibiayai pinjaman berbunga ${rateTxt}; menabung dulu jauh lebih murah.` : 'Untuk barang atau gaya hidup, menabung dulu hampir selalu lebih murah daripada bunga.'); }
+  else if (k === 'usaha') { v = costly ? 'mid' : 'good'; why.push(costly ? `Untuk usaha, pastikan keuntungannya lebih besar dari bunga ${rateTxt}.` : 'Pinjaman produktif bisa bijak selama usahanya menghasilkan lebih dari biaya pinjamannya.'); }
+  else { v = costly ? 'mid' : 'good'; why.push(costly ? `Tujuannya penting (${purposeName(k).toLowerCase()}), tapi bunganya tinggi: ${rateTxt}. Lain kali coba tangga dana dulu.` : `Tujuannya penting (${purposeName(k).toLowerCase()}) dan biayanya wajar.`); }
+  if (share > 0.15) { why.push(`Cicilan ini sendiri ${pct(share, 0)} dari pendapatanmu.`); if (v === 'good') v = 'mid'; }
+  const act = { good: 'Pertahankan: bayar tepat waktu setiap bulan.', mid: 'Jangan tambah pinjaman sejenis sampai yang ini lunas.', bad: 'Jadikan prioritas pelunasan, dan jangan ulangi untuk tujuan yang sama.', unk: 'Lengkapi tujuannya di Data saya.' }[v];
+  return { v, label: VERDICT[v][0], tone: VERDICT[v][1], why, act };
+}
+// the smallest changes that move the readiness verdict, each tied to an existing plan action
+function levers(p) {
+  if (!isSaya(p)) return [];
+  const base = autoCaps(p), R0 = FW.readiness(p), out = [];
+  planActions(base).filter(a => a.apply && ['caps', 'needs', 'income'].includes(a.id) && (a.id !== 'income' || S.cek.extraIn > 0)).forEach(a => {
+    const q = clone(base); a.apply(q); const R1 = FW.readiness(q), d = FW.surplus(q) - FW.surplus(p);
+    if (d > 0) out.push({ t: a.title, txt: `sisa uang +${rps(d)} per bulan → ${R1.max[6] > 0 ? `pinjaman maksimal aman ${rps(R1.max[6])}` : `sisa uangmu jadi ${rp(FW.surplus(q), { plus: true })}`}${R1.level > R0.level ? `, naik ke "${READY[R1.level].name}"` : ''}`, up: R1.level > R0.level });
+  });
+  const ending = [...p.loans].filter(l => l.months <= 12).sort((a, b) => a.months - b.months)[0];
+  if (ending) { const q = clone(p); q.loans = q.loans.filter(l => l.id !== ending.id); const R1 = FW.readiness(q); out.push({ t: `${ending.name} lunas dalam ${ending.months} bulan`, txt: `cicilan ${rps(ending.instalment)} jadi sisa uang${R1.level > R0.level ? `, naik ke "${READY[R1.level].name}"` : ''}`, up: R1.level > R0.level }); }
+  if (R0.efM < 1 && R0.level >= 1) { const f = facts(p), gap = Math.max(0, f.out - (p.emergencyFund || 0)), per = Math.max(f.sur, FW.surplus(applyPlan(base))); out.push({ t: 'Dana darurat 1 bulan pengeluaran', txt: `kurang ${rps(gap)}${per > 0 ? `; dengan ${rps(per)} per bulan tercapai ±${Math.ceil(gap / per)} bulan` : ''}`, up: true }); }
+  return out.sort((a, b) => b.up - a.up).slice(0, 3);
+}
 /* ================= CEK ================= */
 // The FinWise plan is a list of concrete actions. Only actions the user keeps switched on change the "after" numbers,
 // and every change is listed, so the score never jumps on assumptions alone.
@@ -1893,8 +1937,9 @@ function planCard(base, acts, after) {
   return `<div class="card plan" id="plan"><p class="tiny muted">Centang atau matikan langkahnya; angka di kanan langsung dihitung ulang.</p>
    <div class="grid g-side" style="margin-top:12px">
     <ul class="acts">${acts.map(a => `<li class="${a.todo ? 'todo' : ''}">
-      ${a.todo ? '<span class="dot" aria-hidden="true">○</span>' : `<input type="checkbox" id="pa-${a.id}" data-act-change="plan-toggle" data-id="${a.id}" ${S.cek.off?.[a.id] ? '' : 'checked'}>`}
-      <div style="min-width:0"><label ${a.todo ? '' : `for="pa-${a.id}"`}><b>${esc(a.title)}</b>${a.todo ? ' <span class="tag">tugas</span>' : ''}</label><div class="tiny muted">${esc(a.desc)}</div>
+      ${a.todo ? `<input type="checkbox" id="pa-${a.id}" data-act-change="todo-done" data-id="${a.id}" ${base.done?.[a.id] ? 'checked' : ''}>` : `<input type="checkbox" id="pa-${a.id}" data-act-change="plan-toggle" data-id="${a.id}" ${S.cek.off?.[a.id] ? '' : 'checked'}>`}
+      <div style="min-width:0"><label for="pa-${a.id}"><b>${esc(a.title)}</b>${a.todo ? ` <span class="tag">${base.done?.[a.id] ? 'selesai' : 'tugas'}</span>` : ''}</label><div class="tiny muted">${esc(a.desc)}</div>
+       ${a.id === 'slik' && base.done?.slik ? `<div class="row" role="group" aria-label="Hasil cek SLIK" style="gap:6px;margin-top:6px"><span class="tiny"><b>Hasilnya?</b></span>${[['lancar', 'Lancar'], ['kosong', 'Belum ada riwayat'], ['dpk', 'Pernah telat'], ['macet', 'Macet']].map(([k, l]) => `<button class="chip" data-act="slik-set" data-v="${k}">${l}</button>`).join('')}</div>` : ''}
        ${a.input ? `<div style="max-width:220px;margin-top:6px">${rpInput('pa-extra', S.cek.extraIn, 'data-k="cek.extraIn" data-t="rpn" placeholder="mis. 500.000" aria-label="Target pemasukan tambahan per bulan"')}</div>` : ''}
        ${a.rows?.length ? `<div class="tiny" style="margin-top:4px">${a.rows.map(r => `${esc(r.name)}: ${r.from ? `<s>${rps(r.from)}</s> → ` : '+'}<b>${rps(r.to)}</b>`).join(' · ')}</div>` : ''}
        ${a.href ? `<a class="tiny" href="${a.href}" ${a.act ? `data-act="${a.act}" data-v="${a.v}" ${a.mode ? `data-mode="${a.mode}"` : ''}` : ''}>${esc(a.cta || 'Buka')} →</a>` : ''}</div></li>`).join('')}</ul>
@@ -1940,6 +1985,7 @@ function vCek() {
       <h3 class="rc-level">${RD.name}</h3>
       <ul class="rc-why">${R.reasons.slice(0, 3).map(x => `<li>${esc(x)}</li>`).join('')}</ul>
       <p class="rc-next">${esc(readyNext(R))}</p>
+      ${R.level < 3 ? (lv => lv.length ? `<div class="levers"><div class="lab">Jalan naik level</div><ul>${lv.map(x => `<li><b>${esc(x.t)}</b>: ${esc(x.txt)}</li>`).join('')}</ul></div>` : '')(levers(p)) : ''}
       <div class="row" style="margin-top:12px">${R.level === 0 ? '<button class="btn" data-act="goto-sec" data-id="s4">Lihat rencana tanpa utang</button><a class="btn ghost" href="#pulih">Atur cicilan di PULIH</a>' : '<a class="btn" href="#pilah">Cari pinjaman di PILAH</a><button class="btn ghost" data-act="goto-sec" data-id="s4">Lihat rencana</button>'}</div>
      </div>
      <div class="rc-max">
@@ -2439,7 +2485,9 @@ function vPulih() {
     <div class="kpi"><div class="k">Cicilan per bulan</div><div class="v">${rp(h.ex)}</div><div class="s">${st.restructure ? 'setelah restrukturisasi' : 'saat ini'}</div></div>
     <div class="kpi"><div class="k">${term('Porsi cicilan')}</div><div class="v" style="color:${h.dsrNow > 0.4 ? 'var(--danger)' : h.dsrNow > 0.3 ? 'var(--stretch)' : 'var(--safe)'}">${pct(h.dsrNow)}</div><div class="s">batas sehat 30%</div></div>
     <div class="kpi"><div class="k">${term('Sisa uang')}</div><div class="v" style="color:${h.sur < 0 ? 'var(--danger)' : 'var(--safe)'}">${rp(h.sur, { plus: true })}</div><div class="s">setelah semua cicilan</div></div>
-   </div></div></section>
+   </div>
+   ${p.loans.length ? `<div class="loan-ana"><h3>Analisis pinjaman</h3><p class="tiny muted">Dinilai dari tujuan pinjaman, bunganya, dan porsinya dari pendapatanmu.</p><ul>${p.loans.map(l => { const v = loanVerdict(p, l); return `<li><div class="row between" style="flex-wrap:nowrap;align-items:flex-start"><div><b>${esc(l.name)}</b><div class="tiny muted">${esc(LOAN_TYPES.find(t => t[0] === l.type)?.[1] || l.type)} · untuk ${esc(l.purpose && l.purpose !== 'lainnya' ? purposeName(l.purpose).toLowerCase() : 'belum diisi')} · ${rp(l.instalment)}/bulan</div></div><span class="pill z-${v.tone}">${v.label}</span></div><ul class="small">${v.why.map(x => `<li>${esc(x)}</li>`).join('')}</ul><p class="small"><b>${esc(v.act)}</b>${v.v === 'unk' ? ' <a href="#mulai" data-act="wiz-edit" data-v="3">Isi tujuan</a>' : ''}</p></li>`; }).join('')}</ul></div>` : ''}
+   </div></section>
   <section class="sec">${secHead(2, 'p2', 'Jadwal bayar & uang yang disisihkan', 'Kapan tiap cicilan jatuh tempo, dan berapa yang harus dikunci saat gajian.')}
      <div class="panel">
       ${monthStrip([...p.incomes.map(i => ({ day: i.payday || 1, label: 'Uang masuk', color: 'var(--safe)' })), ...loansSorted.map(l => ({ day: l.dueDay, label: rps(l.instalment), color: 'var(--amber)' }))])}
@@ -3123,6 +3171,7 @@ const ACT = {
   'cek-applied': el => { S.cek.applied = el.dataset.v === '1'; render(); },
   'pilah-step': el => { S.pilah.step = +el.dataset.v; render(); window.scrollTo({ top: 0 }); },
   mode: el => { (el.dataset.scope === 't' ? S.test.st : S.pilah).mode = el.dataset.v; render(); },
+  'slik-set': el => { const p = S.profiles.saya; p.slik = el.dataset.v; persist(); toast('Hasil SLIK dicatat. Skor dan kesiapan berutang diperbarui.'); render(); },
   'pilah-cat': el => { const st = S.pilah; st.cat = el.dataset.v; st.purpose = st.cat === 'usaha' ? 'produktif' : 'konsumtif'; st.cap = undefined; st.ack = false; st.ackBox = false; render(); announce('Tujuan: ' + purposeName(st.cat)); },
   'pilah-urg': el => { const st = S.pilah, u = URGENCY.find(x => x[0] === el.dataset.v); st.urg = u[0]; st.hours = u[2]; st.cap = undefined; st.ack = false; render(); announce('Urgensi: ' + u[1]); },
   'pilah-ack': () => { if (!S.pilah.ackBox) return; S.pilah.ack = true; render(); },
@@ -3194,6 +3243,9 @@ const CHG = {
   ack: el => { S.overlay.ack = el.checked; render(); },
   quiz: el => { S.test[el.dataset.set][+el.dataset.i] = +el.value; render(); },
   't-field': el => { const t = S.test; const f = el.dataset.f; if (f === 'consent') t.consent = el.checked; else if (f === 'comment') t.feedback.comment = el.value; else t[f] = el.value; render(); },
+  'todo-done': el => { const p = S.profiles.saya, id = el.dataset.id; p.done = p.done || {}; p.done[id] = el.checked;
+    if (id === 'bpjs' && el.checked) { p.insurance = true; toast('BPJS dicatat. Skor kondisi keuangan diperbarui.'); }
+    persist(); render(); if (id === 'slik' && el.checked) announce('Pilih hasil cek SLIK-mu'); },
   'pilah-ackbox': el => { S.pilah.ackBox = el.checked; queueRender(); },
   'plan-toggle': el => { S.cek.off = S.cek.off || {}; S.cek.off[el.dataset.id] = !el.checked; queueRender(); },
   'calc-late': el => { calcState().lateOn = el.checked; render(); },

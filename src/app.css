@@ -667,3 +667,12 @@ table.cmp td.best{background:var(--safe-tint)}
 @media (max-width:480px){.purp{grid-template-columns:minmax(0,1fr)}}
 .nd-steps{margin:12px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:10px}
 .nodebt{border-color:var(--green)}
+
+/* levers, loan analysis */
+.levers{margin-top:14px;padding-top:12px;border-top:1px dashed var(--lv)}
+.levers ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:.875rem}
+.loan-ana{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 20px}
+.loan-ana > ul{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:12px}
+.loan-ana > ul > li{border-top:1px solid var(--line);padding-top:12px}
+.loan-ana li ul{margin:6px 0;padding-left:18px}
+.z-grey{background:var(--soft);color:var(--muted)}
